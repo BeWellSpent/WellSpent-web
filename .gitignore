@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# generated proto types — run `npm run generate` to recreate
+src/gen/
+
+# env
+.env.local
+.env.*.local
+
+# misc
+.DS_Store
+Thumbs.db
