@@ -31,10 +31,10 @@ import Alert from '@mui/material/Alert'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 interface Props {
-  budgetId: string
+  budgetProfileId: string
 }
 
-export function PeoplePanel({ budgetId }: Props) {
+export function PeoplePanel({ budgetProfileId }: Props) {
   const { showError, showSuccess } = useSnackbar()
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
@@ -45,37 +45,32 @@ export function PeoplePanel({ budgetId }: Props) {
   const [replacementPersonId, setReplacementPersonId] = useState<bigint>(0n)
   const [replacementPmId, setReplacementPmId] = useState<string>('')
 
-  const { data: budgetData } = useQuery({
-    queryKey: ['budget', budgetId],
-    queryFn: () => client.getBudget({ id: budgetId }),
+  const { data: profileData } = useQuery({
+    queryKey: ['budget-profile', budgetProfileId],
+    queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
   })
-  const budgetOwnerId = budgetData?.budget?.userId ?? ''
+  const budgetOwnerId = profileData?.profile?.userId ?? ''
 
   const { data, isLoading } = useQuery({
-    queryKey: ['budget-people', budgetId],
-    queryFn: () => client.listBudgetPeople({ budgetId }),
+    queryKey: ['budget-people', budgetProfileId],
+    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
 
   const { data: pmData } = useQuery({
-    queryKey: ['paymentMethods', budgetId],
-    queryFn: () => client.listPaymentMethods({ budgetId }),
-  })
-
-  const { data: txData } = useQuery({
-    queryKey: ['transactions', budgetId],
-    queryFn: () => client.listTransactions({ budgetId }),
+    queryKey: ['paymentMethods', budgetProfileId],
+    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
   })
 
   const { data: incomeData } = useQuery({
-    queryKey: ['income', budgetId],
-    queryFn: () => client.listIncomeEntries({ budgetId }),
+    queryKey: ['income-sources', budgetProfileId],
+    queryFn: () => client.listIncomeSources({ budgetProfileId }),
   })
 
   const { mutateAsync: doAdd, isPending: isAdding } = useMutation({
     mutationFn: (names: string[]) =>
-      client.addBudgetPeople({ budgetId, people: names.map((userName) => ({ userName, userId: '' })) }),
+      client.addBudgetPeople({ budgetProfileId, people: names.map((userName) => ({ userName, userId: '' })) }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetId] })
+      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
     },
   })
 
@@ -84,11 +79,11 @@ export function PeoplePanel({ budgetId }: Props) {
       personId: bigint
       replacementPersonId: bigint
       replacementPaymentMethodId: string
-    }) => client.removeBudgetPerson({ budgetId, personId, replacementPersonId, replacementPaymentMethodId }),
+    }) => client.removeBudgetPerson({ budgetProfileId, personId, replacementPersonId, replacementPaymentMethodId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetId] })
-      queryClient.invalidateQueries({ queryKey: ['paymentMethods', budgetId] })
-      queryClient.invalidateQueries({ queryKey: ['income', budgetId] })
+      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: ['paymentMethods', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: ['income-sources', budgetProfileId] })
     },
   })
 
@@ -103,7 +98,7 @@ export function PeoplePanel({ budgetId }: Props) {
     if (pendingNames.length === 0) return
     try {
       await doAdd(pendingNames)
-      logger.info('budget.people.add', { budgetId, count: pendingNames.length })
+      logger.info('budget.people.add', { budgetProfileId, count: pendingNames.length })
       showSuccess(`Added ${pendingNames.length} person${pendingNames.length > 1 ? 's' : ''}`)
       setPendingNames([])
     } catch (err) {
@@ -112,17 +107,10 @@ export function PeoplePanel({ budgetId }: Props) {
   }
 
   function openRemoveDialog(person: BudgetPerson) {
-    // Check if this person has any transactions (via their payment methods) or income entries.
-    const personPmIds = new Set(
-      (pmData?.methods ?? [])
-        .filter((pm) => pm.budgetPersonId === person.id)
-        .map((pm) => pm.id)
-    )
-    const hasTx = (txData?.transactions ?? []).some((t) => personPmIds.has(t.paymentMethodId))
-    const hasIncome = (incomeData?.entries ?? []).some((e) => e.budgetPersonId === person.id)
-
+    const hasIncome = (incomeData?.sources ?? []).some((s) => s.budgetPersonId === person.id)
+    const hasPMs = (pmData?.methods ?? []).some((pm) => pm.budgetPersonId === person.id)
     setRemovingPerson(person)
-    setNeedsReplacement(hasTx || hasIncome)
+    setNeedsReplacement(hasIncome || hasPMs)
     setReplacementPersonId(0n)
     setReplacementPmId('')
   }
@@ -144,7 +132,7 @@ export function PeoplePanel({ budgetId }: Props) {
         replacementPaymentMethodId: needsReplacement ? replacementPmId : '',
       })
       logger.info('budget.people.remove', {
-        budgetId,
+        budgetProfileId,
         personId: removingPerson.id.toString(),
         withReplacement: needsReplacement,
       })
@@ -156,20 +144,14 @@ export function PeoplePanel({ budgetId }: Props) {
   }
 
   const people = data?.people ?? []
-
-  // People eligible as replacement: not the one being removed
   const replacementPeople = people.filter((p) => removingPerson && p.id !== removingPerson.id)
-
-  // Payment methods belonging to the selected replacement person
   const replacementPersonPMs: PaymentMethod[] = (pmData?.methods ?? []).filter(
     (pm) => pm.budgetPersonId === replacementPersonId
   )
-
   const canConfirmRemoval = !needsReplacement || (replacementPersonId !== 0n && replacementPmId !== '')
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Members list */}
       <Box>
         <Typography variant="subtitle1" fontWeight={600} mb={1}>Members</Typography>
         {isLoading ? (
@@ -212,7 +194,6 @@ export function PeoplePanel({ budgetId }: Props) {
 
       <Divider />
 
-      {/* Add people */}
       <Box>
         <Typography variant="subtitle1" fontWeight={600} mb={1}>Add people</Typography>
         <Stack direction="row" spacing={1} mb={1}>
@@ -250,14 +231,13 @@ export function PeoplePanel({ budgetId }: Props) {
         </Button>
       </Box>
 
-      {/* Remove dialog */}
       <Dialog open={removingPerson !== null} onClose={closeRemoveDialog} maxWidth="xs" fullWidth>
         <DialogTitle>Remove {removingPerson?.userName}</DialogTitle>
         <DialogContent>
           {needsReplacement ? (
             <Stack spacing={2} sx={{ mt: 1 }}>
               <Alert severity="warning" sx={{ fontSize: '0.8rem' }}>
-                This person has transactions or income entries. Choose a replacement before removing.
+                This person has income sources or payment methods. Choose a replacement before removing.
               </Alert>
 
               <FormControl fullWidth size="small">

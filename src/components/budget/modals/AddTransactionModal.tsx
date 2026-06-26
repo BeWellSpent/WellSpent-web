@@ -19,7 +19,8 @@ import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 
 interface Props {
-  budgetId: string
+  budgetPeriodId: string
+  budgetProfileId: string
   open?: boolean
   embedded?: boolean
   onClose?: () => void
@@ -27,7 +28,7 @@ interface Props {
   onDone: () => void
 }
 
-export function AddTransactionModal({ budgetId, open, embedded, onClose, onSkip, onDone }: Props) {
+export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, embedded, onClose, onSkip, onDone }: Props) {
   const { showError } = useSnackbar()
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
@@ -42,8 +43,8 @@ export function AddTransactionModal({ budgetId, open, embedded, onClose, onSkip,
     queryFn: () => client.listCategories({}),
   })
   const { data: methodsData } = useQuery({
-    queryKey: ['paymentMethods', budgetId],
-    queryFn: () => client.listPaymentMethods({ budgetId }),
+    queryKey: ['paymentMethods', budgetProfileId],
+    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
   })
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {
@@ -54,7 +55,7 @@ export function AddTransactionModal({ budgetId, open, embedded, onClose, onSkip,
       transactionTypeId: number
       transactionFrequencyId: number
       recurring: boolean
-    }) => client.createTransaction({ budgetId, plannedAmount: vars.amount, ...vars }),
+    }) => client.createTransaction({ budgetPeriodId, plannedAmount: vars.amount, ...vars }),
   })
 
   async function handleSave() {
@@ -71,7 +72,7 @@ export function AddTransactionModal({ budgetId, open, embedded, onClose, onSkip,
         transactionFrequencyId: recurring ? 4 : 1,
         recurring,
       })
-      logger.info('transaction.create', { budgetId, name, amount })
+      logger.info('transaction.create', { budgetPeriodId, name, amount })
       onDone()
     } catch (err) {
       showError(err)

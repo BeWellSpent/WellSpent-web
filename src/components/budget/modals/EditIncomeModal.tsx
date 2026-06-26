@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
-import type { IncomeEntry } from '@/gen/spendsense/v1/budget_pb'
+import type { IncomeSource } from '@/gen/spendsense/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -24,44 +24,48 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 
 interface Props {
-  budgetId: string
-  entry: IncomeEntry
+  budgetProfileId: string
+  source: IncomeSource
   onClose: () => void
   onDone: () => void
 }
 
-export function EditIncomeModal({ budgetId, entry, onClose, onDone }: Props) {
+export function EditIncomeModal({ budgetProfileId, source, onClose, onDone }: Props) {
   const { showError } = useSnackbar()
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const [name, setName] = useState(entry.name)
+  const [name, setName] = useState(source.name)
   const [amount, setAmount] = useState(() => {
-    const total = Number(entry.amount?.units ?? 0n) + (entry.amount?.nanos ?? 0) / 1e9
+    const total = Number(source.defaultAmount?.units ?? 0n) + (source.defaultAmount?.nanos ?? 0) / 1e9
     return total.toString()
   })
-  const [recurring, setRecurring] = useState(entry.recurring)
-  const [budgetPersonId, setBudgetPersonId] = useState<bigint>(entry.budgetPersonId)
+  const [recurring, setRecurring] = useState(source.recurring)
+  const [budgetPersonId, setBudgetPersonId] = useState<bigint>(source.budgetPersonId)
 
   useEffect(() => {
-    setName(entry.name)
-    const total = Number(entry.amount?.units ?? 0n) + (entry.amount?.nanos ?? 0) / 1e9
+    setName(source.name)
+    const total = Number(source.defaultAmount?.units ?? 0n) + (source.defaultAmount?.nanos ?? 0) / 1e9
     setAmount(total.toString())
-    setRecurring(entry.recurring)
-    setBudgetPersonId(entry.budgetPersonId)
-  }, [entry])
+    setRecurring(source.recurring)
+    setBudgetPersonId(source.budgetPersonId)
+  }, [source])
 
   const client = useClient(BudgetService)
 
   const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetId],
-    queryFn: () => client.listBudgetPeople({ budgetId }),
+    queryKey: ['budget-people', budgetProfileId],
+    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
   const people = peopleData?.people ?? []
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (vars: { name: string; amount: { units: bigint; nanos: number }; recurring: boolean; budgetPersonId: bigint }) =>
-      client.updateIncomeEntry({ id: entry.id, budgetId, ...vars }),
+    mutationFn: (vars: {
+      name: string
+      defaultAmount: { units: bigint; nanos: number }
+      recurring: boolean
+      budgetPersonId: bigint
+    }) => client.updateIncomeSource({ id: source.id, budgetProfileId, ...vars }),
   })
 
   async function handleSave() {
@@ -69,8 +73,8 @@ export function EditIncomeModal({ budgetId, entry, onClose, onDone }: Props) {
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
-      await mutateAsync({ name, amount: { units: BigInt(units), nanos }, recurring, budgetPersonId })
-      logger.info('budget.income.update', { budgetId, id: entry.id.toString(), name })
+      await mutateAsync({ name, defaultAmount: { units: BigInt(units), nanos }, recurring, budgetPersonId })
+      logger.info('budget.income.update', { budgetProfileId, id: source.id.toString(), name })
       onDone()
     } catch (err) {
       showError(err)

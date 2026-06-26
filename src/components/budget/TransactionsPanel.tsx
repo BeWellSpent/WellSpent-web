@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
+import type { Transaction } from '@/gen/spendsense/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { useViewPreference } from '@/hooks/useViewPreference'
 import { logger } from '@/lib/logger'
 import { AddTransactionModal } from './modals/AddTransactionModal'
+import { EditTransactionModal } from './modals/EditTransactionModal'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Tabs from '@mui/material/Tabs'
@@ -24,12 +26,15 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import CircularProgress from '@mui/material/CircularProgress'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import ViewStreamIcon from '@mui/icons-material/ViewStream'
 import TabIcon from '@mui/icons-material/Tab'
 import type { ViewMode } from '@/hooks/useViewPreference'
 
 interface Props {
-  budgetId: string
+  budgetPeriodId: string
+  budgetProfileId: string
+  isEditable?: boolean
 }
 
 function formatMoney(units: bigint, nanos: number): string {
@@ -37,23 +42,31 @@ function formatMoney(units: bigint, nanos: number): string {
   return total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
 
-function TransactionTable({ budgetId, typeId, onDeleted }: { budgetId: string; typeId: number; onDeleted: () => void }) {
+interface TableProps {
+  budgetPeriodId: string
+  typeId: number
+  isEditable: boolean
+  onDeleted: () => void
+  onEdit: (t: Transaction) => void
+}
+
+function TransactionTable({ budgetPeriodId, typeId, isEditable, onDeleted, onEdit }: TableProps) {
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['transactions', budgetId, typeId],
-    queryFn: () => client.listTransactions({ budgetId, transactionTypeId: typeId }),
+    queryKey: ['transactions', budgetPeriodId, typeId],
+    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: typeId }),
   })
 
   const { mutateAsync: doDelete } = useMutation({
-    mutationFn: (id: string) => client.deleteTransaction({ id, budgetId }),
+    mutationFn: (id: string) => client.deleteTransaction({ id }),
   })
 
   async function handleDelete(id: string) {
     try {
       await doDelete(id)
-      logger.info('transaction.delete', { budgetId, id })
+      logger.info('transaction.delete', { budgetPeriodId, id })
       onDeleted()
     } catch (err) {
       showError(err)
@@ -75,7 +88,7 @@ function TransactionTable({ budgetId, typeId, onDeleted }: { budgetId: string; t
           <TableCell>Name</TableCell>
           <TableCell align="right">Amount</TableCell>
           <TableCell align="right">Planned</TableCell>
-          <TableCell />
+          {isEditable && <TableCell />}
         </TableRow>
       </TableHead>
       <TableBody>
@@ -84,11 +97,16 @@ function TransactionTable({ budgetId, typeId, onDeleted }: { budgetId: string; t
             <TableCell>{t.name}</TableCell>
             <TableCell align="right">{formatMoney(t.amount?.units ?? 0n, t.amount?.nanos ?? 0)}</TableCell>
             <TableCell align="right">{formatMoney(t.plannedAmount?.units ?? 0n, t.plannedAmount?.nanos ?? 0)}</TableCell>
-            <TableCell align="right">
-              <IconButton size="small" onClick={() => handleDelete(t.id)}>
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </TableCell>
+            {isEditable && (
+              <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                <IconButton size="small" onClick={() => onEdit(t)}>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton size="small" onClick={() => handleDelete(t.id)}>
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </TableCell>
+            )}
           </TableRow>
         ))}
       </TableBody>
@@ -96,13 +114,23 @@ function TransactionTable({ budgetId, typeId, onDeleted }: { budgetId: string; t
   )
 }
 
-export function TransactionsPanel({ budgetId }: Props) {
+export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable = true }: Props) {
   const queryClient = useQueryClient()
   const [viewMode, setViewMode] = useViewPreference('tabbed')
   const [addOpen, setAddOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Transaction | null>(null)
   const [tabIndex, setTabIndex] = useState(0)
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['transactions', budgetId] })
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
+
+  function handleEdit(t: Transaction) {
+    setEditTarget(t)
+  }
+
+  function handleEditDone() {
+    setEditTarget(null)
+    refresh()
+  }
 
   return (
     <Box>
@@ -118,9 +146,11 @@ export function TransactionsPanel({ budgetId }: Props) {
             <ToggleButton value="tabbed"><TabIcon fontSize="small" /></ToggleButton>
             <ToggleButton value="split"><ViewStreamIcon fontSize="small" /></ToggleButton>
           </ToggleButtonGroup>
-          <Button size="small" startIcon={<AddIcon />} variant="outlined" onClick={() => setAddOpen(true)}>
-            Add
-          </Button>
+          {isEditable && (
+            <Button size="small" startIcon={<AddIcon />} variant="outlined" onClick={() => setAddOpen(true)}>
+              Add
+            </Button>
+          )}
         </Box>
       </Box>
 
@@ -132,30 +162,44 @@ export function TransactionsPanel({ budgetId }: Props) {
           </Tabs>
           <TransactionTable
             key={tabIndex}
-            budgetId={budgetId}
+            budgetPeriodId={budgetPeriodId}
             typeId={tabIndex === 0 ? 1 : 2}
+            isEditable={isEditable}
             onDeleted={refresh}
+            onEdit={handleEdit}
           />
         </>
       ) : (
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block' }}>FIXED</Typography>
-            <TransactionTable budgetId={budgetId} typeId={1} onDeleted={refresh} />
+            <TransactionTable budgetPeriodId={budgetPeriodId} typeId={1} isEditable={isEditable} onDeleted={refresh} onEdit={handleEdit} />
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block' }}>VARIABLE</Typography>
-            <TransactionTable budgetId={budgetId} typeId={2} onDeleted={refresh} />
+            <TransactionTable budgetPeriodId={budgetPeriodId} typeId={2} isEditable={isEditable} onDeleted={refresh} onEdit={handleEdit} />
           </Box>
         </Box>
       )}
 
-      <AddTransactionModal
-        budgetId={budgetId}
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        onDone={() => { setAddOpen(false); refresh() }}
-      />
+      {isEditable && (
+        <AddTransactionModal
+          budgetPeriodId={budgetPeriodId}
+          budgetProfileId={budgetProfileId}
+          open={addOpen}
+          onClose={() => setAddOpen(false)}
+          onDone={() => { setAddOpen(false); refresh() }}
+        />
+      )}
+
+      {editTarget && (
+        <EditTransactionModal
+          budgetProfileId={budgetProfileId}
+          transaction={editTarget}
+          onClose={() => setEditTarget(null)}
+          onDone={handleEditDone}
+        />
+      )}
     </Box>
   )
 }

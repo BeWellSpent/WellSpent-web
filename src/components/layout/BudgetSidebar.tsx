@@ -61,10 +61,10 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   }
 
   const { data } = useQuery({
-    queryKey: ['budget', budgetId],
-    queryFn: () => client.getBudget({ id: budgetId }),
+    queryKey: ['budget-profile', budgetId],
+    queryFn: () => client.getBudgetProfile({ id: budgetId }),
   })
-  const budgetName = data?.budget?.name ?? '…'
+  const budgetName = data?.profile?.name ?? '…'
 
   async function handleLogout() {
     try {
@@ -294,7 +294,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
       </Box>
 
       <FullScreenDrawer open={peopleOpen} onClose={() => setPeopleOpen(false)} title="People">
-        <PeoplePanel budgetId={budgetId} />
+        <PeoplePanel budgetProfileId={budgetId} />
       </FullScreenDrawer>
     </Box>
   )

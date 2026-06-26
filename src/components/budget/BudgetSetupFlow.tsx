@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
+import { BudgetCycle } from '@/gen/spendsense/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -17,11 +18,13 @@ import Typography from '@mui/material/Typography'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
 import { AddPeopleModal } from './modals/AddPeopleModal'
 import { AddIncomeModal } from './modals/AddIncomeModal'
-import { AddTransactionModal } from './modals/AddTransactionModal'
+import { AddPaymentMethodsStep } from './modals/AddPaymentMethodsStep'
 
-const STEPS = ['Create Budget', 'Add People', 'Add Income', 'First Transaction']
+const STEPS = ['Create Budget', 'Add People', 'Add Income', 'Payment Methods']
 
 interface Props {
   open: boolean
@@ -32,26 +35,36 @@ interface Props {
 export function BudgetSetupFlow({ open, onClose, onComplete }: Props) {
   const { showError, showSuccess } = useSnackbar()
   const [step, setStep] = useState(0)
-  const [budgetId, setBudgetId] = useState<string | null>(null)
+  const [profileId, setProfileId] = useState<string | null>(null)
   const [budgetName, setBudgetName] = useState('')
   const client = useClient(BudgetService)
 
-  const { mutateAsync: doCreateBudget, isPending } = useMutation({
-    mutationFn: (name: string) => client.createBudget({ name }),
+  const { mutateAsync: doCreateProfile, isPending } = useMutation({
+    mutationFn: (name: string) => client.createBudgetProfile({ name, cycle: BudgetCycle.MONTHLY }),
   })
 
-  function handleClose() {
+  function reset() {
     setStep(0)
-    setBudgetId(null)
+    setProfileId(null)
     setBudgetName('')
+  }
+
+  function handleClose() {
+    reset()
     onClose()
+  }
+
+  function handleFinishLater() {
+    showSuccess('Budget created! You can finish setup from the budget view.')
+    reset()
+    onComplete()
   }
 
   async function handleCreateBudget() {
     try {
-      const res = await doCreateBudget(budgetName)
-      const id = res.budget?.id ?? ''
-      setBudgetId(id)
+      const res = await doCreateProfile(budgetName)
+      const id = res.profile?.id ?? ''
+      setProfileId(id)
       logger.info('budget.create', { budgetId: id, name: budgetName })
       setStep(1)
     } catch (err) {
@@ -64,13 +77,22 @@ export function BudgetSetupFlow({ open, onClose, onComplete }: Props) {
       setStep((s) => s + 1)
     } else {
       showSuccess('Budget set up successfully!')
+      reset()
       onComplete()
     }
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Set up your budget</DialogTitle>
+    <Dialog open={open} onClose={step === 0 ? handleClose : undefined} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        Set up your budget
+        {step > 0 && (
+          <IconButton size="small" onClick={handleFinishLater} title="Finish later">
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
+      </DialogTitle>
+
       <DialogContent>
         <Stepper activeStep={step} sx={{ mb: 3 }}>
           {STEPS.map((label) => (
@@ -85,31 +107,41 @@ export function BudgetSetupFlow({ open, onClose, onComplete }: Props) {
               label="Budget name"
               value={budgetName}
               onChange={(e) => setBudgetName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && budgetName.trim() && !isPending && handleCreateBudget()}
               fullWidth
               autoFocus
             />
           </Stack>
         )}
 
-        {step === 1 && budgetId && (
-          <AddPeopleModal budgetId={budgetId} embedded onSkip={handleSkipOrNext} onDone={handleSkipOrNext} />
+        {step === 1 && profileId && (
+          <AddPeopleModal budgetProfileId={profileId} embedded onSkip={handleSkipOrNext} onDone={handleSkipOrNext} />
         )}
 
-        {step === 2 && budgetId && (
-          <AddIncomeModal budgetId={budgetId} embedded onSkip={handleSkipOrNext} onDone={handleSkipOrNext} />
+        {step === 2 && profileId && (
+          <AddIncomeModal budgetProfileId={profileId} embedded onSkip={handleSkipOrNext} onDone={handleSkipOrNext} />
         )}
 
-        {step === 3 && budgetId && (
-          <AddTransactionModal budgetId={budgetId} embedded onSkip={handleSkipOrNext} onDone={handleSkipOrNext} />
+        {step === 3 && profileId && (
+          <AddPaymentMethodsStep budgetProfileId={profileId} onSkip={handleSkipOrNext} onDone={handleSkipOrNext} />
         )}
       </DialogContent>
 
       {step === 0 && (
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={handleCreateBudget} disabled={!budgetName.trim() || isPending}>
             {isPending ? 'Creating…' : 'Create'}
           </Button>
+        </DialogActions>
+      )}
+
+      {step > 0 && (
+        <DialogActions sx={{ justifyContent: 'space-between' }}>
+          <Button onClick={handleFinishLater} color="inherit" size="small">Finish later</Button>
+          {step > 1 && (
+            <Button onClick={() => setStep((s) => s - 1)} color="inherit" size="small">Back</Button>
+          )}
         </DialogActions>
       )}
     </Dialog>

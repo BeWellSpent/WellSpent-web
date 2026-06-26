@@ -44,10 +44,10 @@ const PAYMENT_TYPES = [
 ]
 
 interface Props {
-  budgetId: string
+  budgetProfileId: string
 }
 
-export function PaymentMethodsPanel({ budgetId }: Props) {
+export function PaymentMethodsPanel({ budgetProfileId }: Props) {
   const { showError, showSuccess } = useSnackbar()
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -66,13 +66,13 @@ export function PaymentMethodsPanel({ budgetId }: Props) {
   const client = useClient(BudgetService)
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['paymentMethods', budgetId],
-    queryFn: () => client.listPaymentMethods({ budgetId }),
+    queryKey: ['paymentMethods', budgetProfileId],
+    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
   })
 
   const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetId],
-    queryFn: () => client.listBudgetPeople({ budgetId }),
+    queryKey: ['budget-people', budgetProfileId],
+    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
 
   const { mutateAsync: doCreate, isPending: isCreating } = useMutation({
@@ -85,7 +85,8 @@ export function PaymentMethodsPanel({ budgetId }: Props) {
   })
 
   const { mutateAsync: doDelete, isPending: isDeleting } = useMutation({
-    mutationFn: (vars: { id: string; replacementId: string; budgetId: string }) => client.deletePaymentMethod(vars),
+    mutationFn: (vars: { id: string; replacementId: string; budgetProfileId: string }) =>
+      client.deletePaymentMethod(vars),
   })
 
   async function handleCreate() {
@@ -115,8 +116,8 @@ export function PaymentMethodsPanel({ budgetId }: Props) {
   async function handleDelete() {
     if (!deletingMethod || !replacementId) return
     try {
-      await doDelete({ id: deletingMethod.id, replacementId, budgetId })
-      logger.info('paymentMethod.deactivate', { id: deletingMethod.id, replacementId, budgetId })
+      await doDelete({ id: deletingMethod.id, replacementId, budgetProfileId })
+      logger.info('paymentMethod.deactivate', { id: deletingMethod.id, replacementId, budgetProfileId })
       showSuccess(`"${deletingMethod.name}" deactivated`)
       setDeletingMethod(null)
       refetch()

@@ -1,0 +1,11 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Use npm ci so Docker installs exactly what's in the lockfile — avoids peer dep conflicts
+COPY package*.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
