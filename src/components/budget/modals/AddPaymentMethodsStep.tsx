@@ -93,7 +93,7 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
   return (
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">
-        Add your payment methods (e.g. Chase Visa, Cash). You'll use these when recording transactions.
+        Add your payment methods (e.g. Chase Visa, Cash). You&apos;ll use these when recording transactions.
       </Typography>
 
       {savedMethods.length > 0 && (

@@ -68,7 +68,7 @@ export function AddPeopleModal({ budgetProfileId, onSkip, onDone }: Props) {
   return (
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">
-        Add other people who share this budget. You've already been added.
+        Add other people who share this budget. You&apos;ve already been added.
       </Typography>
 
       {isLoading ? (
