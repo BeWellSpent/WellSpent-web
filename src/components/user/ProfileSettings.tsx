@@ -18,7 +18,24 @@ import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
+import InputAdornment from '@mui/material/InputAdornment'
 import Alert from '@mui/material/Alert'
+
+const US_STATES = [
+  ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
+  ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
+  ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'], ['ID', 'Idaho'],
+  ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'], ['KS', 'Kansas'],
+  ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'], ['MD', 'Maryland'],
+  ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'], ['MS', 'Mississippi'],
+  ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'], ['NV', 'Nevada'],
+  ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'], ['NY', 'New York'],
+  ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'], ['OK', 'Oklahoma'],
+  ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'], ['SC', 'South Carolina'],
+  ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'], ['UT', 'Utah'],
+  ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'], ['WV', 'West Virginia'],
+  ['WI', 'Wisconsin'], ['WY', 'Wyoming'], ['DC', 'District of Columbia'],
+]
 
 const FILING_STATUS_OPTIONS = [
   { value: FilingStatus.SINGLE, label: 'Single' },
@@ -49,28 +66,38 @@ export function ProfileSettings() {
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [countryCode, setCountryCode] = useState('')
+  const [stateCode, setStateCode] = useState('')
   const [filingStatus, setFilingStatus] = useState<FilingStatus>(FilingStatus.UNSPECIFIED)
   const [taxFrequency, setTaxFrequency] = useState<TaxPaymentFrequency>(TaxPaymentFrequency.UNSPECIFIED)
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>([])
+  const [countriesLoading, setCountriesLoading] = useState(true)
 
   useEffect(() => {
     if (user) {
       setFirstName(user.firstName)
       setLastName(user.lastName)
+      setCountryCode(user.countryCode)
+      setStateCode(user.stateCode)
       setFilingStatus(user.filingStatus)
       setTaxFrequency(user.taxPaymentFrequency)
     }
   }, [user])
 
+  useEffect(() => {
+    client.listCountries({}).then((res) => {
+      setCountries(res.countries.map((c) => ({ code: c.code, name: c.name })))
+    }).catch((err) => {
+      logger.error('settings.listCountries.failed', { error: err instanceof Error ? err.message : String(err) })
+    }).finally(() => {
+      setCountriesLoading(false)
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const { mutateAsync, isPending } = useMutation({
     mutationFn: () =>
-      client.updateMe({
-        firstName,
-        lastName,
-        countryCode: user?.countryCode ?? '',
-        stateCode: user?.stateCode ?? '',
-        filingStatus,
-        taxPaymentFrequency: taxFrequency,
-      }),
+      client.updateMe({ firstName, lastName, countryCode, stateCode, filingStatus, taxPaymentFrequency: taxFrequency }),
   })
 
   async function handleSave() {
@@ -86,7 +113,7 @@ export function ProfileSettings() {
 
   if (isLoading) return <CircularProgress size={24} />
 
-  const isUS = user?.countryCode === 'US'
+  const isUS = countryCode === 'US'
 
   return (
     <Box sx={{ maxWidth: 480 }}>
@@ -116,22 +143,41 @@ export function ProfileSettings() {
           helperText="Email cannot be changed"
         />
 
-        {user?.countryCode && (
-          <TextField
+        <FormControl fullWidth size="small" disabled={countriesLoading}>
+          <InputLabel>Country</InputLabel>
+          <Select
             label="Country"
-            value={user.countryCode}
-            fullWidth
-            disabled
-          />
-        )}
+            value={countryCode}
+            onChange={(e) => { setCountryCode(e.target.value); setStateCode('') }}
+            endAdornment={
+              countriesLoading ? (
+                <InputAdornment position="end" sx={{ mr: 3 }}>
+                  <CircularProgress size={16} />
+                </InputAdornment>
+              ) : undefined
+            }
+          >
+            <MenuItem value="">— Not set —</MenuItem>
+            {countries.map((c) => (
+              <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-        {isUS && user?.stateCode && (
-          <TextField
-            label="State"
-            value={user.stateCode}
-            fullWidth
-            disabled
-          />
+        {isUS && (
+          <FormControl fullWidth size="small">
+            <InputLabel>State</InputLabel>
+            <Select
+              label="State"
+              value={stateCode}
+              onChange={(e) => setStateCode(e.target.value)}
+            >
+              <MenuItem value="">— Not set —</MenuItem>
+              {US_STATES.map(([code, name]) => (
+                <MenuItem key={code} value={code}>{name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         )}
 
         {isUS && (
@@ -170,7 +216,6 @@ export function ProfileSettings() {
 
             <Typography variant="caption" color="text.secondary">
               These settings are used to estimate your tax reserve savings each budget period.
-              Country and state can only be changed by contacting support.
             </Typography>
           </>
         )}

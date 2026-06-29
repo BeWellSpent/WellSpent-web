@@ -20,6 +20,8 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
+import CircularProgress from '@mui/material/CircularProgress'
+import InputAdornment from '@mui/material/InputAdornment'
 
 const authClient = createClient(AuthService, publicTransport)
 const userClient = createClient(UserService, publicTransport)
@@ -48,21 +50,18 @@ export function RegisterForm() {
   const [password, setPassword] = useState('')
   const [countryCode, setCountryCode] = useState('')
   const [stateCode, setStateCode] = useState('')
-  const [countries, setCountries] = useState<{ code: string; name: string }[]>([
-    { code: 'AR', name: 'Argentina' },
-    { code: 'ES', name: 'Spain' },
-    { code: 'US', name: 'United States' },
-  ])
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>([])
+  const [countriesLoading, setCountriesLoading] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     userClient.listCountries({}).then((res) => {
-      if (res.countries.length > 0) {
-        setCountries(res.countries.map((c) => ({ code: c.code, name: c.name })))
-      }
+      setCountries(res.countries.map((c) => ({ code: c.code, name: c.name })))
     }).catch((err) => {
       logger.error('register.listCountries.failed', { error: err instanceof Error ? err.message : String(err) })
+    }).finally(() => {
+      setCountriesLoading(false)
     })
   }, [])
 
@@ -125,21 +124,26 @@ export function RegisterForm() {
         helperText="8+ characters with uppercase, lowercase, digit, and special character"
       />
 
-      {countries.length > 0 && (
-        <FormControl fullWidth size="small">
-          <InputLabel>Country</InputLabel>
-          <Select
-            label="Country"
-            value={countryCode}
-            onChange={(e) => { setCountryCode(e.target.value); setStateCode('') }}
-          >
-            <MenuItem value="">Prefer not to say</MenuItem>
-            {countries.map((c) => (
-              <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      )}
+      <FormControl fullWidth size="small" disabled={countriesLoading}>
+        <InputLabel>Country</InputLabel>
+        <Select
+          label="Country"
+          value={countryCode}
+          onChange={(e) => { setCountryCode(e.target.value); setStateCode('') }}
+          endAdornment={
+            countriesLoading ? (
+              <InputAdornment position="end" sx={{ mr: 3 }}>
+                <CircularProgress size={16} />
+              </InputAdornment>
+            ) : undefined
+          }
+        >
+          <MenuItem value="">Prefer not to say</MenuItem>
+          {countries.map((c) => (
+            <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
       {countryCode === 'US' && (
         <FormControl fullWidth size="small">
