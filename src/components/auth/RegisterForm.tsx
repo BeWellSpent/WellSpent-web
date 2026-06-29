@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@connectrpc/connect'
 import { AuthService } from '@/gen/spendsense/v1/auth_connect'
 import { UserService } from '@/gen/spendsense/v1/user_connect'
-import type { Country } from '@/gen/spendsense/v1/user_pb'
 import { publicTransport } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
@@ -49,14 +48,22 @@ export function RegisterForm() {
   const [password, setPassword] = useState('')
   const [countryCode, setCountryCode] = useState('')
   const [stateCode, setStateCode] = useState('')
-  const [countries, setCountries] = useState<Country[]>([])
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>([
+    { code: 'AR', name: 'Argentina' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'US', name: 'United States' },
+  ])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     userClient.listCountries({}).then((res) => {
-      setCountries(res.countries)
-    }).catch(() => {})
+      if (res.countries.length > 0) {
+        setCountries(res.countries.map((c) => ({ code: c.code, name: c.name })))
+      }
+    }).catch((err) => {
+      logger.error('register.listCountries.failed', { error: err instanceof Error ? err.message : String(err) })
+    })
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
