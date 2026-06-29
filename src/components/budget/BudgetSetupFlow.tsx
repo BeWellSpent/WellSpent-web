@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
+import { UserService } from '@/gen/spendsense/v1/user_connect'
 import { BudgetCycle } from '@/gen/spendsense/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
@@ -38,6 +39,13 @@ export function BudgetSetupFlow({ open, onClose, onComplete }: Props) {
   const [profileId, setProfileId] = useState<string | null>(null)
   const [budgetName, setBudgetName] = useState('')
   const client = useClient(BudgetService)
+  const userClient = useClient(UserService)
+
+  const { data: meData } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => userClient.getMe({}),
+  })
+  const showBeforeTax = meData?.user?.countryCode === 'US'
 
   const { mutateAsync: doCreateProfile, isPending } = useMutation({
     mutationFn: (name: string) => client.createBudgetProfile({ name, cycle: BudgetCycle.MONTHLY }),
@@ -119,7 +127,7 @@ export function BudgetSetupFlow({ open, onClose, onComplete }: Props) {
         )}
 
         {step === 2 && profileId && (
-          <AddIncomeModal budgetProfileId={profileId} embedded onSkip={handleSkipOrNext} onDone={handleSkipOrNext} />
+          <AddIncomeModal budgetProfileId={profileId} embedded showBeforeTax={showBeforeTax} onSkip={handleSkipOrNext} onDone={handleSkipOrNext} />
         )}
 
         {step === 3 && profileId && (

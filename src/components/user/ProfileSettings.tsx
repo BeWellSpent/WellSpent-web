@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { UserService } from '@/gen/spendsense/v1/user_connect'
 import { FilingStatus, TaxPaymentFrequency } from '@/gen/spendsense/v1/common_pb'
@@ -20,6 +21,8 @@ import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import InputAdornment from '@mui/material/InputAdornment'
 import Alert from '@mui/material/Alert'
+import IconButton from '@mui/material/IconButton'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
 const US_STATES = [
   ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
@@ -54,6 +57,7 @@ const TAX_FREQUENCY_OPTIONS = [
 ]
 
 export function ProfileSettings() {
+  const router = useRouter()
   const client = useClient(UserService)
   const { showError } = useSnackbar()
   const [saved, setSaved] = useState(false)
@@ -117,7 +121,12 @@ export function ProfileSettings() {
 
   return (
     <Box sx={{ maxWidth: 480 }}>
-      <Typography variant="h6" fontWeight={700} mb={2}>Profile</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <IconButton onClick={() => router.back()} size="small">
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h6" fontWeight={700}>Profile</Typography>
+      </Box>
 
       <Stack spacing={2}>
         <Stack direction="row" spacing={2}>
