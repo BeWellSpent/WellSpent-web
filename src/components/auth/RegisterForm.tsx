@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@connectrpc/connect'
 import { AuthService } from '@/gen/spendsense/v1/auth_connect'
 import { UserService } from '@/gen/spendsense/v1/user_connect'
-import { publicTransport } from '@/lib/api/client'
+import { FilingStatus } from '@/gen/spendsense/v1/common_pb'
+import { publicTransport, createTransport } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
 import TextField from '@mui/material/TextField'
@@ -42,6 +43,14 @@ const US_STATES = [
   ['WI', 'Wisconsin'], ['WY', 'Wyoming'], ['DC', 'District of Columbia'],
 ]
 
+const FILING_STATUS_OPTIONS = [
+  { value: FilingStatus.SINGLE, label: 'Single' },
+  { value: FilingStatus.MARRIED_FILING_JOINTLY, label: 'Married Filing Jointly' },
+  { value: FilingStatus.MARRIED_FILING_SEPARATELY, label: 'Married Filing Separately' },
+  { value: FilingStatus.HEAD_OF_HOUSEHOLD, label: 'Head of Household' },
+  { value: FilingStatus.QUALIFYING_SURVIVING_SPOUSE, label: 'Qualifying Surviving Spouse' },
+]
+
 export function RegisterForm() {
   const router = useRouter()
   const [firstName, setFirstName] = useState('')
@@ -50,6 +59,7 @@ export function RegisterForm() {
   const [password, setPassword] = useState('')
   const [countryCode, setCountryCode] = useState('')
   const [stateCode, setStateCode] = useState('')
+  const [filingStatus, setFilingStatus] = useState<FilingStatus>(FilingStatus.UNSPECIFIED)
   const [countries, setCountries] = useState<{ code: string; name: string }[]>([])
   const [countriesLoading, setCountriesLoading] = useState(true)
   const [error, setError] = useState('')
@@ -71,6 +81,22 @@ export function RegisterForm() {
     setLoading(true)
     try {
       const res = await authClient.register({ firstName, lastName, email, password, countryCode, stateCode })
+
+      // Persist filing status before setting the cookie so profile is complete on first load
+      if (countryCode === 'US' && filingStatus !== FilingStatus.UNSPECIFIED) {
+        const authedUserClient = createClient(UserService, createTransport(res.accessToken))
+        await authedUserClient.updateMe({
+          firstName,
+          lastName,
+          countryCode,
+          stateCode,
+          filingStatus,
+          taxPaymentFrequency: 0,
+        }).catch((err) => {
+          logger.error('register.updateFilingStatus.failed', { error: err instanceof Error ? err.message : String(err) })
+        })
+      }
+
       await fetch('/api/auth/set-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,6 +112,8 @@ export function RegisterForm() {
       setLoading(false)
     }
   }
+
+  const isUS = countryCode === 'US'
 
   return (
     <Stack component="form" onSubmit={handleSubmit} spacing={2}>
@@ -129,7 +157,7 @@ export function RegisterForm() {
         <Select
           label="Country"
           value={countryCode}
-          onChange={(e) => { setCountryCode(e.target.value); setStateCode('') }}
+          onChange={(e) => { setCountryCode(e.target.value); setStateCode(''); setFilingStatus(FilingStatus.UNSPECIFIED) }}
           endAdornment={
             countriesLoading ? (
               <InputAdornment position="end" sx={{ mr: 3 }}>
@@ -145,7 +173,7 @@ export function RegisterForm() {
         </Select>
       </FormControl>
 
-      {countryCode === 'US' && (
+      {isUS && (
         <FormControl fullWidth size="small">
           <InputLabel>State</InputLabel>
           <Select
@@ -156,6 +184,22 @@ export function RegisterForm() {
             <MenuItem value="">— Select state —</MenuItem>
             {US_STATES.map(([code, name]) => (
               <MenuItem key={code} value={code}>{name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+
+      {isUS && (
+        <FormControl fullWidth size="small">
+          <InputLabel>Filing status</InputLabel>
+          <Select
+            label="Filing status"
+            value={filingStatus}
+            onChange={(e) => setFilingStatus(e.target.value as FilingStatus)}
+          >
+            <MenuItem value={FilingStatus.UNSPECIFIED}>— Select filing status —</MenuItem>
+            {FILING_STATUS_OPTIONS.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
             ))}
           </Select>
         </FormControl>

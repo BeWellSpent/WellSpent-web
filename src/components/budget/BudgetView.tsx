@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
+import { UserService } from '@/gen/spendsense/v1/user_connect'
 import { useClient } from '@/hooks/useClient'
 import { IncomePanel } from './IncomePanel'
 import { SavingsPanel } from './SavingsPanel'
@@ -18,6 +19,12 @@ interface Props {
 
 export function BudgetView({ budgetId }: Props) {
   const client = useClient(BudgetService)
+  const userClient = useClient(UserService)
+
+  const { data: meData } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => userClient.getMe({}),
+  })
 
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['budget-profile', budgetId],
@@ -38,6 +45,9 @@ export function BudgetView({ budgetId }: Props) {
   const profile = profileData?.profile
   const periods = periodsData?.periods ?? []
   const activePeriod = periods.find((p) => !p.isArchived) ?? periods[0]
+  // Fall back to the user's country when the profile pre-dates the country_code column
+  const effectiveCountry = profile?.countryCode || meData?.user?.countryCode || ''
+  const showBeforeTax = effectiveCountry === 'US'
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -53,7 +63,7 @@ export function BudgetView({ budgetId }: Props) {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
         <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-          <IncomePanel budgetProfileId={budgetId} showBeforeTax={profile?.countryCode === 'US'} />
+          <IncomePanel budgetProfileId={budgetId} showBeforeTax={showBeforeTax} />
         </Box>
         <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
           <SavingsPanel budgetProfileId={budgetId} />
