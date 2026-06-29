@@ -15,8 +15,6 @@ import DialogActions from '@mui/material/DialogActions'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Checkbox from '@mui/material/Checkbox'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
@@ -48,7 +46,6 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
     return total.toString()
   })
   const [frequency, setFrequency] = useState<RecurringType>(source.frequency)
-  const [recurring, setRecurring] = useState(source.recurring)
   const [budgetPersonId, setBudgetPersonId] = useState<bigint>(source.budgetPersonId)
 
   useEffect(() => {
@@ -56,7 +53,6 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
     const total = Number(source.amount?.units ?? 0n) + (source.amount?.nanos ?? 0) / 1e9
     setAmount(total.toString())
     setFrequency(source.frequency)
-    setRecurring(source.recurring)
     setBudgetPersonId(source.budgetPersonId)
   }, [source])
 
@@ -73,17 +69,16 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
       name: string
       amount: { units: bigint; nanos: number }
       frequency: RecurringType
-      recurring: boolean
       budgetPersonId: bigint
     }) => client.updateSavingsSource({ id: source.id, budgetProfileId, ...vars }),
   })
 
   async function handleSave() {
-    if (!name.trim() || !amount) return
+    if (!name.trim() || !amount || budgetPersonId === 0n) return
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
-      await mutateAsync({ name, amount: { units: BigInt(units), nanos }, frequency, recurring, budgetPersonId })
+      await mutateAsync({ name, amount: { units: BigInt(units), nanos }, frequency, budgetPersonId })
       logger.info('budget.savings.update', { budgetProfileId, id: source.id.toString(), name })
       onDone()
     } catch (err) {
@@ -123,27 +118,20 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
               ))}
             </Select>
           </FormControl>
-          <FormControlLabel
-            control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
-            label="Carry forward to next period"
-          />
-          {people.length > 0 && (
-            <FormControl fullWidth size="small">
-              <InputLabel>Attributed to</InputLabel>
-              <Select
-                label="Attributed to"
-                value={budgetPersonId.toString()}
-                onChange={(e) => setBudgetPersonId(BigInt(e.target.value))}
-              >
-                <MenuItem value="0">Unattributed</MenuItem>
-                {people.map((p) => (
-                  <MenuItem key={p.id.toString()} value={p.id.toString()}>
-                    {p.userName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
+          <FormControl fullWidth size="small" required>
+            <InputLabel>Owner</InputLabel>
+            <Select
+              label="Owner"
+              value={budgetPersonId.toString()}
+              onChange={(e) => setBudgetPersonId(BigInt(e.target.value))}
+            >
+              {people.map((p) => (
+                <MenuItem key={p.id.toString()} value={p.id.toString()}>
+                  {p.userName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Stack>
       </DialogContent>
       <DialogActions>
@@ -151,7 +139,7 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
         <Button
           variant="contained"
           onClick={handleSave}
-          disabled={!name.trim() || !amount || isPending}
+          disabled={!name.trim() || !amount || budgetPersonId === 0n || isPending}
         >
           {isPending ? 'Saving…' : 'Save'}
         </Button>

@@ -9,6 +9,7 @@ import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
 import { FullScreenDrawer } from '@/components/ui/FullScreenDrawer'
 import { PeoplePanel } from '@/components/budget/PeoplePanel'
+import { CategoriesPanel } from '@/components/budget/CategoriesPanel'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
@@ -25,12 +26,14 @@ import IconButton from '@mui/material/IconButton'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
 import PeopleIcon from '@mui/icons-material/People'
+import CategoryIcon from '@mui/icons-material/Category'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import SettingsIcon from '@mui/icons-material/Settings'
 import LogoutIcon from '@mui/icons-material/Logout'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const SIDEBAR_WIDTH = 240
 const SIDEBAR_COLLAPSED_WIDTH = 60
@@ -47,6 +50,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const client = useClient(BudgetService)
   const [peopleOpen, setPeopleOpen] = useState(false)
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
@@ -77,6 +81,12 @@ export function BudgetSidebar({ budgetId, children }: Props) {
 
   const navItems = [
     {
+      label: 'Categories',
+      icon: <CategoryIcon />,
+      action: () => setCategoriesOpen(true),
+      disabled: false,
+    },
+    {
       label: 'People',
       icon: <PeopleIcon />,
       action: () => setPeopleOpen(true),
@@ -92,9 +102,8 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     {
       label: 'Settings',
       icon: <SettingsIcon />,
-      action: () => {},
-      disabled: true,
-      tooltip: 'Coming soon',
+      action: () => router.push('/settings'),
+      disabled: false,
     },
   ]
 
@@ -187,6 +196,21 @@ export function BudgetSidebar({ budgetId, children }: Props) {
 
       <Divider />
 
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'space-between',
+          px: collapsed ? 0 : 2,
+          minHeight: 48,
+        }}
+      >
+        {!collapsed && <Typography variant="body2" color="text.secondary">Theme</Typography>}
+        <ThemeToggle />
+      </Box>
+
+      <Divider />
+
       {/* Logout */}
       <List disablePadding>
         <ListItem disablePadding>
@@ -244,6 +268,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
                 <ArrowBackIcon />
               </IconButton>
               <Typography variant="h6" fontWeight={700} noWrap sx={{ flex: 1 }}>{budgetName}</Typography>
+              <ThemeToggle />
             </Toolbar>
           </AppBar>
         )}
@@ -292,6 +317,10 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           </Paper>
         )}
       </Box>
+
+      <FullScreenDrawer open={categoriesOpen} onClose={() => setCategoriesOpen(false)} title="Categories">
+        <CategoriesPanel />
+      </FullScreenDrawer>
 
       <FullScreenDrawer open={peopleOpen} onClose={() => setPeopleOpen(false)} title="People">
         <PeoplePanel budgetProfileId={budgetId} />

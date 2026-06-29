@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { ColorPicker } from '@/components/ui/ColorPicker'
 import { logger } from '@/lib/logger'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -12,6 +13,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 
 interface Props {
   open: boolean
@@ -22,18 +24,20 @@ interface Props {
 export function AddCategoryModal({ open, onClose, onCreated }: Props) {
   const { showError, showSuccess } = useSnackbar()
   const [name, setName] = useState('')
+  const [color, setColor] = useState('')
   const client = useClient(BudgetService)
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (categoryName: string) => client.createCategory({ name: categoryName }),
+    mutationFn: (vars: { name: string; color: string }) => client.createCategory(vars),
   })
 
   async function handleSave() {
     if (!name.trim()) return
     try {
-      await mutateAsync(name)
+      await mutateAsync({ name, color })
       logger.info('category.create', { name })
       showSuccess(`Category "${name}" created`)
       setName('')
+      setColor('')
       onCreated()
     } catch (err) {
       showError(err)
@@ -50,9 +54,13 @@ export function AddCategoryModal({ open, onClose, onCreated }: Props) {
           onChange={(e) => setName(e.target.value)}
           fullWidth
           autoFocus
-          sx={{ mt: 1 }}
+          sx={{ mt: 1, mb: 2 }}
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
         />
+        <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+          Color (optional)
+        </Typography>
+        <ColorPicker value={color} onChange={setColor} />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>

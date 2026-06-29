@@ -28,10 +28,22 @@ interface Props {
   onDone: () => void
 }
 
+function todayString(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function dateStringToTimestamp(str: string): { seconds: bigint; nanos: number } {
+  const [year, month, day] = str.split('-').map(Number)
+  const d = new Date(year, month - 1, day, 12)
+  return { seconds: BigInt(Math.floor(d.getTime() / 1000)), nanos: 0 }
+}
+
 export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, embedded, onClose, onSkip, onDone }: Props) {
   const { showError } = useSnackbar()
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
+  const [date, setDate] = useState(todayString)
   const [categoryId, setCategoryId] = useState<number>(0)
   const [paymentMethodId, setPaymentMethodId] = useState('')
   const [typeId, setTypeId] = useState<number>(1)
@@ -50,6 +62,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
     mutationFn: (vars: {
       name: string
       amount: { units: bigint; nanos: number }
+      date: { seconds: bigint; nanos: number }
       categoryId: number
       paymentMethodId: string
       transactionTypeId: number
@@ -59,13 +72,14 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
   })
 
   async function handleSave() {
-    if (!name.trim() || !amount) return
+    if (!name.trim() || !amount || !date) return
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
       await mutateAsync({
         name,
         amount: { units: BigInt(units), nanos },
+        date: dateStringToTimestamp(date),
         categoryId,
         paymentMethodId,
         transactionTypeId: typeId,
@@ -94,6 +108,15 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
         onChange={(e) => setAmount(e.target.value)}
         fullWidth
         inputProps={{ min: 0, step: '0.01' }}
+      />
+      <TextField
+        label="Date"
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        fullWidth
+        required
+        InputLabelProps={{ shrink: true }}
       />
       <TextField select label="Type" value={typeId} onChange={(e) => setTypeId(Number(e.target.value))} fullWidth>
         <MenuItem value={1}>Fixed</MenuItem>
@@ -124,7 +147,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
         {form}
         <Stack direction="row" spacing={1} justifyContent="flex-end" mt={2}>
           {onSkip && <Button onClick={onSkip} color="inherit">Skip</Button>}
-          <Button variant="contained" onClick={handleSave} disabled={!name.trim() || !amount || isPending}>
+          <Button variant="contained" onClick={handleSave} disabled={!name.trim() || !amount || !date || isPending}>
             {isPending ? 'Saving…' : 'Save & Finish'}
           </Button>
         </Stack>
@@ -138,7 +161,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
       <DialogContent sx={{ pt: 2 }}>{form}</DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSave} disabled={!name.trim() || !amount || isPending}>
+        <Button variant="contained" onClick={handleSave} disabled={!name.trim() || !amount || !date || isPending}>
           {isPending ? 'Saving…' : 'Add'}
         </Button>
       </DialogActions>

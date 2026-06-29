@@ -53,7 +53,7 @@ export function BudgetView({ budgetId }: Props) {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
         <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-          <IncomePanel budgetProfileId={budgetId} />
+          <IncomePanel budgetProfileId={budgetId} showBeforeTax={profile?.countryCode === 'US'} />
         </Box>
         <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
           <SavingsPanel budgetProfileId={budgetId} />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import { RecurringType } from '@/gen/spendsense/v1/common_pb'
@@ -14,8 +14,6 @@ import DialogActions from '@mui/material/DialogActions'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Checkbox from '@mui/material/Checkbox'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
@@ -43,7 +41,6 @@ export function AddSavingsDialog({ budgetProfileId, onClose, onDone }: Props) {
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [frequency, setFrequency] = useState<RecurringType>(RecurringType.MONTHLY)
-  const [recurring, setRecurring] = useState(true)
   const [budgetPersonId, setBudgetPersonId] = useState<bigint>(0n)
 
   const client = useClient(BudgetService)
@@ -54,22 +51,27 @@ export function AddSavingsDialog({ budgetProfileId, onClose, onDone }: Props) {
   })
   const people = peopleData?.people ?? []
 
+  useEffect(() => {
+    if (people.length > 0 && budgetPersonId === 0n) {
+      setBudgetPersonId(people[0].id)
+    }
+  }, [people, budgetPersonId])
+
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {
       name: string
       amount: { units: bigint; nanos: number }
       frequency: RecurringType
-      recurring: boolean
       budgetPersonId: bigint
     }) => client.addSavingsSource({ budgetProfileId, ...vars }),
   })
 
   async function handleSave() {
-    if (!name.trim() || !amount) return
+    if (!name.trim() || !amount || budgetPersonId === 0n) return
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
-      await mutateAsync({ name, amount: { units: BigInt(units), nanos }, frequency, recurring, budgetPersonId })
+      await mutateAsync({ name, amount: { units: BigInt(units), nanos }, frequency, budgetPersonId })
       logger.info('budget.savings.add', { budgetProfileId, name, amount })
       onDone()
     } catch (err) {
@@ -109,27 +111,20 @@ export function AddSavingsDialog({ budgetProfileId, onClose, onDone }: Props) {
               ))}
             </Select>
           </FormControl>
-          <FormControlLabel
-            control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
-            label="Carry forward to next period"
-          />
-          {people.length > 0 && (
-            <FormControl fullWidth size="small">
-              <InputLabel>Attributed to</InputLabel>
-              <Select
-                label="Attributed to"
-                value={budgetPersonId.toString()}
-                onChange={(e) => setBudgetPersonId(BigInt(e.target.value))}
-              >
-                <MenuItem value="0">Unattributed</MenuItem>
-                {people.map((p) => (
-                  <MenuItem key={p.id.toString()} value={p.id.toString()}>
-                    {p.userName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
+          <FormControl fullWidth size="small" required>
+            <InputLabel>Owner</InputLabel>
+            <Select
+              label="Owner"
+              value={budgetPersonId.toString()}
+              onChange={(e) => setBudgetPersonId(BigInt(e.target.value))}
+            >
+              {people.map((p) => (
+                <MenuItem key={p.id.toString()} value={p.id.toString()}>
+                  {p.userName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Stack>
       </DialogContent>
       <DialogActions>
@@ -137,7 +132,7 @@ export function AddSavingsDialog({ budgetProfileId, onClose, onDone }: Props) {
         <Button
           variant="contained"
           onClick={handleSave}
-          disabled={!name.trim() || !amount || isPending}
+          disabled={!name.trim() || !amount || budgetPersonId === 0n || isPending}
         >
           {isPending ? 'Saving…' : 'Save'}
         </Button>

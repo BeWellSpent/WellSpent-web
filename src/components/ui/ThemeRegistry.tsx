@@ -1,19 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useServerInsertedHTML } from 'next/navigation'
 import { CacheProvider } from '@emotion/react'
 import createCache from '@emotion/cache'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
+import { ThemeContextProvider, useThemeMode } from '@/context/ThemeContext'
 
-const theme = createTheme({
-  palette: {
-    primary: { main: '#1565c0' },
-    secondary: { main: '#2e7d32' },
-  },
-  shape: { borderRadius: 8 },
-})
+function ThemedApp({ children }: { children: React.ReactNode }) {
+  const { effective } = useThemeMode()
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: effective,
+          primary: { main: '#1565c0' },
+          secondary: { main: '#2e7d32' },
+        },
+        shape: { borderRadius: 8 },
+      }),
+    [effective]
+  )
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
+  )
+}
 
 export function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const [{ cache, flush }] = useState(() => {
@@ -54,10 +69,9 @@ export function ThemeRegistry({ children }: { children: React.ReactNode }) {
 
   return (
     <CacheProvider value={cache}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
+      <ThemeContextProvider>
+        <ThemedApp>{children}</ThemedApp>
+      </ThemeContextProvider>
     </CacheProvider>
   )
 }

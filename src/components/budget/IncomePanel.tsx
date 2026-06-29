@@ -22,6 +22,7 @@ import AddIcon from '@mui/icons-material/Add'
 
 interface Props {
   budgetProfileId: string
+  showBeforeTax?: boolean
 }
 
 function formatMoney(units: bigint, nanos: number): string {
@@ -29,7 +30,7 @@ function formatMoney(units: bigint, nanos: number): string {
   return total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
 
-export function IncomePanel({ budgetProfileId }: Props) {
+export function IncomePanel({ budgetProfileId, showBeforeTax }: Props) {
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
   const [editingSource, setEditingSource] = useState<IncomeSource | null>(null)
@@ -123,6 +124,7 @@ export function IncomePanel({ budgetProfileId }: Props) {
       {addOpen && (
         <AddIncomeDialog
           budgetProfileId={budgetProfileId}
+          showBeforeTax={showBeforeTax}
           onClose={() => setAddOpen(false)}
           onDone={() => { setAddOpen(false); refetch() }}
         />
@@ -132,6 +134,7 @@ export function IncomePanel({ budgetProfileId }: Props) {
         <EditIncomeModal
           budgetProfileId={budgetProfileId}
           source={editingSource}
+          showBeforeTax={showBeforeTax}
           onClose={() => setEditingSource(null)}
           onDone={() => {
             setEditingSource(null)

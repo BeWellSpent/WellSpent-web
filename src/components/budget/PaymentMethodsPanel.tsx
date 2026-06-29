@@ -7,6 +7,7 @@ import { PaymentType } from '@/gen/spendsense/v1/common_pb'
 import type { PaymentMethod } from '@/gen/spendsense/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { ColorPicker } from '@/components/ui/ColorPicker'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -56,9 +57,11 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
   const [newName, setNewName] = useState('')
   const [newType, setNewType] = useState<PaymentType>(PaymentType.DEBIT)
   const [newPersonId, setNewPersonId] = useState<bigint>(0n)
+  const [newColor, setNewColor] = useState('')
 
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null)
   const [editName, setEditName] = useState('')
+  const [editColor, setEditColor] = useState('')
 
   const [deletingMethod, setDeletingMethod] = useState<PaymentMethod | null>(null)
   const [replacementId, setReplacementId] = useState('')
@@ -76,12 +79,12 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
   })
 
   const { mutateAsync: doCreate, isPending: isCreating } = useMutation({
-    mutationFn: (vars: { name: string; type: PaymentType; budgetPersonId: bigint }) =>
+    mutationFn: (vars: { name: string; type: PaymentType; budgetPersonId: bigint; color: string }) =>
       client.createPaymentMethod(vars),
   })
 
   const { mutateAsync: doUpdate, isPending: isUpdating } = useMutation({
-    mutationFn: (vars: { id: string; name: string }) => client.updatePaymentMethod(vars),
+    mutationFn: (vars: { id: string; name: string; color: string }) => client.updatePaymentMethod(vars),
   })
 
   const { mutateAsync: doDelete, isPending: isDeleting } = useMutation({
@@ -91,11 +94,12 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
 
   async function handleCreate() {
     try {
-      await doCreate({ name: newName, type: newType, budgetPersonId: newPersonId })
+      await doCreate({ name: newName, type: newType, budgetPersonId: newPersonId, color: newColor })
       logger.info('paymentMethod.create', { name: newName, budgetPersonId: newPersonId.toString() })
       showSuccess(`Payment method "${newName}" added`)
       setNewName('')
       setNewPersonId(0n)
+      setNewColor('')
       setAddOpen(false)
       refetch()
     } catch (err) {
@@ -106,6 +110,7 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
   function openEdit(method: PaymentMethod) {
     setEditingMethod(method)
     setEditName(method.name)
+    setEditColor(method.color)
   }
 
   function openDelete(method: PaymentMethod) {
@@ -129,7 +134,7 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
   async function handleUpdate() {
     if (!editingMethod) return
     try {
-      await doUpdate({ id: editingMethod.id, name: editName })
+      await doUpdate({ id: editingMethod.id, name: editName, color: editColor })
       logger.info('paymentMethod.update', { id: editingMethod.id, name: editName })
       showSuccess(`Renamed to "${editName}"`)
       setEditingMethod(null)
@@ -168,7 +173,7 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
                 disableGutters
                 secondaryAction={
                   <Box>
-                    <Tooltip title="Rename">
+                    <Tooltip title="Edit">
                       <IconButton size="small" onClick={() => openEdit(m)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -191,7 +196,12 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
                   primary={m.name}
                   secondary={personName ?? undefined}
                 />
-                <Chip label={PaymentType[m.type]} size="small" variant="outlined" sx={{ mr: 4 }} />
+                <Chip
+                  label={PaymentType[m.type]}
+                  size="small"
+                  variant="outlined"
+                  sx={{ mr: 4, ...(m.color ? { bgcolor: m.color, color: 'white', borderColor: m.color } : {}) }}
+                />
               </ListItem>
             )
           })}
@@ -201,7 +211,7 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
       {/* Add dialog */}
       <Dialog
         open={addOpen}
-        onClose={() => { setAddOpen(false); setNewName(''); setNewPersonId(0n) }}
+        onClose={() => { setAddOpen(false); setNewName(''); setNewPersonId(0n); setNewColor('') }}
         maxWidth="xs"
         fullWidth
         fullScreen={fullScreen}
@@ -243,10 +253,16 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
                 ))}
               </Select>
             </FormControl>
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                Color (optional)
+              </Typography>
+              <ColorPicker value={newColor} onChange={setNewColor} />
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setAddOpen(false); setNewName(''); setNewPersonId(0n) }} color="inherit">Cancel</Button>
+          <Button onClick={() => { setAddOpen(false); setNewName(''); setNewPersonId(0n); setNewColor('') }} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={handleCreate} disabled={!newName.trim() || newPersonId === 0n || isCreating}>
             {isCreating ? 'Adding…' : 'Add'}
           </Button>
@@ -295,7 +311,7 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
         </DialogActions>
       </Dialog>
 
-      {/* Rename dialog */}
+      {/* Edit dialog (rename + color) */}
       <Dialog
         open={editingMethod !== null}
         onClose={() => setEditingMethod(null)}
@@ -303,23 +319,30 @@ export function PaymentMethodsPanel({ budgetProfileId }: Props) {
         fullWidth
         fullScreen={fullScreen}
       >
-        <DialogTitle>Rename payment method</DialogTitle>
+        <DialogTitle>Edit payment method</DialogTitle>
         <DialogContent>
-          <TextField
-            label="Name"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            fullWidth
-            sx={{ mt: 1 }}
-            placeholder="e.g. Chase Visa"
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="Name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              fullWidth
+              placeholder="e.g. Chase Visa"
+            />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                Color (optional)
+              </Typography>
+              <ColorPicker value={editColor} onChange={setEditColor} />
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditingMethod(null)} color="inherit">Cancel</Button>
           <Button
             variant="contained"
             onClick={handleUpdate}
-            disabled={!editName.trim() || editName === editingMethod?.name || isUpdating}
+            disabled={!editName.trim() || isUpdating}
           >
             {isUpdating ? 'Saving…' : 'Save'}
           </Button>

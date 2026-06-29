@@ -9,10 +9,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!token) redirect('/login')
 
   return (
-    <AuthProvider token={token}>
-      <SnackbarProvider>
+    <SnackbarProvider>
+      <AuthProvider token={token}>
         {children}
-      </SnackbarProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </SnackbarProvider>
   )
 }

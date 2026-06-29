@@ -26,15 +26,17 @@ import Divider from '@mui/material/Divider'
 interface Props {
   budgetProfileId: string
   embedded?: boolean
+  showBeforeTax?: boolean
   onSkip: () => void
   onDone: () => void
 }
 
-export function AddIncomeModal({ budgetProfileId, onSkip, onDone }: Props) {
+export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone }: Props) {
   const { showError } = useSnackbar()
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [recurring, setRecurring] = useState(true)
+  const [beforeTax, setBeforeTax] = useState(false)
   const [budgetPersonId, setBudgetPersonId] = useState<bigint>(0n)
   const [savedSources, setSavedSources] = useState<string[]>([])
   const client = useClient(BudgetService)
@@ -50,6 +52,7 @@ export function AddIncomeModal({ budgetProfileId, onSkip, onDone }: Props) {
       name: string
       defaultAmount: { units: bigint; nanos: number }
       recurring: boolean
+      beforeTax: boolean
       budgetPersonId: bigint
     }) => client.addIncomeSource({ budgetProfileId, incomeType: IncomeType.SALARY, ...vars }),
   })
@@ -59,11 +62,12 @@ export function AddIncomeModal({ budgetProfileId, onSkip, onDone }: Props) {
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
-      await mutateAsync({ name, defaultAmount: { units: BigInt(units), nanos }, recurring, budgetPersonId })
+      await mutateAsync({ name, defaultAmount: { units: BigInt(units), nanos }, recurring, beforeTax, budgetPersonId })
       logger.info('budget.income.add', { budgetProfileId, name, amount })
       setSavedSources((prev) => [...prev, `${name} — $${parseFloat(amount).toFixed(2)}`])
       setName('')
       setAmount('')
+      setBeforeTax(false)
     } catch (err) {
       showError(err)
     }
@@ -109,6 +113,12 @@ export function AddIncomeModal({ budgetProfileId, onSkip, onDone }: Props) {
         control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
         label="Recurring monthly"
       />
+      {showBeforeTax && (
+        <FormControlLabel
+          control={<Checkbox checked={beforeTax} onChange={(e) => setBeforeTax(e.target.checked)} />}
+          label="Before-tax income (used for tax reserve estimate)"
+        />
+      )}
       {people.length > 0 && (
         <FormControl fullWidth size="small">
           <InputLabel>Attributed to</InputLabel>

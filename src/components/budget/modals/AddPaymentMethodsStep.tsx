@@ -6,6 +6,7 @@ import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import { PaymentType } from '@/gen/spendsense/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { ColorPicker } from '@/components/ui/ColorPicker'
 import { logger } from '@/lib/logger'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
@@ -54,6 +55,7 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
   const [name, setName] = useState('')
   const [type, setType] = useState<PaymentType>(PaymentType.DEBIT)
   const [budgetPersonId, setBudgetPersonId] = useState<bigint>(0n)
+  const [color, setColor] = useState('')
   const [savedMethods, setSavedMethods] = useState<string[]>([])
   const client = useClient(BudgetService)
 
@@ -71,17 +73,18 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
   }, [people, budgetPersonId])
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (vars: { name: string; type: PaymentType; budgetPersonId: bigint }) =>
+    mutationFn: (vars: { name: string; type: PaymentType; budgetPersonId: bigint; color: string }) =>
       client.createPaymentMethod(vars),
   })
 
   async function handleAdd() {
     if (!name.trim() || budgetPersonId === 0n) return
     try {
-      await mutateAsync({ name, type, budgetPersonId })
+      await mutateAsync({ name, type, budgetPersonId, color })
       logger.info('budget.payment_method.add', { budgetProfileId, name })
       setSavedMethods((prev) => [...prev, `${name} (${PAYMENT_TYPE_LABELS[type] ?? 'Other'})`])
       setName('')
+      setColor('')
     } catch (err) {
       showError(err)
     }
@@ -145,6 +148,8 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
           </Select>
         </FormControl>
       )}
+
+      <ColorPicker value={color} onChange={setColor} />
 
       <Stack direction="row" spacing={1} justifyContent="flex-end">
         <Button variant="outlined" onClick={handleAdd} disabled={!name.trim() || budgetPersonId === 0n || isPending}>

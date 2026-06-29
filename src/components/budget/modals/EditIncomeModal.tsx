@@ -26,11 +26,12 @@ import { useTheme } from '@mui/material/styles'
 interface Props {
   budgetProfileId: string
   source: IncomeSource
+  showBeforeTax?: boolean
   onClose: () => void
   onDone: () => void
 }
 
-export function EditIncomeModal({ budgetProfileId, source, onClose, onDone }: Props) {
+export function EditIncomeModal({ budgetProfileId, source, showBeforeTax, onClose, onDone }: Props) {
   const { showError } = useSnackbar()
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -41,6 +42,7 @@ export function EditIncomeModal({ budgetProfileId, source, onClose, onDone }: Pr
     return total.toString()
   })
   const [recurring, setRecurring] = useState(source.recurring)
+  const [beforeTax, setBeforeTax] = useState(source.beforeTax)
   const [budgetPersonId, setBudgetPersonId] = useState<bigint>(source.budgetPersonId)
 
   useEffect(() => {
@@ -48,6 +50,7 @@ export function EditIncomeModal({ budgetProfileId, source, onClose, onDone }: Pr
     const total = Number(source.defaultAmount?.units ?? 0n) + (source.defaultAmount?.nanos ?? 0) / 1e9
     setAmount(total.toString())
     setRecurring(source.recurring)
+    setBeforeTax(source.beforeTax)
     setBudgetPersonId(source.budgetPersonId)
   }, [source])
 
@@ -64,6 +67,7 @@ export function EditIncomeModal({ budgetProfileId, source, onClose, onDone }: Pr
       name: string
       defaultAmount: { units: bigint; nanos: number }
       recurring: boolean
+      beforeTax: boolean
       budgetPersonId: bigint
     }) => client.updateIncomeSource({ id: source.id, budgetProfileId, ...vars }),
   })
@@ -73,7 +77,7 @@ export function EditIncomeModal({ budgetProfileId, source, onClose, onDone }: Pr
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
-      await mutateAsync({ name, defaultAmount: { units: BigInt(units), nanos }, recurring, budgetPersonId })
+      await mutateAsync({ name, defaultAmount: { units: BigInt(units), nanos }, recurring, beforeTax, budgetPersonId })
       logger.info('budget.income.update', { budgetProfileId, id: source.id.toString(), name })
       onDone()
     } catch (err) {
@@ -105,6 +109,12 @@ export function EditIncomeModal({ budgetProfileId, source, onClose, onDone }: Pr
             control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
             label="Recurring monthly"
           />
+          {showBeforeTax && (
+            <FormControlLabel
+              control={<Checkbox checked={beforeTax} onChange={(e) => setBeforeTax(e.target.checked)} />}
+              label="Before-tax income (used for tax reserve estimate)"
+            />
+          )}
           {people.length > 0 && (
             <FormControl fullWidth size="small">
               <InputLabel>Attributed to</InputLabel>

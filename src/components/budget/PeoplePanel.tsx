@@ -6,6 +6,7 @@ import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import type { BudgetPerson, PaymentMethod } from '@/gen/spendsense/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { ColorPicker } from '@/components/ui/ColorPicker'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -29,6 +30,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Alert from '@mui/material/Alert'
 import DeleteIcon from '@mui/icons-material/Delete'
+import PaletteIcon from '@mui/icons-material/Palette'
 
 interface Props {
   budgetProfileId: string
@@ -44,6 +46,8 @@ export function PeoplePanel({ budgetProfileId }: Props) {
   const [needsReplacement, setNeedsReplacement] = useState(false)
   const [replacementPersonId, setReplacementPersonId] = useState<bigint>(0n)
   const [replacementPmId, setReplacementPmId] = useState<string>('')
+  const [editingPerson, setEditingPerson] = useState<BudgetPerson | null>(null)
+  const [editColor, setEditColor] = useState('')
 
   const { data: profileData } = useQuery({
     queryKey: ['budget-profile', budgetProfileId],
@@ -84,6 +88,14 @@ export function PeoplePanel({ budgetProfileId }: Props) {
       queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
       queryClient.invalidateQueries({ queryKey: ['paymentMethods', budgetProfileId] })
       queryClient.invalidateQueries({ queryKey: ['income-sources', budgetProfileId] })
+    },
+  })
+
+  const { mutateAsync: doUpdatePerson, isPending: isUpdatingPerson } = useMutation({
+    mutationFn: (vars: { id: bigint; budgetProfileId: string; color: string }) =>
+      client.updateBudgetPerson(vars),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
     },
   })
 
@@ -143,6 +155,23 @@ export function PeoplePanel({ budgetProfileId }: Props) {
     }
   }
 
+  function openEditColor(person: BudgetPerson) {
+    setEditingPerson(person)
+    setEditColor(person.color)
+  }
+
+  async function handleUpdateColor() {
+    if (!editingPerson) return
+    try {
+      await doUpdatePerson({ id: editingPerson.id, budgetProfileId, color: editColor })
+      logger.info('budget.people.update_color', { budgetProfileId, personId: editingPerson.id.toString() })
+      showSuccess(`Color updated for ${editingPerson.userName}`)
+      setEditingPerson(null)
+    } catch (err) {
+      showError(err)
+    }
+  }
+
   const people = data?.people ?? []
   const replacementPeople = people.filter((p) => removingPerson && p.id !== removingPerson.id)
   const replacementPersonPMs: PaymentMethod[] = (pmData?.methods ?? []).filter(
@@ -167,16 +196,24 @@ export function PeoplePanel({ budgetProfileId }: Props) {
                   key={p.id.toString()}
                   disableGutters
                   secondaryAction={
-                    isOwner ? null : (
-                      <IconButton size="small" onClick={() => openRemoveDialog(p)} aria-label="remove">
-                        <DeleteIcon fontSize="small" />
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <IconButton size="small" onClick={() => openEditColor(p)} aria-label="set color">
+                        <PaletteIcon fontSize="small" sx={p.color ? { color: p.color } : {}} />
                       </IconButton>
-                    )
+                      {!isOwner && (
+                        <IconButton size="small" onClick={() => openRemoveDialog(p)} aria-label="remove">
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Box>
                   }
                 >
                   <ListItemText
                     primary={
                       <Stack direction="row" spacing={1} alignItems="center">
+                        {p.color && (
+                          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: p.color, flexShrink: 0 }} />
+                        )}
                         <span>{p.userName}</span>
                         {isOwner && (
                           <Chip label="Owner" size="small" color="primary" variant="outlined" />
@@ -231,6 +268,27 @@ export function PeoplePanel({ budgetProfileId }: Props) {
         </Button>
       </Box>
 
+      {/* Edit color dialog */}
+      <Dialog open={editingPerson !== null} onClose={() => setEditingPerson(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Color for {editingPerson?.userName}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <ColorPicker value={editColor} onChange={setEditColor} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditingPerson(null)} color="inherit">Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleUpdateColor}
+            disabled={isUpdatingPerson}
+          >
+            {isUpdatingPerson ? 'Saving…' : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Remove dialog */}
       <Dialog open={removingPerson !== null} onClose={closeRemoveDialog} maxWidth="xs" fullWidth>
         <DialogTitle>Remove {removingPerson?.userName}</DialogTitle>
         <DialogContent>

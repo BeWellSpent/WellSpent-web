@@ -25,11 +25,12 @@ import { useTheme } from '@mui/material/styles'
 
 interface Props {
   budgetProfileId: string
+  showBeforeTax?: boolean
   onClose: () => void
   onDone: () => void
 }
 
-export function AddIncomeDialog({ budgetProfileId, onClose, onDone }: Props) {
+export function AddIncomeDialog({ budgetProfileId, showBeforeTax, onClose, onDone }: Props) {
   const { showError } = useSnackbar()
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -37,6 +38,7 @@ export function AddIncomeDialog({ budgetProfileId, onClose, onDone }: Props) {
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [recurring, setRecurring] = useState(true)
+  const [beforeTax, setBeforeTax] = useState(false)
   const [budgetPersonId, setBudgetPersonId] = useState<bigint>(0n)
 
   const client = useClient(BudgetService)
@@ -52,6 +54,7 @@ export function AddIncomeDialog({ budgetProfileId, onClose, onDone }: Props) {
       name: string
       defaultAmount: { units: bigint; nanos: number }
       recurring: boolean
+      beforeTax: boolean
       budgetPersonId: bigint
     }) => client.addIncomeSource({ budgetProfileId, incomeType: IncomeType.SALARY, ...vars }),
   })
@@ -61,7 +64,7 @@ export function AddIncomeDialog({ budgetProfileId, onClose, onDone }: Props) {
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
-      await mutateAsync({ name, defaultAmount: { units: BigInt(units), nanos }, recurring, budgetPersonId })
+      await mutateAsync({ name, defaultAmount: { units: BigInt(units), nanos }, recurring, beforeTax, budgetPersonId })
       logger.info('budget.income.add', { budgetProfileId, name, amount })
       onDone()
     } catch (err) {
@@ -93,6 +96,12 @@ export function AddIncomeDialog({ budgetProfileId, onClose, onDone }: Props) {
             control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
             label="Recurring monthly"
           />
+          {showBeforeTax && (
+            <FormControlLabel
+              control={<Checkbox checked={beforeTax} onChange={(e) => setBeforeTax(e.target.checked)} />}
+              label="Before-tax income (used for tax reserve estimate)"
+            />
+          )}
           {people.length > 0 && (
             <FormControl fullWidth size="small">
               <InputLabel>Attributed to</InputLabel>

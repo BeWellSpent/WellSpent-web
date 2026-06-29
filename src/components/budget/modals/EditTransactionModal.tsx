@@ -32,6 +32,21 @@ function moneyToString(units: bigint, nanos: number): string {
   return total.toFixed(2)
 }
 
+function timestampToDateString(ts: { seconds: bigint } | undefined): string {
+  if (!ts || ts.seconds === 0n) {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+  const d = new Date(Number(ts.seconds) * 1000)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function dateStringToTimestamp(str: string): { seconds: bigint; nanos: number } {
+  const [year, month, day] = str.split('-').map(Number)
+  const d = new Date(year, month - 1, day, 12)
+  return { seconds: BigInt(Math.floor(d.getTime() / 1000)), nanos: 0 }
+}
+
 export function EditTransactionModal({ budgetProfileId, transaction, onClose, onDone }: Props) {
   const { showError } = useSnackbar()
   const theme = useTheme()
@@ -42,6 +57,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
   const [amount, setAmount] = useState(() =>
     moneyToString(transaction.amount?.units ?? 0n, transaction.amount?.nanos ?? 0)
   )
+  const [date, setDate] = useState(() => timestampToDateString(transaction.date))
   const [categoryId, setCategoryId] = useState(transaction.categoryId)
   const [paymentMethodId, setPaymentMethodId] = useState(transaction.paymentMethodId)
   const [typeId, setTypeId] = useState(transaction.transactionTypeId)
@@ -50,6 +66,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
   useEffect(() => {
     setName(transaction.name)
     setAmount(moneyToString(transaction.amount?.units ?? 0n, transaction.amount?.nanos ?? 0))
+    setDate(timestampToDateString(transaction.date))
     setCategoryId(transaction.categoryId)
     setPaymentMethodId(transaction.paymentMethodId)
     setTypeId(transaction.transactionTypeId)
@@ -69,6 +86,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
     mutationFn: (vars: {
       name: string
       amount: { units: bigint; nanos: number }
+      date: { seconds: bigint; nanos: number }
       categoryId: number
       paymentMethodId: string
       transactionTypeId: number
@@ -78,13 +96,14 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
   })
 
   async function handleSave() {
-    if (!name.trim() || !amount) return
+    if (!name.trim() || !amount || !date) return
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
       await mutateAsync({
         name,
         amount: { units: BigInt(units), nanos },
+        date: dateStringToTimestamp(date),
         categoryId,
         paymentMethodId,
         transactionTypeId: typeId,
@@ -116,6 +135,15 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
             onChange={(e) => setAmount(e.target.value)}
             fullWidth
             inputProps={{ min: 0, step: '0.01' }}
+          />
+          <TextField
+            label="Date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            fullWidth
+            required
+            InputLabelProps={{ shrink: true }}
           />
           <TextField
             select
@@ -162,7 +190,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
         <Button
           variant="contained"
           onClick={handleSave}
-          disabled={!name.trim() || !amount || isPending}
+          disabled={!name.trim() || !amount || !date || isPending}
         >
           {isPending ? 'Saving…' : 'Save'}
         </Button>

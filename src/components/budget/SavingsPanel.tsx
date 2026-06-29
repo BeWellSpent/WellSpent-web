@@ -21,6 +21,8 @@ import Chip from '@mui/material/Chip'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import Tooltip from '@mui/material/Tooltip'
 
 interface Props {
   budgetProfileId: string
@@ -118,21 +120,30 @@ export function SavingsPanel({ budgetProfileId }: Props) {
                 key={src.id.toString()}
                 disableGutters
                 secondaryAction={
-                  <Box>
-                    <IconButton size="small" onClick={() => setEditingSource(src)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDelete(src.id)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
+                  src.isTaxReserve ? (
+                    <Tooltip title="Auto-calculated monthly set-aside for estimated tax payments. Updated each budget period." placement="left">
+                      <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', mt: 0.5 }} />
+                    </Tooltip>
+                  ) : (
+                    <Box>
+                      <IconButton size="small" onClick={() => setEditingSource(src)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(src.id)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )
                 }
               >
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                       {src.name}
-                      {freqLabel && (
+                      {src.isTaxReserve && (
+                        <Chip label="tax estimate" size="small" color="warning" variant="outlined" sx={{ fontSize: '0.65rem', height: 18 }} />
+                      )}
+                      {!src.isTaxReserve && freqLabel && (
                         <Chip label={freqLabel} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 18 }} />
                       )}
                     </Box>
