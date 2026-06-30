@@ -20,6 +20,7 @@ import TableCell from '@mui/material/TableCell'
 import TableFooter from '@mui/material/TableFooter'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import TableSortLabel from '@mui/material/TableSortLabel'
 import IconButton from '@mui/material/IconButton'
 import Button from '@mui/material/Button'
 import ToggleButton from '@mui/material/ToggleButton'
@@ -48,11 +49,78 @@ function formatDate(ts: { seconds: bigint } | undefined): string {
   return new Date(Number(ts.seconds) * 1000).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
+    timeZone: 'UTC',
   })
 }
 
 function txAmount(t: Transaction): number {
   return Number(t.amount?.units ?? 0n) + (t.amount?.nanos ?? 0) / 1e9
+}
+
+type SortKey = 'name' | 'day' | 'category' | 'method' | 'owner' | 'amount'
+
+function resolveOwner(t: Transaction, methodMap: Map<string, PaymentMethod>, personMap: Map<string, BudgetPerson>): string {
+  const method = t.paymentMethodId ? methodMap.get(t.paymentMethodId) : undefined
+  const person = method?.budgetPersonId && method.budgetPersonId !== 0n
+    ? personMap.get(method.budgetPersonId.toString())
+    : undefined
+  return person?.userName ?? ''
+}
+
+function resolveDay(t: Transaction): number {
+  return Number(t.date?.seconds ?? 0n)
+}
+
+function compareTransactions(
+  a: Transaction,
+  b: Transaction,
+  key: SortKey,
+  dir: 'asc' | 'desc',
+  categoryMap: Map<number, Category>,
+  methodMap: Map<string, PaymentMethod>,
+  personMap: Map<string, BudgetPerson>,
+): number {
+  const sign = dir === 'asc' ? 1 : -1
+
+  let primary = 0
+  switch (key) {
+    case 'name':
+      primary = a.name.localeCompare(b.name) * sign
+      break
+    case 'day':
+      primary = (resolveDay(a) - resolveDay(b)) * sign
+      break
+    case 'category': {
+      const ca = a.categoryId ? (categoryMap.get(a.categoryId)?.name ?? '') : ''
+      const cb = b.categoryId ? (categoryMap.get(b.categoryId)?.name ?? '') : ''
+      primary = ca.localeCompare(cb) * sign
+      break
+    }
+    case 'method': {
+      const ma = a.paymentMethodId ? (methodMap.get(a.paymentMethodId)?.name ?? '') : ''
+      const mb = b.paymentMethodId ? (methodMap.get(b.paymentMethodId)?.name ?? '') : ''
+      primary = ma.localeCompare(mb) * sign
+      break
+    }
+    case 'owner':
+      primary = resolveOwner(a, methodMap, personMap).localeCompare(resolveOwner(b, methodMap, personMap)) * sign
+      break
+    case 'amount':
+      primary = (txAmount(a) - txAmount(b)) * sign
+      break
+  }
+
+  if (primary !== 0) return primary
+
+  // Tiebreak: day ASC, then owner ASC
+  if (key !== 'day') {
+    const dayDiff = resolveDay(a) - resolveDay(b)
+    if (dayDiff !== 0) return dayDiff
+  }
+  if (key !== 'owner') {
+    return resolveOwner(a, methodMap, personMap).localeCompare(resolveOwner(b, methodMap, personMap))
+  }
+  return 0
 }
 
 interface TableProps {
@@ -80,6 +148,8 @@ function TransactionTable({
 }: TableProps) {
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
+  const [sortKey, setSortKey] = useState<SortKey>('day')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
   const { mutateAsync: doDelete } = useMutation({
     mutationFn: (id: string) => client.deleteTransaction({ id }),
@@ -95,34 +165,69 @@ function TransactionTable({
     }
   }
 
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const sorted = [...transactions].sort((a, b) =>
+    compareTransactions(a, b, sortKey, sortDir, categoryMap, methodMap, personMap)
+  )
+
   const total = transactions.reduce((sum, t) => sum + txAmount(t), 0)
   const colSpan = isEditable ? 7 : 6
 
   if (isLoading) return <CircularProgress size={20} />
+
+  function SortHeader({ col, children }: { col: SortKey; children: React.ReactNode }) {
+    return (
+      <TableCell sortDirection={sortKey === col ? sortDir : false}>
+        <TableSortLabel
+          active={sortKey === col}
+          direction={sortKey === col ? sortDir : 'asc'}
+          onClick={() => handleSort(col)}
+        >
+          {children}
+        </TableSortLabel>
+      </TableCell>
+    )
+  }
 
   return (
     <Box sx={{ overflowX: 'auto' }}>
       <Table size="small" sx={{ minWidth: 560 }}>
         <TableHead>
           <TableRow>
-            <TableCell>Item</TableCell>
-            <TableCell>Day</TableCell>
-            <TableCell>Category</TableCell>
-            <TableCell>Payment Method</TableCell>
-            <TableCell>Owner</TableCell>
-            <TableCell align="right">Amount</TableCell>
+            <SortHeader col="name">Item</SortHeader>
+            <SortHeader col="day">Day</SortHeader>
+            <SortHeader col="category">Category</SortHeader>
+            <SortHeader col="method">Payment Method</SortHeader>
+            <SortHeader col="owner">Owner</SortHeader>
+            <TableCell align="right" sortDirection={sortKey === 'amount' ? sortDir : false}>
+              <TableSortLabel
+                active={sortKey === 'amount'}
+                direction={sortKey === 'amount' ? sortDir : 'asc'}
+                onClick={() => handleSort('amount')}
+              >
+                Amount
+              </TableSortLabel>
+            </TableCell>
             {isEditable && <TableCell />}
           </TableRow>
         </TableHead>
         <TableBody>
-          {transactions.length === 0 ? (
+          {sorted.length === 0 ? (
             <TableRow>
               <TableCell colSpan={colSpan} align="center" sx={{ py: 3, color: 'text.secondary' }}>
                 No {label.toLowerCase()} transactions yet.
               </TableCell>
             </TableRow>
           ) : (
-            transactions.map((t) => {
+            sorted.map((t) => {
               const category = t.categoryId ? categoryMap.get(t.categoryId) : undefined
               const method = t.paymentMethodId ? methodMap.get(t.paymentMethodId) : undefined
               const person = method?.budgetPersonId && method.budgetPersonId !== 0n
@@ -170,7 +275,7 @@ function TransactionTable({
             })
           )}
         </TableBody>
-        {transactions.length > 0 && (
+        {sorted.length > 0 && (
           <TableFooter>
             <TableRow>
               <TableCell
@@ -296,6 +401,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
           budgetPeriodId={budgetPeriodId}
           budgetProfileId={budgetProfileId}
           open={addOpen}
+          defaultTypeId={viewMode === 'tabbed' ? (tabIndex === 0 ? 1 : 2) : 1}
           onClose={() => setAddOpen(false)}
           onDone={() => { setAddOpen(false); refresh() }}
         />

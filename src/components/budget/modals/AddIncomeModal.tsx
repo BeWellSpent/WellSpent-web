@@ -70,7 +70,19 @@ export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone 
       setBeforeTax(false)
     } catch (err) {
       showError(err)
+      throw err
     }
+  }
+
+  async function handleDone() {
+    if (name.trim() && amount) {
+      try {
+        await handleAdd()
+      } catch {
+        return
+      }
+    }
+    onDone()
   }
 
   return (
@@ -140,7 +152,7 @@ export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone 
         <Button variant="outlined" onClick={handleAdd} disabled={!name.trim() || !amount || isPending}>
           {isPending ? 'Adding…' : 'Add'}
         </Button>
-        <Button variant="contained" onClick={onDone}>
+        <Button variant="contained" onClick={handleDone} disabled={isPending}>
           {savedSources.length === 0 ? 'Skip' : 'Continue'}
         </Button>
       </Stack>

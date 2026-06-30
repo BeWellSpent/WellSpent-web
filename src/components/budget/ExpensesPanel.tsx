@@ -48,6 +48,7 @@ function actualColor(actual: number, plannedTotal: number): string | undefined {
   if (plannedTotal <= 0) return undefined
   const ratio = actual / plannedTotal
   if (ratio > 1) return 'error.main'
+  if (ratio >= 1) return 'success.main'
   if (ratio >= 0.9) return 'warning.main'
   return 'success.main'
 }
@@ -133,6 +134,11 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
     queryFn: () => client.listSavingsSources({ budgetProfileId }),
   })
 
+  const { data: incomeData, isLoading: incomeLoading } = useQuery({
+    queryKey: ['income-sources', budgetProfileId],
+    queryFn: () => client.listIncomeSources({ budgetProfileId }),
+  })
+
   const { mutateAsync: upsertAlloc } = useMutation({
     mutationFn: (req: Parameters<typeof client.upsertExpenseAllocation>[0]) =>
       client.upsertExpenseAllocation(req),
@@ -185,7 +191,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
     }
   }, [allocationsData, deleteAlloc, budgetProfileId, refetchAllocs, showError])
 
-  const isLoading = catsLoading || peopleLoading || allocsLoading || txnsLoading || savingsLoading
+  const isLoading = catsLoading || peopleLoading || allocsLoading || txnsLoading || savingsLoading || incomeLoading
   if (isLoading) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
 
   const categories = categoriesData?.categories ?? []
@@ -193,6 +199,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
   const allocations = allocationsData?.allocations ?? []
   const transactions = transactionsData?.transactions ?? []
   const savingsSources = savingsData?.sources ?? []
+  const incomeSources = incomeData?.sources ?? []
 
   const allocMap = new Map<string, ExpenseAllocation>()
   for (const a of allocations) {
@@ -228,6 +235,28 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
     savingsByPerson.set(personKey, (savingsByPerson.get(personKey) ?? 0) + monthly)
   }
   const savingsTotal = [...savingsByPerson.values()].reduce((a, b) => a + b, 0)
+
+  const plannedExpenseTotal = visibleCats.reduce((sum, cat) => {
+    let t = 0
+    for (const p of people) {
+      const alloc = allocMap.get(`${cat.id}:${p.id}`)
+      if (alloc) t += parseMoney(alloc.plannedAmount?.units ?? 0n, alloc.plannedAmount?.nanos ?? 0)
+    }
+    return sum + t
+  }, 0)
+
+  const fixedExpenseTotal = transactions
+    .filter((t) => t.transactionTypeId === 1 && (!t.categoryId || !catIdsWithAllocs.has(t.categoryId)))
+    .reduce((sum, t) => sum + parseMoney(t.amount?.units ?? 0n, t.amount?.nanos ?? 0), 0)
+
+  const incomeTotal = incomeSources.reduce(
+    (sum, s) => sum + parseMoney(s.defaultAmount?.units ?? 0n, s.defaultAmount?.nanos ?? 0),
+    0,
+  )
+
+  const totalCommitted = plannedExpenseTotal + fixedExpenseTotal
+  const afterSavings = incomeTotal - savingsTotal
+  const remainder = afterSavings - totalCommitted
 
   const footerCellSx = { borderTop: '2px solid', borderColor: 'divider', fontSize: '0.95rem', fontWeight: 700 }
 
@@ -435,6 +464,46 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
               </TableRow>
             </TableFooter>
           </Table>
+        </Box>
+      )}
+
+      {(totalCommitted > 0 || savingsTotal > 0) && (
+        <Box mt={3}>
+          <Divider sx={{ mb: 2 }} />
+          <Typography variant="subtitle2" fontWeight={600} color="text.secondary" mb={1.5}>
+            Plan Summary
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxWidth: 420 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Planned allocations + Fixed expenses
+              </Typography>
+              <Typography variant="body2" fontWeight={700} sx={{ ml: 2, whiteSpace: 'nowrap' }}>
+                {formatMoney(totalCommitted)}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                After savings
+              </Typography>
+              <Typography variant="body2" fontWeight={700} sx={{ ml: 2, whiteSpace: 'nowrap' }}>
+                {formatMoney(afterSavings)}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Remainder
+              </Typography>
+              <Typography
+                variant="body2"
+                fontWeight={700}
+                sx={{ ml: 2, whiteSpace: 'nowrap' }}
+                color={remainder < 0 ? 'error.main' : 'success.main'}
+              >
+                {formatMoney(remainder)}
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       )}
     </Box>

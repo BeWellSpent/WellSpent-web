@@ -17,6 +17,8 @@ import MenuItem from '@mui/material/MenuItem'
 import Stack from '@mui/material/Stack'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 
@@ -33,18 +35,23 @@ function moneyToString(units: bigint, nanos: number): string {
 }
 
 function timestampToDateString(ts: { seconds: bigint } | undefined): string {
-  if (!ts || ts.seconds === 0n) {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  }
-  const d = new Date(Number(ts.seconds) * 1000)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const d = ts && ts.seconds !== 0n ? new Date(Number(ts.seconds) * 1000) : new Date()
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+}
+
+function timestampToDayOfMonth(ts: { seconds: bigint } | undefined): number {
+  if (!ts || ts.seconds === 0n) return new Date().getUTCDate()
+  return new Date(Number(ts.seconds) * 1000).getUTCDate()
 }
 
 function dateStringToTimestamp(str: string): { seconds: bigint; nanos: number } {
   const [year, month, day] = str.split('-').map(Number)
-  const d = new Date(year, month - 1, day, 12)
-  return { seconds: BigInt(Math.floor(d.getTime() / 1000)), nanos: 0 }
+  return { seconds: BigInt(Math.floor(Date.UTC(year, month - 1, day) / 1000)), nanos: 0 }
+}
+
+function dayOfMonthToTimestamp(day: number): { seconds: bigint; nanos: number } {
+  const now = new Date()
+  return { seconds: BigInt(Math.floor(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day) / 1000)), nanos: 0 }
 }
 
 export function EditTransactionModal({ budgetProfileId, transaction, onClose, onDone }: Props) {
@@ -57,19 +64,23 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
   const [amount, setAmount] = useState(() =>
     moneyToString(transaction.amount?.units ?? 0n, transaction.amount?.nanos ?? 0)
   )
+  const [typeId, setTypeId] = useState(transaction.transactionTypeId)
   const [date, setDate] = useState(() => timestampToDateString(transaction.date))
+  const [dayOfMonth, setDayOfMonth] = useState(() => timestampToDayOfMonth(transaction.date))
   const [categoryId, setCategoryId] = useState(transaction.categoryId)
   const [paymentMethodId, setPaymentMethodId] = useState(transaction.paymentMethodId)
-  const [typeId, setTypeId] = useState(transaction.transactionTypeId)
   const [recurring, setRecurring] = useState(transaction.recurring)
+
+  const isFixed = typeId === 1
 
   useEffect(() => {
     setName(transaction.name)
     setAmount(moneyToString(transaction.amount?.units ?? 0n, transaction.amount?.nanos ?? 0))
+    setTypeId(transaction.transactionTypeId)
     setDate(timestampToDateString(transaction.date))
+    setDayOfMonth(timestampToDayOfMonth(transaction.date))
     setCategoryId(transaction.categoryId)
     setPaymentMethodId(transaction.paymentMethodId)
-    setTypeId(transaction.transactionTypeId)
     setRecurring(transaction.recurring)
   }, [transaction])
 
@@ -81,6 +92,13 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
     queryKey: ['paymentMethods', budgetProfileId],
     queryFn: () => client.listPaymentMethods({ budgetProfileId }),
   })
+  const { data: peopleData } = useQuery({
+    queryKey: ['budget-people', budgetProfileId],
+    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
+  })
+
+  const methods = methodsData?.methods ?? []
+  const personMap = new Map((peopleData?.people ?? []).map((p) => [p.id.toString(), p]))
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {
@@ -95,15 +113,19 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
     }) => client.updateTransaction({ id: transaction.id, plannedAmount: vars.amount, ...vars }),
   })
 
+  const isDateValid = isFixed ? dayOfMonth >= 1 && dayOfMonth <= 31 : !!date
+  const canSave = !!name.trim() && !!amount && !!paymentMethodId && isDateValid
+
   async function handleSave() {
-    if (!name.trim() || !amount || !date || !paymentMethodId) return
+    if (!canSave) return
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
+    const txDate = isFixed ? dayOfMonthToTimestamp(dayOfMonth) : dateStringToTimestamp(date)
     try {
       await mutateAsync({
         name,
         amount: { units: BigInt(units), nanos },
-        date: dateStringToTimestamp(date),
+        date: txDate,
         categoryId,
         paymentMethodId,
         transactionTypeId: typeId,
@@ -137,15 +159,6 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
             inputProps={{ min: 0, step: '0.01' }}
           />
           <TextField
-            label="Date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            fullWidth
-            required
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
             select
             label="Type"
             value={typeId}
@@ -155,6 +168,27 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
             <MenuItem value={1}>Fixed</MenuItem>
             <MenuItem value={2}>Variable</MenuItem>
           </TextField>
+          {isFixed ? (
+            <TextField
+              label="Day of month"
+              type="number"
+              value={dayOfMonth}
+              onChange={(e) => setDayOfMonth(Math.min(31, Math.max(1, Number(e.target.value))))}
+              fullWidth
+              inputProps={{ min: 1, max: 31 }}
+              helperText="Which day of the month this expense falls on"
+            />
+          ) : (
+            <TextField
+              label="Date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              fullWidth
+              required
+              InputLabelProps={{ shrink: true }}
+            />
+          )}
           <TextField
             select
             label="Category"
@@ -174,15 +208,52 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
             onChange={(e) => setPaymentMethodId(e.target.value)}
             fullWidth
             required
+            SelectProps={{
+              renderValue: (val) => {
+                const m = methods.find((x) => x.id === val)
+                if (!m) return val as string
+                const person = m.budgetPersonId && m.budgetPersonId !== 0n ? personMap.get(m.budgetPersonId.toString()) : undefined
+                return (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {m.color && <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: m.color, flexShrink: 0 }} />}
+                    <span>{m.name}{person ? ` · ${person.userName}` : ''}</span>
+                  </Box>
+                )
+              },
+            }}
           >
-            {(methodsData?.methods ?? []).map((m) => (
-              <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
-            ))}
+            {methods.map((m) => {
+              const person = m.budgetPersonId && m.budgetPersonId !== 0n ? personMap.get(m.budgetPersonId.toString()) : undefined
+              return (
+                <MenuItem key={m.id} value={m.id}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 12, height: 12, borderRadius: '50%', flexShrink: 0,
+                        bgcolor: m.color || 'transparent',
+                        border: '1px solid',
+                        borderColor: m.color ? 'transparent' : 'divider',
+                      }}
+                    />
+                    <Box>
+                      <Typography variant="body2" sx={{ lineHeight: 1.3 }}>{m.name}</Typography>
+                      {person && (
+                        <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
+                          {person.userName}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </MenuItem>
+              )
+            })}
           </TextField>
-          <FormControlLabel
-            control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
-            label="Recurring"
-          />
+          {!isFixed && (
+            <FormControlLabel
+              control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
+              label="Recurring"
+            />
+          )}
         </Stack>
       </DialogContent>
       <DialogActions>
@@ -190,7 +261,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
         <Button
           variant="contained"
           onClick={handleSave}
-          disabled={!name.trim() || !amount || !date || !paymentMethodId || isPending}
+          disabled={!canSave || isPending}
         >
           {isPending ? 'Saving…' : 'Save'}
         </Button>

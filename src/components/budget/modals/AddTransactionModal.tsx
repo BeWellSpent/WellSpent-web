@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
@@ -17,12 +17,14 @@ import Stack from '@mui/material/Stack'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 
 interface Props {
   budgetPeriodId: string
   budgetProfileId: string
   open?: boolean
   embedded?: boolean
+  defaultTypeId?: number
   onClose?: () => void
   onSkip?: () => void
   onDone: () => void
@@ -39,17 +41,15 @@ function todayDay(): number {
 
 function dateStringToTimestamp(str: string): { seconds: bigint; nanos: number } {
   const [year, month, day] = str.split('-').map(Number)
-  const d = new Date(year, month - 1, day, 12)
-  return { seconds: BigInt(Math.floor(d.getTime() / 1000)), nanos: 0 }
+  return { seconds: BigInt(Math.floor(Date.UTC(year, month - 1, day) / 1000)), nanos: 0 }
 }
 
 function dayOfMonthToTimestamp(day: number): { seconds: bigint; nanos: number } {
   const now = new Date()
-  const d = new Date(now.getFullYear(), now.getMonth(), day, 12)
-  return { seconds: BigInt(Math.floor(d.getTime() / 1000)), nanos: 0 }
+  return { seconds: BigInt(Math.floor(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day) / 1000)), nanos: 0 }
 }
 
-export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, embedded, onClose, onSkip, onDone }: Props) {
+export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, embedded, defaultTypeId = 1, onClose, onSkip, onDone }: Props) {
   const { showError } = useSnackbar()
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
@@ -57,11 +57,15 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
   const [dayOfMonth, setDayOfMonth] = useState(todayDay)
   const [categoryId, setCategoryId] = useState<number>(0)
   const [paymentMethodId, setPaymentMethodId] = useState('')
-  const [typeId, setTypeId] = useState<number>(1)
+  const [typeId, setTypeId] = useState<number>(defaultTypeId)
   const [recurring, setRecurring] = useState(false)
   const client = useClient(BudgetService)
 
   const isFixed = typeId === 1
+
+  useEffect(() => {
+    if (open) setTypeId(defaultTypeId)
+  }, [open, defaultTypeId])
 
   const { data: categoriesData } = useQuery({
     queryKey: ['categories'],
@@ -71,6 +75,13 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
     queryKey: ['paymentMethods', budgetProfileId],
     queryFn: () => client.listPaymentMethods({ budgetProfileId }),
   })
+  const { data: peopleData } = useQuery({
+    queryKey: ['budget-people', budgetProfileId],
+    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
+  })
+
+  const methods = methodsData?.methods ?? []
+  const personMap = new Map((peopleData?.people ?? []).map((p) => [p.id.toString(), p]))
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {
       name: string
@@ -110,7 +121,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
       setDayOfMonth(todayDay())
       setCategoryId(0)
       setPaymentMethodId('')
-      setTypeId(1)
+      setTypeId(defaultTypeId)
       setRecurring(false)
       onDone()
     } catch (err) {
@@ -165,10 +176,52 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
           <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
         ))}
       </TextField>
-      <TextField select label="Payment method" value={paymentMethodId} onChange={(e) => setPaymentMethodId(e.target.value)} fullWidth required>
-        {(methodsData?.methods ?? []).map((m) => (
-          <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
-        ))}
+      <TextField
+        select
+        label="Payment method"
+        value={paymentMethodId}
+        onChange={(e) => setPaymentMethodId(e.target.value)}
+        fullWidth
+        required
+        SelectProps={{
+          renderValue: (val) => {
+            const m = methods.find((x) => x.id === val)
+            if (!m) return val as string
+            const person = m.budgetPersonId && m.budgetPersonId !== 0n ? personMap.get(m.budgetPersonId.toString()) : undefined
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {m.color && <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: m.color, flexShrink: 0 }} />}
+                <span>{m.name}{person ? ` · ${person.userName}` : ''}</span>
+              </Box>
+            )
+          },
+        }}
+      >
+        {methods.map((m) => {
+          const person = m.budgetPersonId && m.budgetPersonId !== 0n ? personMap.get(m.budgetPersonId.toString()) : undefined
+          return (
+            <MenuItem key={m.id} value={m.id}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 12, height: 12, borderRadius: '50%', flexShrink: 0,
+                    bgcolor: m.color || 'transparent',
+                    border: '1px solid',
+                    borderColor: m.color ? 'transparent' : 'divider',
+                  }}
+                />
+                <Box>
+                  <Typography variant="body2" sx={{ lineHeight: 1.3 }}>{m.name}</Typography>
+                  {person && (
+                    <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
+                      {person.userName}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            </MenuItem>
+          )
+        })}
       </TextField>
       {!isFixed && (
         <FormControlLabel
