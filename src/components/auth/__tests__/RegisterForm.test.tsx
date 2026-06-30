@@ -10,17 +10,27 @@ jest.mock('next/navigation', () => ({
 }))
 
 let mockRegister: jest.Mock
+let mockListCountries: jest.Mock
 jest.mock('@connectrpc/connect', () => ({
-  createClient: () => ({ register: (...args: unknown[]) => mockRegister?.(...args) }),
+  createClient: () => ({
+    register: (...args: unknown[]) => mockRegister?.(...args),
+    listCountries: (...args: unknown[]) => mockListCountries?.(...args),
+    updateMe: jest.fn().mockResolvedValue({}),
+  }),
 }))
-jest.mock('@/lib/api/client', () => ({ publicTransport: {} }))
+jest.mock('@/lib/api/client', () => ({
+  publicTransport: {},
+  createTransport: () => ({}),
+}))
 jest.mock('@/gen/spendsense/v1/auth_connect', () => ({ AuthService: {} }))
+jest.mock('@/gen/spendsense/v1/user_connect', () => ({ UserService: {} }))
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
   jest.clearAllMocks()
   mockRegister = jest.fn()
+  mockListCountries = jest.fn().mockResolvedValue({ countries: [] })
   global.fetch = jest.fn().mockResolvedValue({ ok: true })
 })
 

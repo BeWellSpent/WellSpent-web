@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
@@ -14,37 +14,51 @@ import IconButton from '@mui/material/IconButton'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
+import Chip from '@mui/material/Chip'
+import Divider from '@mui/material/Divider'
+import CircularProgress from '@mui/material/CircularProgress'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 interface Props {
-  budgetId: string
+  budgetProfileId: string
   embedded?: boolean
   onSkip: () => void
   onDone: () => void
 }
 
-export function AddPeopleModal({ budgetId, onSkip, onDone }: Props) {
+export function AddPeopleModal({ budgetProfileId, onSkip, onDone }: Props) {
   const { showError } = useSnackbar()
   const [name, setName] = useState('')
-  const [people, setPeople] = useState<string[]>([])
+  const [pending, setPending] = useState<string[]>([])
   const client = useClient(BudgetService)
+  const queryClient = useQueryClient()
+
+  const { data: existingData, isLoading } = useQuery({
+    queryKey: ['budget-people', budgetProfileId],
+    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
+  })
+  const existing = existingData?.people ?? []
+
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (names: string[]) =>
-      client.addBudgetPeople({ budgetId, people: names.map((userName) => ({ userName, userId: '' })) }),
+      client.addBudgetPeople({ budgetProfileId, people: names.map((userName) => ({ userName, userId: '' })) }),
   })
 
   function addPerson() {
-    if (name.trim()) {
-      setPeople((p) => [...p, name.trim()])
-      setName('')
+    const trimmed = name.trim()
+    if (!trimmed) return
+    if (!pending.includes(trimmed)) {
+      setPending((p) => [...p, trimmed])
     }
+    setName('')
   }
 
   async function handleSave() {
-    if (people.length === 0) return onDone()
+    if (pending.length === 0) return onDone()
     try {
-      await mutateAsync(people)
-      logger.info('budget.people.add', { budgetId, count: people.length })
+      await mutateAsync(pending)
+      logger.info('budget.people.add', { budgetProfileId, count: pending.length })
+      await queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
       onDone()
     } catch (err) {
       showError(err)
@@ -54,24 +68,44 @@ export function AddPeopleModal({ budgetId, onSkip, onDone }: Props) {
   return (
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">
-        Add people who share this budget. You can skip this step.
+        Add other people who share this budget. You&apos;ve already been added.
       </Typography>
+
+      {isLoading ? (
+        <CircularProgress size={20} />
+      ) : existing.length > 0 && (
+        <>
+          <Typography variant="caption" color="text.secondary" fontWeight={600}>ALREADY IN THIS BUDGET</Typography>
+          <List dense disablePadding>
+            {existing.map((p) => (
+              <ListItem key={p.id.toString()} disableGutters>
+                <ListItemText primary={p.userName} />
+                {p.userId && <Chip label="You" size="small" color="primary" variant="outlined" sx={{ ml: 1 }} />}
+              </ListItem>
+            ))}
+          </List>
+          <Divider />
+        </>
+      )}
+
       <Stack direction="row" spacing={1}>
         <TextField
-          label="Name"
+          label="Add another person"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addPerson()}
           fullWidth
           size="small"
+          placeholder="e.g. Jane"
         />
         <Button variant="outlined" onClick={addPerson} disabled={!name.trim()}>Add</Button>
       </Stack>
-      {people.length > 0 && (
-        <List dense>
-          {people.map((p, i) => (
-            <ListItem key={i} secondaryAction={
-              <IconButton edge="end" onClick={() => setPeople((prev) => prev.filter((_, idx) => idx !== i))}>
+
+      {pending.length > 0 && (
+        <List dense disablePadding>
+          {pending.map((p, i) => (
+            <ListItem key={i} disableGutters secondaryAction={
+              <IconButton edge="end" size="small" onClick={() => setPending((prev) => prev.filter((_, idx) => idx !== i))}>
                 <DeleteIcon fontSize="small" />
               </IconButton>
             }>
@@ -80,10 +114,11 @@ export function AddPeopleModal({ budgetId, onSkip, onDone }: Props) {
           ))}
         </List>
       )}
+
       <Stack direction="row" spacing={1} justifyContent="flex-end">
         <Button onClick={onSkip} color="inherit">Skip</Button>
         <Button variant="contained" onClick={handleSave} disabled={isPending}>
-          {people.length === 0 ? 'Skip' : isPending ? 'Saving…' : 'Save & Continue'}
+          {pending.length === 0 ? 'Continue' : isPending ? 'Saving…' : 'Save & Continue'}
         </Button>
       </Stack>
     </Stack>

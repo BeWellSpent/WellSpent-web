@@ -32,7 +32,7 @@ describe('SnackbarProvider', () => {
   it('shows a fallback message for unknown error types', async () => {
     render(<SnackbarProvider><ErrorTrigger err={{ code: 42 }} /></SnackbarProvider>)
     await userEvent.click(screen.getByRole('button'))
-    expect(await screen.findByText('An unexpected error occurred')).toBeInTheDocument()
+    expect(await screen.findByText('An unexpected error occurred.')).toBeInTheDocument()
   })
 
   it('shows a success message', async () => {

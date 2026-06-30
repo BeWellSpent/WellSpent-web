@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack -H 0.0.0.0",
+    "prebuild": "npm run generate",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src/",
     "generate": "buf generate buf.build/xpendsense/spendsense",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -22,11 +23,12 @@
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
     "@tanstack/react-query": "^5.56.2",
-    "next": "^14.2.13",
+    "next": "^16.2.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@bufbuild/buf": "^1.71.0",
     "@bufbuild/protoc-gen-es": "^1.10.0",
     "@connectrpc/protoc-gen-connect-es": "^1.6.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -36,8 +38,8 @@
     "@types/node": "^20.16.5",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.13",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.9",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "typescript": "^5.6.2"
