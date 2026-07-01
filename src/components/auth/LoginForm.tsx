@@ -68,7 +68,7 @@ export function LoginForm() {
     setError('')
     setLoading(true)
     try {
-      const res = await authClient.login({ email, password })
+      const res = await authClient.login({ email, password, rememberMe })
       await fetch('/api/auth/set-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -60,7 +60,7 @@ describe('LoginForm', () => {
     await userEvent.type(screen.getByLabelText(/password/i), 'secret123')
     await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith({ email: 'user@example.com', password: 'secret123' })
+      expect(mockLogin).toHaveBeenCalledWith({ email: 'user@example.com', password: 'secret123', rememberMe: false })
     })
   })
 
