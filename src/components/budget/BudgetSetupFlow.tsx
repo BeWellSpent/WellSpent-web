@@ -9,6 +9,8 @@ import { BudgetCycle } from '@/gen/spendsense/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -35,6 +37,8 @@ interface Props {
 export function BudgetSetupFlow({ open, onClose, onComplete }: Props) {
   const t = useTranslations('budget.setup')
   const { showError, showSuccess } = useSnackbar()
+  const theme = useTheme()
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [step, setStep] = useState(0)
   const [profileId, setProfileId] = useState<string | null>(null)
   const [budgetName, setBudgetName] = useState('')
@@ -92,7 +96,7 @@ export function BudgetSetupFlow({ open, onClose, onComplete }: Props) {
   }
 
   return (
-    <Dialog open={open} onClose={step === 0 ? handleClose : undefined} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={step === 0 ? handleClose : undefined} maxWidth="sm" fullWidth fullScreen={fullScreen}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         Set up your budget
         {step > 0 && (

@@ -6,6 +6,8 @@ import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -51,6 +53,8 @@ function dayOfMonthToTimestamp(day: number): { seconds: bigint; nanos: number } 
 
 export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, embedded, defaultTypeId = 1, onClose, onSkip, onDone }: Props) {
   const { showError } = useSnackbar()
+  const theme = useTheme()
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState(todayString)
@@ -247,7 +251,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
   }
 
   return (
-    <Dialog open={open ?? false} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open ?? false} onClose={onClose} maxWidth="sm" fullWidth fullScreen={fullScreen}>
       <DialogTitle>Add Transaction</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>{form}</DialogContent>
       <DialogActions>
