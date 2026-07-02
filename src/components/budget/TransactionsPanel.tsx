@@ -18,7 +18,6 @@ import Tab from '@mui/material/Tab'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
-import TableFooter from '@mui/material/TableFooter'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import TableSortLabel from '@mui/material/TableSortLabel'
@@ -26,6 +25,8 @@ import IconButton from '@mui/material/IconButton'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import CircularProgress from '@mui/material/CircularProgress'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import ViewStreamIcon from '@mui/icons-material/ViewStream'
@@ -119,6 +120,8 @@ function TransactionTable({
   const t = useTranslations('budget.transactions')
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [sortKey, setSortKey] = useState<SortKey>('day')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
@@ -146,11 +149,87 @@ function TransactionTable({
   }
 
   const sorted = [...transactions].sort((a, b) => compareTransactions(a, b, sortKey, sortDir))
-  const total = transactions.reduce((sum, tx) => sum + txAmount(tx), 0)
-  const colSpan = isEditable ? 3 : 2
 
   if (isLoading) return <CircularProgress size={20} />
 
+  if (isMobile) {
+    const colSpan = isEditable ? 3 : 2
+    return (
+      <Box sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <SortHeader col="name" sortKey={sortKey} sortDir={sortDir} onSort={handleSort}>
+                {t('columns.item')}
+              </SortHeader>
+              <SortHeader col="amount" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right">
+                {t('columns.amount')}
+              </SortHeader>
+              {isEditable && <TableCell />}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sorted.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={colSpan} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                  {t('empty', { label })}
+                </TableCell>
+              </TableRow>
+            ) : sorted.map((tx) => {
+              const category = tx.categoryId ? categoryMap.get(tx.categoryId) : undefined
+              const method = tx.paymentMethodId ? methodMap.get(tx.paymentMethodId) : undefined
+              const person = method?.budgetPersonId && method.budgetPersonId !== 0n
+                ? personMap.get(method.budgetPersonId.toString())
+                : undefined
+              const dateStr = formatDate(tx.date)
+              return (
+                <TableRow key={tx.id} hover>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
+                      <Typography variant="body2" fontWeight={500}>{tx.name}</Typography>
+                      {dateStr && (
+                        <Typography variant="caption" color="text.secondary">{dateStr}</Typography>
+                      )}
+                      {(method || person) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          {method && (
+                            <Typography variant="caption" sx={{ color: method.color || 'text.secondary' }}>{method.name}</Typography>
+                          )}
+                          {method && person && (
+                            <Typography variant="caption" color="text.secondary">·</Typography>
+                          )}
+                          {person && (
+                            <Typography variant="caption" sx={{ color: person.color || 'text.secondary' }}>{person.userName}</Typography>
+                          )}
+                        </Box>
+                      )}
+                      {category && (
+                        <Typography variant="caption" sx={{ color: category.color || 'text.secondary' }}>{category.name}</Typography>
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 1.5 }}>
+                    {formatMoney(txAmount(tx))}
+                  </TableCell>
+                  {isEditable && (
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 0.5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <IconButton size="small" onClick={() => onEdit(tx)}><EditIcon fontSize="small" /></IconButton>
+                        <IconButton size="small" onClick={() => handleDelete(tx.id)}><DeleteIcon fontSize="small" /></IconButton>
+                      </Box>
+                    </TableCell>
+                  )}
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </Box>
+    )
+  }
+
+  // Desktop: expanded table with all columns
+  const colSpan = isEditable ? 7 : 6
   return (
     <Box sx={{ overflowX: 'auto' }}>
       <Table size="small">
@@ -159,6 +238,12 @@ function TransactionTable({
             <SortHeader col="name" sortKey={sortKey} sortDir={sortDir} onSort={handleSort}>
               {t('columns.item')}
             </SortHeader>
+            <SortHeader col="day" sortKey={sortKey} sortDir={sortDir} onSort={handleSort}>
+              {t('columns.day')}
+            </SortHeader>
+            <TableCell>{t('columns.category')}</TableCell>
+            <TableCell>{t('columns.paymentMethod')}</TableCell>
+            <TableCell>{t('columns.owner')}</TableCell>
             <SortHeader col="amount" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right">
               {t('columns.amount')}
             </SortHeader>
@@ -172,87 +257,56 @@ function TransactionTable({
                 {t('empty', { label })}
               </TableCell>
             </TableRow>
-          ) : (
-            sorted.map((tx) => {
-              const category = tx.categoryId ? categoryMap.get(tx.categoryId) : undefined
-              const method = tx.paymentMethodId ? methodMap.get(tx.paymentMethodId) : undefined
-              const person = method?.budgetPersonId && method.budgetPersonId !== 0n
-                ? personMap.get(method.budgetPersonId.toString())
-                : undefined
-
-              const dateStr = formatDate(tx.date)
-
-              return (
-                <TableRow key={tx.id} hover>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
-                      <Typography variant="body2" fontWeight={500}>{tx.name}</Typography>
-                      {dateStr && (
-                        <Typography variant="caption" color="text.secondary">{dateStr}</Typography>
-                      )}
-                      {(method || person) && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          {method && (
-                            <Typography variant="caption" sx={{ color: method.color || 'text.secondary' }}>
-                              {method.name}
-                            </Typography>
-                          )}
-                          {method && person && (
-                            <Typography variant="caption" color="text.secondary">·</Typography>
-                          )}
-                          {person && (
-                            <Typography variant="caption" sx={{ color: person.color || 'text.secondary' }}>
-                              {person.userName}
-                            </Typography>
-                          )}
-                        </Box>
-                      )}
-                      {category && (
-                        <Typography variant="caption" sx={{ color: category.color || 'text.secondary' }}>
-                          {category.name}
-                        </Typography>
-                      )}
+          ) : sorted.map((tx) => {
+            const category = tx.categoryId ? categoryMap.get(tx.categoryId) : undefined
+            const method = tx.paymentMethodId ? methodMap.get(tx.paymentMethodId) : undefined
+            const person = method?.budgetPersonId && method.budgetPersonId !== 0n
+              ? personMap.get(method.budgetPersonId.toString())
+              : undefined
+            return (
+              <TableRow key={tx.id} hover>
+                <TableCell>
+                  <Typography variant="body2" fontWeight={500}>{tx.name}</Typography>
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', color: 'text.secondary' }}>
+                  {formatDate(tx.date)}
+                </TableCell>
+                <TableCell>
+                  {category && (
+                    <Typography variant="body2" sx={{ color: category.color || 'text.secondary' }}>
+                      {category.name}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {method && (
+                    <Typography variant="body2" sx={{ color: method.color || 'inherit' }}>
+                      {method.name}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {person && (
+                    <Typography variant="body2" sx={{ color: person.color || 'text.secondary' }}>
+                      {person.userName}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                  {formatMoney(txAmount(tx))}
+                </TableCell>
+                {isEditable && (
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <IconButton size="small" onClick={() => onEdit(tx)}><EditIcon fontSize="small" /></IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(tx.id)}><DeleteIcon fontSize="small" /></IconButton>
                     </Box>
                   </TableCell>
-                  <TableCell align="right" sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 1.5 }}>
-                    {formatMoney(txAmount(tx))}
-                  </TableCell>
-                  {isEditable && (
-                    <TableCell align="right" sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 0.5 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <IconButton size="small" onClick={() => onEdit(tx)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleDelete(tx.id)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  )}
-                </TableRow>
-              )
-            })
-          )}
+                )}
+              </TableRow>
+            )
+          })}
         </TableBody>
-        {sorted.length > 0 && (
-          <TableFooter>
-            <TableRow>
-              <TableCell
-                align="right"
-                sx={{ fontWeight: 700, color: 'text.primary', borderTop: 2, borderColor: 'divider' }}
-              >
-                {t('subtotal', { label })}
-              </TableCell>
-              <TableCell
-                align="right"
-                sx={{ fontWeight: 700, color: 'text.primary', borderTop: 2, borderColor: 'divider', whiteSpace: 'nowrap' }}
-              >
-                {formatMoney(total)}
-              </TableCell>
-              {isEditable && <TableCell sx={{ borderTop: 2, borderColor: 'divider' }} />}
-            </TableRow>
-          </TableFooter>
-        )}
       </Table>
     </Box>
   )

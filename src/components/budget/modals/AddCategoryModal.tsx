@@ -7,6 +7,8 @@ import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { ColorPicker } from '@/components/ui/ColorPicker'
 import { logger } from '@/lib/logger'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -23,6 +25,8 @@ interface Props {
 
 export function AddCategoryModal({ open, onClose, onCreated }: Props) {
   const { showError, showSuccess } = useSnackbar()
+  const theme = useTheme()
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [name, setName] = useState('')
   const [color, setColor] = useState('')
   const client = useClient(BudgetService)
@@ -45,7 +49,7 @@ export function AddCategoryModal({ open, onClose, onCreated }: Props) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth fullScreen={fullScreen}>
       <DialogTitle>New Category</DialogTitle>
       <DialogContent>
         <TextField

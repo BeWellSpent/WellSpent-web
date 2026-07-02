@@ -6,7 +6,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ locale:
   const { id } = await params
   return (
     <BudgetSidebar budgetId={id}>
-      <Container maxWidth="xl" sx={{ py: 3 }}>
+      <Container maxWidth="xl" sx={{ py: 3, px: { xs: 1, sm: 3 } }}>
         <BudgetView budgetId={id} />
       </Container>
     </BudgetSidebar>

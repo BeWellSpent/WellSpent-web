@@ -121,7 +121,7 @@ export function BudgetView({ budgetId }: Props) {
       <SpeedDial
         ariaLabel={tFab('label')}
         icon={<SpeedDialIcon openIcon={<AddIcon />} />}
-        sx={{ position: 'fixed', bottom: 24, right: 24 }}
+        sx={{ position: 'fixed', bottom: { xs: 80, sm: 24 }, right: 24 }}
       >
         <SpeedDialAction
           icon={<ReceiptLongIcon />}
