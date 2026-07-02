@@ -4,7 +4,7 @@
       "title": "Iniciar sesión en SpendSense",
       "email": "Correo electrónico",
       "password": "Contraseña",
-      "rememberMe": "Recordarme por 30 días",
+      "rememberMe": "Recordarme por 90 días",
       "submit": "Iniciar sesión",
       "submitting": "Iniciando sesión…",
       "googleBtn": "Continuar con Google",
