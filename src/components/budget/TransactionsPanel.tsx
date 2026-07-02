@@ -180,21 +180,36 @@ function TransactionTable({
                 ? personMap.get(method.budgetPersonId.toString())
                 : undefined
 
-              const secondaryParts = [
-                formatDate(tx.date),
-                method?.name,
-                category?.name,
-                person?.userName,
-              ].filter(Boolean)
+              const dateStr = formatDate(tx.date)
 
               return (
                 <TableRow key={tx.id} hover>
                   <TableCell>
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
                       <Typography variant="body2" fontWeight={500}>{tx.name}</Typography>
-                      {secondaryParts.length > 0 && (
-                        <Typography variant="caption" color="text.secondary">
-                          {secondaryParts.join(' · ')}
+                      {dateStr && (
+                        <Typography variant="caption" color="text.secondary">{dateStr}</Typography>
+                      )}
+                      {(method || person) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          {method && (
+                            <Typography variant="caption" sx={{ color: method.color || 'text.secondary' }}>
+                              {method.name}
+                            </Typography>
+                          )}
+                          {method && person && (
+                            <Typography variant="caption" color="text.secondary">·</Typography>
+                          )}
+                          {person && (
+                            <Typography variant="caption" sx={{ color: person.color || 'text.secondary' }}>
+                              {person.userName}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+                      {category && (
+                        <Typography variant="caption" sx={{ color: category.color || 'text.secondary' }}>
+                          {category.name}
                         </Typography>
                       )}
                     </Box>
