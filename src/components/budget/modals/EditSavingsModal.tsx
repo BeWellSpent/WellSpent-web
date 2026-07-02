@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import type { SavingsSource } from '@/gen/spendsense/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
+import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -15,10 +16,6 @@ import DialogActions from '@mui/material/DialogActions'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import InputLabel from '@mui/material/InputLabel'
-import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
@@ -28,6 +25,7 @@ import { useTheme } from '@mui/material/styles'
 
 interface Props {
   budgetProfileId: string
+  activePeriodStart?: Date
   source: SavingsSource
   onClose: () => void
   onDone: () => void
@@ -42,11 +40,12 @@ function inferFrequencyLabel(count: number): string {
   return ''
 }
 
-export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: Props) {
+export function EditSavingsModal({ budgetProfileId, activePeriodStart, source, onClose, onDone }: Props) {
   const t = useTranslations('budget.savings.editDialog')
   const { showError } = useSnackbar()
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
+  const queryClient = useQueryClient()
 
   const [name, setName] = useState(source.name)
   const [amount, setAmount] = useState(() => {
@@ -65,12 +64,6 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
   }, [source])
 
   const client = useClient(BudgetService)
-
-  const { data: pmData } = useQuery({
-    queryKey: ['payment-methods', budgetProfileId],
-    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
-  })
-  const paymentMethods = useMemo(() => pmData?.methods ?? [], [pmData])
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {
@@ -96,6 +89,7 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
     try {
       await mutateAsync({ name, amount: { units: BigInt(units), nanos }, paymentMethodId, paymentDays })
       logger.info('budget.savings.update', { budgetProfileId, id: source.id.toString(), name })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
       onDone()
     } catch (err) {
       showError(err)
@@ -104,6 +98,11 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
 
   const isValid = name.trim() !== '' && amount !== '' && VALID_COUNTS.has(paymentDays.length)
   const freqLabel = inferFrequencyLabel(paymentDays.length)
+
+  const daysInMonth = useMemo(() => {
+    const ref = activePeriodStart ?? new Date()
+    return new Date(ref.getFullYear(), ref.getMonth() + 1, 0).getDate()
+  }, [activePeriodStart])
 
   return (
     <Dialog open onClose={onClose} fullScreen={fullScreen} fullWidth maxWidth="xs">
@@ -125,19 +124,14 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
             fullWidth
             inputProps={{ min: 0, step: '0.01' }}
           />
-          <FormControl fullWidth size="small">
-            <InputLabel>{t('paymentMethod')}</InputLabel>
-            <Select
-              label={t('paymentMethod')}
-              value={paymentMethodId}
-              onChange={(e) => setPaymentMethodId(e.target.value)}
-            >
-              <MenuItem value="">{t('noPaymentMethod')}</MenuItem>
-              {paymentMethods.map((pm) => (
-                <MenuItem key={pm.id} value={pm.id}>{pm.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <PaymentMethodSelect
+            budgetProfileId={budgetProfileId}
+            value={paymentMethodId}
+            onChange={setPaymentMethodId}
+            label={t('paymentMethod')}
+            includeNone
+            noneLabel={t('noPaymentMethod')}
+          />
           <Box>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               {t('paymentDays')}
@@ -148,7 +142,7 @@ export function EditSavingsModal({ budgetProfileId, source, onClose, onDone }: P
               )}
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => (
                 <Chip
                   key={day}
                   label={day}

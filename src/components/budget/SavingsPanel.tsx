@@ -26,6 +26,7 @@ import Tooltip from '@mui/material/Tooltip'
 
 interface Props {
   budgetProfileId: string
+  activePeriodStart?: Date
   addOpen?: boolean
   onAddClose?: () => void
 }
@@ -58,7 +59,7 @@ function toMonthlyAmount(src: SavingsSource): number {
   return amount * (MONTHLY_MULTIPLIER[src.frequency] ?? 0)
 }
 
-export function SavingsPanel({ budgetProfileId, addOpen = false, onAddClose }: Props) {
+export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = false, onAddClose }: Props) {
   const t = useTranslations('budget.savings')
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
@@ -179,6 +180,7 @@ export function SavingsPanel({ budgetProfileId, addOpen = false, onAddClose }: P
       {addOpen && (
         <AddSavingsDialog
           budgetProfileId={budgetProfileId}
+          activePeriodStart={activePeriodStart}
           onClose={() => onAddClose?.()}
           onDone={() => { onAddClose?.(); refetch() }}
         />
@@ -187,6 +189,7 @@ export function SavingsPanel({ budgetProfileId, addOpen = false, onAddClose }: P
       {editingSource && (
         <EditSavingsModal
           budgetProfileId={budgetProfileId}
+          activePeriodStart={activePeriodStart}
           source={editingSource}
           onClose={() => setEditingSource(null)}
           onDone={() => {
