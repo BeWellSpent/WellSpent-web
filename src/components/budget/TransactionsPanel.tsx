@@ -178,7 +178,7 @@ function TransactionTable({
   const isRowEditable = (tx: Transaction) => isEditable && !isSavingsRow(tx)
 
   const canMarkPaid = (tx: Transaction) =>
-    isFixed && isEditable && !isSavingsRow(tx) && !tx.isPaid
+    isFixed && isEditable && !tx.isPaid
 
   const sorted = [...transactions].sort((a, b) => compareTransactions(a, b, sortKey, sortDir))
 
@@ -287,6 +287,7 @@ function TransactionTable({
           <MarkAsPaidDialog
             transaction={markPaidTarget}
             budgetPeriodId={budgetPeriodId}
+            isSavings={isSavingsRow(markPaidTarget)}
             onClose={() => setMarkPaidTarget(null)}
             onDone={() => { setMarkPaidTarget(null); onRefresh() }}
           />
