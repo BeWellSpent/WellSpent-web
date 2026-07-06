@@ -21,6 +21,7 @@ import Typography from '@mui/material/Typography'
 interface Props {
   transaction: Transaction
   budgetPeriodId: string
+  isSavings?: boolean
   onClose: () => void
   onDone: () => void
 }
@@ -41,7 +42,7 @@ function numericAmount(m: { units: bigint; nanos: number } | undefined): string 
   return val.toFixed(2)
 }
 
-export function MarkAsPaidDialog({ transaction: tx, budgetPeriodId, onClose, onDone }: Props) {
+export function MarkAsPaidDialog({ transaction: tx, budgetPeriodId, isSavings = false, onClose, onDone }: Props) {
   const t = useTranslations('budget.transactions.markAsPaid')
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
@@ -77,7 +78,7 @@ export function MarkAsPaidDialog({ transaction: tx, budgetPeriodId, onClose, onD
     }
   }
 
-  const isValid = !!amount && parseFloat(amount) > 0 && !!date
+  const isValid = isSavings || (!!amount && parseFloat(amount) > 0 && !!date)
 
   return (
     <Dialog open onClose={onClose} fullScreen={fullScreen} fullWidth maxWidth="xs">
@@ -86,24 +87,28 @@ export function MarkAsPaidDialog({ transaction: tx, budgetPeriodId, onClose, onD
         <Typography variant="body2" color="text.secondary">
           {t('description', { name: tx.name })}
         </Typography>
-        <TextField
-          label={t('amount')}
-          type="number"
-          inputProps={{ min: 0, step: 0.01 }}
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          fullWidth
-          size="small"
-        />
-        <TextField
-          label={t('date')}
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          fullWidth
-          size="small"
-          InputLabelProps={{ shrink: true }}
-        />
+        {!isSavings && (
+          <>
+            <TextField
+              label={t('amount')}
+              type="number"
+              inputProps={{ min: 0, step: 0.01 }}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              fullWidth
+              size="small"
+            />
+            <TextField
+              label={t('date')}
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              fullWidth
+              size="small"
+              InputLabelProps={{ shrink: true }}
+            />
+          </>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('cancel')}</Button>
