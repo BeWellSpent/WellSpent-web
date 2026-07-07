@@ -7,7 +7,6 @@ import type { Category } from '@/gen/spendsense/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { ColorPicker } from '@/components/ui/ColorPicker'
-import { COLORS, COLOR_NAMES } from '@/lib/config/colors'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -34,6 +33,23 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PaletteIcon from '@mui/icons-material/Palette'
 import ShuffleIcon from '@mui/icons-material/Shuffle'
+
+function hslToHex(h: number, s: number, l: number): string {
+  const a = s * Math.min(l, 1 - l)
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12
+    const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+    return Math.round(255 * c).toString(16).padStart(2, '0')
+  }
+  return `#${f(0)}${f(8)}${f(4)}`
+}
+
+function generateDistinctColors(count: number): string[] {
+  const startHue = Math.random() * 360
+  return Array.from({ length: count }, (_, i) =>
+    hslToHex((startHue + i * 137.508) % 360, 0.65, 0.50)
+  )
+}
 
 function ColorDot({ color }: { color: string }) {
   return (
@@ -142,12 +158,7 @@ export function CategoriesPanel() {
   async function handleRandomizeSystemColors() {
     setIsRandomizing(true)
     try {
-      const pool = [...COLOR_NAMES]
-      const picks: string[] = systemCats.map((_, i) => {
-        if (pool.length === 0) pool.push(...COLOR_NAMES)
-        const idx = Math.floor(Math.random() * pool.length)
-        return COLORS[pool.splice(idx, 1)[0]]
-      })
+      const picks = generateDistinctColors(systemCats.length)
       await Promise.all(systemCats.map((cat, i) => doUpdate({ id: cat.id, name: cat.name, color: picks[i] })))
       logger.info('category.randomize_colors', { count: systemCats.length })
     } catch (err) {
