@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useMediaQuery } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import type { Transaction } from '@/gen/spendsense/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
@@ -47,9 +45,6 @@ export function MarkAsPaidDialog({ transaction: tx, budgetPeriodId, isSavings = 
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
-  const theme = useTheme()
-  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
-
   const [amount, setAmount] = useState(numericAmount(tx.plannedAmount))
   const [date, setDate] = useState(tsToDateString(tx.date))
 
@@ -81,7 +76,7 @@ export function MarkAsPaidDialog({ transaction: tx, budgetPeriodId, isSavings = 
   const isValid = isSavings || (!!amount && parseFloat(amount) > 0 && !!date)
 
   return (
-    <Dialog open onClose={onClose} fullScreen={fullScreen} fullWidth maxWidth="xs">
+    <Dialog open onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>{t('title')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
         <Typography variant="body2" color="text.secondary">
