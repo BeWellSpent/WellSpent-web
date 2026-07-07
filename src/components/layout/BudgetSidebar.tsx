@@ -11,6 +11,9 @@ import { useClient } from '@/hooks/useClient'
 import { FullScreenDrawer } from '@/components/ui/FullScreenDrawer'
 import { PeoplePanel } from '@/components/budget/PeoplePanel'
 import { CategoriesPanel } from '@/components/budget/CategoriesPanel'
+import { IncomePanel } from '@/components/budget/IncomePanel'
+import { SavingsPanel } from '@/components/budget/SavingsPanel'
+import { PaymentMethodsPanel } from '@/components/budget/PaymentMethodsPanel'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
@@ -22,7 +25,6 @@ import ListItemText from '@mui/material/ListItemText'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import Tooltip from '@mui/material/Tooltip'
-import Paper from '@mui/material/Paper'
 import IconButton from '@mui/material/IconButton'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
@@ -34,11 +36,23 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import MenuIcon from '@mui/icons-material/Menu'
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
+import SavingsIcon from '@mui/icons-material/Savings'
+import CreditCardIcon from '@mui/icons-material/CreditCard'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const SIDEBAR_WIDTH = 240
 const SIDEBAR_COLLAPSED_WIDTH = 60
 const COLLAPSED_KEY = 'sidebar-collapsed'
+
+interface NavItem {
+  label: string
+  icon: React.ReactElement
+  action: () => void
+  disabled?: boolean
+  tooltip?: string
+}
 
 interface Props {
   budgetId: string
@@ -53,6 +67,10 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   const client = useClient(BudgetService)
   const [peopleOpen, setPeopleOpen] = useState(false)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const [incomeOpen, setIncomeOpen] = useState(false)
+  const [savingsOpen, setSavingsOpen] = useState(false)
+  const [paymentMethodsOpen, setPaymentMethodsOpen] = useState(false)
+  const [mobileManageOpen, setMobileManageOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
@@ -70,7 +88,24 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     queryKey: ['budget-profile', budgetId],
     queryFn: () => client.getBudgetProfile({ id: budgetId }),
   })
+
+  const { data: periodsData } = useQuery({
+    queryKey: ['budget-periods', budgetId],
+    queryFn: () => client.listBudgetPeriods({ budgetProfileId: budgetId }),
+    enabled: !!data,
+  })
+
   const budgetName = data?.profile?.name ?? '…'
+  const showBeforeTax = (data?.profile?.countryCode ?? '') === 'US'
+
+  const periods = periodsData?.periods ?? []
+  const activePeriod = [...periods]
+    .filter((p) => !p.isArchived)
+    .sort((a, b) => Number(b.startDate?.seconds ?? 0n) - Number(a.startDate?.seconds ?? 0n))[0]
+    ?? periods[0]
+  const activePeriodStart = activePeriod?.startDate
+    ? new Date(Number(activePeriod.startDate.seconds) * 1000)
+    : undefined
 
   async function handleLogout() {
     try {
@@ -81,19 +116,20 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     }
   }
 
-  const navItems = [
-    {
-      label: t('categories'),
-      icon: <CategoryIcon />,
-      action: () => setCategoriesOpen(true),
-      disabled: false,
-    },
-    {
-      label: t('people'),
-      icon: <PeopleIcon />,
-      action: () => setPeopleOpen(true),
-      disabled: false,
-    },
+  function openMobilePanel(openFn: () => void) {
+    setMobileManageOpen(false)
+    openFn()
+  }
+
+  const managementItems: NavItem[] = [
+    { label: t('income'), icon: <AttachMoneyIcon />, action: () => setIncomeOpen(true) },
+    { label: t('savings'), icon: <SavingsIcon />, action: () => setSavingsOpen(true) },
+    { label: t('paymentMethods'), icon: <CreditCardIcon />, action: () => setPaymentMethodsOpen(true) },
+    { label: t('categories'), icon: <CategoryIcon />, action: () => setCategoriesOpen(true) },
+    { label: t('people'), icon: <PeopleIcon />, action: () => setPeopleOpen(true) },
+  ]
+
+  const appItems: NavItem[] = [
     {
       label: t('reports'),
       icon: <BarChartIcon />,
@@ -108,6 +144,8 @@ export function BudgetSidebar({ budgetId, children }: Props) {
       disabled: false,
     },
   ]
+
+  const navItems = [...managementItems, ...appItems]
 
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH
 
@@ -160,7 +198,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
 
       <Divider />
 
-      {/* Main nav */}
+      {/* Main nav — budget management + app items */}
       <List disablePadding sx={{ flex: 1 }}>
         {navItems.map((item) => {
           const tooltipTitle = collapsed ? (item.tooltip ?? item.label) : (item.tooltip ?? '')
@@ -271,6 +309,9 @@ export function BudgetSidebar({ budgetId, children }: Props) {
               </IconButton>
               <Typography variant="h6" fontWeight={700} noWrap sx={{ flex: 1 }}>{budgetName}</Typography>
               <ThemeToggle />
+              <IconButton onClick={() => setMobileManageOpen(true)} aria-label={t('manage')} sx={{ ml: 0.5 }}>
+                <MenuIcon />
+              </IconButton>
             </Toolbar>
           </AppBar>
         )}
@@ -278,56 +319,85 @@ export function BudgetSidebar({ budgetId, children }: Props) {
         <Box sx={{ flex: 1, pb: isMobile ? 7 : 0 }}>
           {children}
         </Box>
-
-        {/* Mobile bottom bar */}
-        {isMobile && (
-          <Paper
-            elevation={3}
-            sx={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              py: 0.5,
-              borderTop: 1,
-              borderColor: 'divider',
-              zIndex: theme.zIndex.appBar,
-            }}
-          >
-            {navItems.map((item) => (
-              <IconButton
-                key={item.label}
-                onClick={item.action}
-                disabled={item.disabled}
-                size="small"
-                sx={{ flexDirection: 'column', borderRadius: 2, px: 2 }}
-              >
-                {item.icon}
-                <Typography variant="caption" display="block" sx={{ mt: 0.25 }}>{item.label}</Typography>
-                {item.disabled && item.tooltip && (
-                  <Typography variant="caption" display="block" sx={{ fontSize: '0.55rem', lineHeight: 1, color: 'text.disabled' }}>
-                    {item.tooltip}
-                  </Typography>
-                )}
-              </IconButton>
-            ))}
-            <IconButton onClick={handleLogout} size="small" sx={{ flexDirection: 'column', borderRadius: 2, px: 2 }}>
-              <LogoutIcon />
-              <Typography variant="caption" display="block" sx={{ mt: 0.25 }}>{t('logout')}</Typography>
-            </IconButton>
-          </Paper>
-        )}
       </Box>
 
-      <FullScreenDrawer open={categoriesOpen} onClose={() => setCategoriesOpen(false)} title="Categories">
+      {/* Mobile management drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileManageOpen}
+        onClose={() => setMobileManageOpen(false)}
+        sx={{ display: { md: 'none' } }}
+      >
+        <Box sx={{ width: 260, pt: 1 }}>
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Typography variant="overline" color="text.secondary" display="block">SpendSense</Typography>
+            <Typography variant="h6" fontWeight={700} noWrap>{budgetName}</Typography>
+          </Box>
+          <Divider />
+          <List>
+            {managementItems.map((item) => (
+              <ListItem key={item.label} disablePadding>
+                <ListItemButton onClick={() => openMobilePanel(item.action)}>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.label} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          <Divider />
+          <List>
+            {appItems.map((item) => (
+              <ListItem key={item.label} disablePadding>
+                <Tooltip title={item.tooltip ?? ''} disableHoverListener={!item.disabled}>
+                  <span style={{ width: '100%' }}>
+                    <ListItemButton
+                      onClick={() => { setMobileManageOpen(false); item.action() }}
+                      disabled={item.disabled}
+                    >
+                      <ListItemIcon sx={{ color: item.disabled ? 'text.disabled' : 'inherit' }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.label}
+                        primaryTypographyProps={{ color: item.disabled ? 'text.disabled' : 'inherit' }}
+                      />
+                    </ListItemButton>
+                  </span>
+                </Tooltip>
+              </ListItem>
+            ))}
+          </List>
+          <Divider />
+          <List>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { setMobileManageOpen(false); handleLogout() }}>
+                <ListItemIcon><LogoutIcon /></ListItemIcon>
+                <ListItemText primary={t('logout')} />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </Box>
+      </Drawer>
+
+      {/* Management panels */}
+      <FullScreenDrawer open={categoriesOpen} onClose={() => setCategoriesOpen(false)} title={t('categories')}>
         <CategoriesPanel />
       </FullScreenDrawer>
 
-      <FullScreenDrawer open={peopleOpen} onClose={() => setPeopleOpen(false)} title="People">
+      <FullScreenDrawer open={peopleOpen} onClose={() => setPeopleOpen(false)} title={t('people')}>
         <PeoplePanel budgetProfileId={budgetId} />
+      </FullScreenDrawer>
+
+      <FullScreenDrawer open={incomeOpen} onClose={() => setIncomeOpen(false)} title={t('income')}>
+        <IncomePanel budgetProfileId={budgetId} showBeforeTax={showBeforeTax} />
+      </FullScreenDrawer>
+
+      <FullScreenDrawer open={savingsOpen} onClose={() => setSavingsOpen(false)} title={t('savings')}>
+        <SavingsPanel budgetProfileId={budgetId} activePeriodStart={activePeriodStart} />
+      </FullScreenDrawer>
+
+      <FullScreenDrawer open={paymentMethodsOpen} onClose={() => setPaymentMethodsOpen(false)} title={t('paymentMethods')}>
+        <PaymentMethodsPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} />
       </FullScreenDrawer>
     </Box>
   )

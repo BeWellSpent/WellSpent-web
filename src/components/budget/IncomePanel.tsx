@@ -19,6 +19,7 @@ import IconButton from '@mui/material/IconButton'
 import CircularProgress from '@mui/material/CircularProgress'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
 
 interface Props {
   budgetProfileId: string
@@ -38,6 +39,8 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
   const [editingSource, setEditingSource] = useState<IncomeSource | null>(null)
+  const [localAddOpen, setLocalAddOpen] = useState(false)
+  const isAddOpen = addOpen || localAddOpen
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['income-sources', budgetProfileId],
@@ -80,9 +83,12 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Typography variant="subtitle1" fontWeight={600}>{t('title')}</Typography>
+          <IconButton size="small" onClick={() => setLocalAddOpen(true)}>
+            <AddIcon fontSize="small" />
+          </IconButton>
         </Box>
         <Typography variant="subtitle2" color="success.main">
           {total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} {t('perMonth')}
@@ -126,12 +132,12 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
         </List>
       )}
 
-      {addOpen && (
+      {isAddOpen && (
         <AddIncomeDialog
           budgetProfileId={budgetProfileId}
           showBeforeTax={showBeforeTax}
-          onClose={() => onAddClose?.()}
-          onDone={() => { onAddClose?.(); refetch(); invalidateSavings() }}
+          onClose={() => { setLocalAddOpen(false); onAddClose?.() }}
+          onDone={() => { setLocalAddOpen(false); onAddClose?.(); refetch(); invalidateSavings() }}
         />
       )}
 

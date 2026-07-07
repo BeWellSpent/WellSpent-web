@@ -72,10 +72,15 @@
     },
     "view": {
       "failedToLoad": "No se pudo cargar el presupuesto.",
-      "noActivePeriod": "No se encontró un período activo."
+      "noActivePeriod": "No se encontró un período activo.",
+      "expensePlan": "Plan de Gastos",
+      "transactions": "Transacciones"
     },
     "sidebar": {
       "allBudgets": "Todos los Presupuestos",
+      "income": "Ingresos",
+      "savings": "Ahorros",
+      "paymentMethods": "Métodos de Pago",
       "categories": "Categorías",
       "people": "Personas",
       "reports": "Reportes",
@@ -84,7 +89,8 @@
       "logout": "Cerrar sesión",
       "theme": "Tema",
       "expand": "Expandir barra lateral",
-      "collapse": "Contraer barra lateral"
+      "collapse": "Contraer barra lateral",
+      "manage": "Gestionar"
     },
     "income": {
       "title": "Ingresos",
