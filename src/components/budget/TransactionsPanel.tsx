@@ -416,7 +416,7 @@ function TransactionTable({
                         )}
                         {isFixed && tx.isPaid && (
                           <Tooltip title={t('markAsPaid.alreadyPaid')}>
-                            <IconButton size="small" disabled>
+                            <IconButton size="small" onClick={() => handleUnmark(tx)} disabled={unmarkPending} color="success">
                               <CheckCircleIcon fontSize="small" color="success" />
                             </IconButton>
                           </Tooltip>
