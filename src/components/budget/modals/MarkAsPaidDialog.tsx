@@ -66,7 +66,6 @@ export function MarkAsPaidDialog({ transaction: tx, budgetPeriodId, isSavings = 
       await mutateAsync()
       logger.info('transaction.markAsPaid', { id: tx.id, amount, date })
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['expense-allocations'] })
       onDone()
     } catch (err) {
       showError(err)
