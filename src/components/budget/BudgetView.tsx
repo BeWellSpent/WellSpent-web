@@ -3,27 +3,26 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
-import { UserService } from '@/gen/spendsense/v1/user_connect'
 import { useClient } from '@/hooks/useClient'
-import { IncomePanel } from './IncomePanel'
-import { SavingsPanel } from './SavingsPanel'
-import { PaymentMethodsPanel } from './PaymentMethodsPanel'
 import { TransactionsPanel } from './TransactionsPanel'
 import { ExpensesPanel } from './ExpensesPanel'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
-import Divider from '@mui/material/Divider'
-import SpeedDial from '@mui/material/SpeedDial'
-import SpeedDialAction from '@mui/material/SpeedDialAction'
-import SpeedDialIcon from '@mui/material/SpeedDialIcon'
+import Paper from '@mui/material/Paper'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
+import Fab from '@mui/material/Fab'
+import BottomNavigation from '@mui/material/BottomNavigation'
+import BottomNavigationAction from '@mui/material/BottomNavigationAction'
 import AddIcon from '@mui/icons-material/Add'
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
-import SavingsIcon from '@mui/icons-material/Savings'
+import AssignmentIcon from '@mui/icons-material/Assignment'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 
-type AddTarget = 'income' | 'savings' | 'transaction' | null
+type ActiveView = 'expenses' | 'transactions'
 
 interface Props {
   budgetId: string
@@ -33,13 +32,10 @@ export function BudgetView({ budgetId }: Props) {
   const t = useTranslations('budget.view')
   const tFab = useTranslations('budget.fab')
   const client = useClient(BudgetService)
-  const userClient = useClient(UserService)
-  const [activeAdd, setActiveAdd] = useState<AddTarget>(null)
-
-  const { data: meData } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => userClient.getMe({}),
-  })
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const [activeView, setActiveView] = useState<ActiveView>('expenses')
+  const [addTransactionOpen, setAddTransactionOpen] = useState(false)
 
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['budget-profile', budgetId],
@@ -63,86 +59,102 @@ export function BudgetView({ budgetId }: Props) {
     .filter((p) => !p.isArchived)
     .sort((a, b) => Number(b.startDate?.seconds ?? 0n) - Number(a.startDate?.seconds ?? 0n))[0]
     ?? periods[0]
-  // Fall back to the user's country when the profile pre-dates the country_code column
-  const effectiveCountry = profile?.countryCode || meData?.user?.countryCode || ''
-  const showBeforeTax = effectiveCountry === 'US'
+
+  function handleFabClick() {
+    setActiveView('transactions')
+    setAddTransactionOpen(true)
+  }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 10 }}>
-      <Box>
-        <Typography variant="h5" fontWeight={700}>{profile?.name}</Typography>
-        {activePeriod?.startDate && activePeriod?.endDate && (
-          <Typography variant="body2" color="text.secondary">
-            {new Date(Number(activePeriod.startDate.seconds) * 1000).toLocaleDateString()} —{' '}
-            {new Date(Number(activePeriod.endDate.seconds) * 1000).toLocaleDateString()}
-          </Typography>
-        )}
-      </Box>
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
-        <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-          <IncomePanel
-            budgetProfileId={budgetId}
-            showBeforeTax={showBeforeTax}
-            addOpen={activeAdd === 'income'}
-            onAddClose={() => setActiveAdd(null)}
-          />
+    <Box sx={{ display: 'flex', flexDirection: 'column', pb: { xs: 12, sm: 10 } }}>
+      {/* Budget name shown only on desktop; mobile AppBar already shows it */}
+      {!isMobile && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h5" fontWeight={700}>{profile?.name}</Typography>
+          {activePeriod?.startDate && activePeriod?.endDate && (
+            <Typography variant="body2" color="text.secondary">
+              {new Date(Number(activePeriod.startDate.seconds) * 1000).toLocaleDateString()} —{' '}
+              {new Date(Number(activePeriod.endDate.seconds) * 1000).toLocaleDateString()}
+            </Typography>
+          )}
         </Box>
-        <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-          <SavingsPanel
-            budgetProfileId={budgetId}
-            activePeriodStart={activePeriod?.startDate ? new Date(Number(activePeriod.startDate.seconds) * 1000) : undefined}
-            addOpen={activeAdd === 'savings'}
-            onAddClose={() => setActiveAdd(null)}
-          />
-        </Box>
-        <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-          <PaymentMethodsPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} />
-        </Box>
-      </Box>
+      )}
 
-      <Divider />
+      {/* Period date shown on mobile (name is in AppBar) */}
+      {isMobile && activePeriod?.startDate && activePeriod?.endDate && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          {new Date(Number(activePeriod.startDate.seconds) * 1000).toLocaleDateString()} —{' '}
+          {new Date(Number(activePeriod.endDate.seconds) * 1000).toLocaleDateString()}
+        </Typography>
+      )}
 
+      {/* Desktop tab nav */}
+      {!isMobile && (
+        <Tabs
+          value={activeView}
+          onChange={(_, v: ActiveView) => setActiveView(v)}
+          sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}
+        >
+          <Tab value="expenses" label={t('expensePlan')} icon={<AssignmentIcon />} iconPosition="start" />
+          <Tab value="transactions" label={t('transactions')} icon={<ReceiptLongIcon />} iconPosition="start" />
+        </Tabs>
+      )}
+
+      {/* Active panel */}
       <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-        {activePeriod ? (
+        {activeView === 'expenses' ? (
+          <ExpensesPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} />
+        ) : activePeriod ? (
           <TransactionsPanel
             budgetPeriodId={activePeriod.id}
             budgetProfileId={budgetId}
-            addOpen={activeAdd === 'transaction'}
-            onAddClose={() => setActiveAdd(null)}
+            addOpen={addTransactionOpen}
+            onAddClose={() => setAddTransactionOpen(false)}
           />
         ) : (
           <Typography variant="body2" color="text.secondary">{t('noActivePeriod')}</Typography>
         )}
       </Box>
 
-      <Divider />
-
-      <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-        <ExpensesPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} />
-      </Box>
-
-      <SpeedDial
-        ariaLabel={tFab('label')}
-        icon={<SpeedDialIcon openIcon={<AddIcon />} />}
+      {/* FAB — switches to transactions view and opens add dialog */}
+      <Fab
+        color="primary"
+        aria-label={tFab('addTransaction')}
+        onClick={handleFabClick}
         sx={{ position: 'fixed', bottom: { xs: 80, sm: 24 }, right: 24 }}
       >
-        <SpeedDialAction
-          icon={<ReceiptLongIcon />}
-          tooltipTitle={tFab('addTransaction')}
-          onClick={() => setActiveAdd('transaction')}
-        />
-        <SpeedDialAction
-          icon={<SavingsIcon />}
-          tooltipTitle={tFab('addSavings')}
-          onClick={() => setActiveAdd('savings')}
-        />
-        <SpeedDialAction
-          icon={<AttachMoneyIcon />}
-          tooltipTitle={tFab('addIncome')}
-          onClick={() => setActiveAdd('income')}
-        />
-      </SpeedDial>
+        <AddIcon />
+      </Fab>
+
+      {/* Mobile bottom navigation — mirrors desktop tabs */}
+      {isMobile && (
+        <Paper
+          elevation={3}
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: theme.zIndex.appBar,
+          }}
+        >
+          <BottomNavigation
+            value={activeView}
+            onChange={(_, v: ActiveView) => setActiveView(v)}
+          >
+            <BottomNavigationAction
+              value="expenses"
+              label={t('expensePlan')}
+              icon={<AssignmentIcon />}
+            />
+            <BottomNavigationAction
+              value="transactions"
+              label={t('transactions')}
+              icon={<ReceiptLongIcon />}
+            />
+          </BottomNavigation>
+        </Paper>
+      )}
     </Box>
   )
 }

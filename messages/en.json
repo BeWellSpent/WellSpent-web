@@ -72,10 +72,15 @@
     },
     "view": {
       "failedToLoad": "Failed to load budget.",
-      "noActivePeriod": "No active period found."
+      "noActivePeriod": "No active period found.",
+      "expensePlan": "Expense Plan",
+      "transactions": "Transactions"
     },
     "sidebar": {
       "allBudgets": "All Budgets",
+      "income": "Income",
+      "savings": "Savings",
+      "paymentMethods": "Payment Methods",
       "categories": "Categories",
       "people": "People",
       "reports": "Reports",
@@ -84,7 +89,8 @@
       "logout": "Logout",
       "theme": "Theme",
       "expand": "Expand sidebar",
-      "collapse": "Collapse sidebar"
+      "collapse": "Collapse sidebar",
+      "manage": "Manage"
     },
     "income": {
       "title": "Income",
