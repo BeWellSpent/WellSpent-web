@@ -54,8 +54,9 @@ export function LoginForm() {
   async function handleGoogleSignIn() {
     const state = crypto.randomUUID()
     sessionStorage.setItem('google_oauth_state', state)
-    // Persist locale preference for the callback page
     localStorage.setItem('spendsense_locale', language)
+    // Preserve the post-auth redirect (e.g. invite acceptance) across the OAuth round-trip.
+    if (redirect) sessionStorage.setItem('google_oauth_redirect', redirect)
     try {
       const res = await authClient.getGoogleAuthURL({ state })
       window.location.href = res.url
