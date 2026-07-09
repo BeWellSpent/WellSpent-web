@@ -1,7 +1,7 @@
 {
   "auth": {
     "login": {
-      "title": "Iniciar sesión en WellSpent",
+      "title": "Iniciar sesión",
       "email": "Correo electrónico",
       "password": "Contraseña",
       "rememberMe": "Recordarme por 90 días",
