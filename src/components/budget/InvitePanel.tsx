@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
+import type { BudgetInvite } from '@/gen/spendsense/v1/invite_pb'
 import { InviteService } from '@/gen/spendsense/v1/invite_connect'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
 import { InviteStatus } from '@/gen/spendsense/v1/invite_pb'
@@ -28,6 +29,7 @@ import IconButton from '@mui/material/IconButton'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tooltip from '@mui/material/Tooltip'
 import CancelIcon from '@mui/icons-material/Cancel'
+import RefreshIcon from '@mui/icons-material/Refresh'
 
 interface Props {
   budgetProfileId: string
@@ -59,6 +61,7 @@ export function InvitePanel({ budgetProfileId }: Props) {
   const [role, setRole] = useState<BudgetRole>(BudgetRole.COLLABORATOR)
   const [budgetPersonId, setBudgetPersonId] = useState<bigint>(0n)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
+  const [resendingId, setResendingId] = useState<string | null>(null)
 
   const { data: invitesData, isLoading } = useQuery({
     queryKey: ['budget-invites', budgetProfileId],
@@ -115,6 +118,29 @@ export function InvitePanel({ budgetProfileId }: Props) {
       showError(err)
     } finally {
       setCancellingId(null)
+    }
+  }
+
+  async function handleResend(inv: BudgetInvite) {
+    setResendingId(inv.id)
+    try {
+      // Cancel the old invite first to avoid duplicate pending invites for the same email.
+      if (inv.status === InviteStatus.PENDING) {
+        await inviteClient.cancelBudgetInvite({ id: inv.id, budgetProfileId })
+      }
+      await inviteClient.sendBudgetInvite({
+        budgetProfileId,
+        email: inv.email,
+        role: inv.role,
+        budgetPersonId: inv.budgetPersonId,
+      })
+      queryClient.invalidateQueries({ queryKey: ['budget-invites', budgetProfileId] })
+      logger.info('invite.resend', { budgetProfileId, email: inv.email })
+      showSuccess(tInvites('send.success', { email: inv.email }))
+    } catch (err) {
+      showError(err)
+    } finally {
+      setResendingId(null)
     }
   }
 
@@ -216,23 +242,43 @@ export function InvitePanel({ budgetProfileId }: Props) {
                 key={inv.id}
                 disableGutters
                 secondaryAction={
-                  inv.status === InviteStatus.PENDING && (
-                    <Tooltip title={tInvites('list.cancel')}>
-                      <span>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleCancel(inv.id)}
-                          disabled={cancellingId === inv.id}
-                          aria-label={tInvites('list.cancel')}
-                        >
-                          {cancellingId === inv.id ? (
-                            <CircularProgress size={16} />
-                          ) : (
-                            <CancelIcon fontSize="small" />
-                          )}
-                        </IconButton>
-                      </span>
-                    </Tooltip>
+                  inv.status !== InviteStatus.ACCEPTED && (
+                    <Stack direction="row" spacing={0.5}>
+                      <Tooltip title={tInvites('list.resend')}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleResend(inv)}
+                            disabled={resendingId === inv.id || cancellingId === inv.id}
+                            aria-label={tInvites('list.resend')}
+                          >
+                            {resendingId === inv.id ? (
+                              <CircularProgress size={16} />
+                            ) : (
+                              <RefreshIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      {inv.status === InviteStatus.PENDING && (
+                        <Tooltip title={tInvites('list.cancel')}>
+                          <span>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleCancel(inv.id)}
+                              disabled={cancellingId === inv.id || resendingId === inv.id}
+                              aria-label={tInvites('list.cancel')}
+                            >
+                              {cancellingId === inv.id ? (
+                                <CircularProgress size={16} />
+                              ) : (
+                                <CancelIcon fontSize="small" />
+                              )}
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      )}
+                    </Stack>
                   )
                 }
               >

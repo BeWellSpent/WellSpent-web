@@ -292,8 +292,10 @@
           "cancelled": "Cancelada",
           "expired": "Vencida"
         },
-        "cancel": "Cancelar",
-        "cancelling": "Cancelando…"
+        "cancel": "Cancelar invitación",
+        "cancelling": "Cancelando…",
+        "resend": "Reenviar invitación",
+        "resending": "Reenviando…"
       },
       "roles": {
         "admin": "Administrador",
