@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { useQuery } from '@tanstack/react-query'
@@ -173,10 +174,14 @@ export function BudgetSidebar({ budgetId, children }: Props) {
         }}
       >
         {!collapsed && (
-          <Box sx={{ overflow: 'hidden' }}>
-            <Typography variant="overline" color="text.secondary" display="block" noWrap>
-              WellSpent
-            </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden' }}>
+            <Image
+              src={theme.palette.mode === 'dark' ? '/app-icon-dark.png' : '/app-icon-light.png'}
+              alt="WellSpent"
+              width={32}
+              height={32}
+              style={{ flexShrink: 0 }}
+            />
             <Typography variant="h6" fontWeight={700} noWrap>{budgetName}</Typography>
           </Box>
         )}
@@ -317,7 +322,14 @@ export function BudgetSidebar({ budgetId, children }: Props) {
               <IconButton edge="start" onClick={() => router.push('/budgets')} sx={{ mr: 1 }} aria-label="back">
                 <ArrowBackIcon />
               </IconButton>
-              <Typography variant="h6" fontWeight={700} noWrap sx={{ flex: 1 }}>{budgetName}</Typography>
+              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                <Image
+                  src={theme.palette.mode === 'dark' ? '/app-icon-dark.png' : '/app-icon-light.png'}
+                  alt="WellSpent"
+                  width={32}
+                  height={32}
+                />
+              </Box>
               <ThemeToggle />
               <IconButton onClick={() => setMobileManageOpen(true)} aria-label={t('manage')} sx={{ ml: 0.5 }}>
                 <MenuIcon />
@@ -339,8 +351,14 @@ export function BudgetSidebar({ budgetId, children }: Props) {
         sx={{ display: { md: 'none' } }}
       >
         <Box sx={{ width: 260, pt: 1 }}>
-          <Box sx={{ px: 2, py: 1.5 }}>
-            <Typography variant="overline" color="text.secondary" display="block">WellSpent</Typography>
+          <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Image
+              src={theme.palette.mode === 'dark' ? '/app-icon-dark.png' : '/app-icon-light.png'}
+              alt="WellSpent"
+              width={24}
+              height={24}
+              style={{ flexShrink: 0 }}
+            />
             <Typography variant="h6" fontWeight={700} noWrap>{budgetName}</Typography>
           </Box>
           <Divider />
