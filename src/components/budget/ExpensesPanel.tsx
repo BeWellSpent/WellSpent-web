@@ -46,6 +46,7 @@ const CHART_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#a
 interface Props {
   budgetProfileId: string
   budgetPeriodId: string | undefined
+  canEdit?: boolean
 }
 
 function parseMoney(units: bigint, nanos: number): number {
@@ -141,7 +142,7 @@ function EditCell({ value, onSave }: EditCellProps) {
   )
 }
 
-export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
+export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true }: Props) {
   const t = useTranslations('budget.expenses')
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -437,7 +438,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
       {/* Header: title + add-category picker */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, gap: 1, flexWrap: 'wrap' }}>
         <Typography variant="subtitle1" fontWeight={600}>{t('title')}</Typography>
-        {addableCategories.length > 0 && (
+        {canEdit && addableCategories.length > 0 && (
           <Autocomplete
             options={addableCategories}
             getOptionLabel={(c) => c.name}
@@ -578,7 +579,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
                         {actual > 0 ? formatMoney(actual) : '—'}
                       </Typography>
                     </Box>
-                    {!isSavings && !isFixedOnly && (
+                    {canEdit && !isSavings && !isFixedOnly && (
                       <IconButton size="small" onClick={() => handleRemoveCategory(cat.id)}>
                         <DeleteOutlineIcon sx={{ fontSize: 16 }} />
                       </IconButton>
@@ -626,7 +627,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
                             >
                               {personActual > 0 ? formatMoney(personActual) : '—'}
                             </Typography>
-                            {!isSavings && !isFixedOnly && (
+                            {canEdit && !isSavings && !isFixedOnly && (
                               <IconButton size="small" onClick={() => openEditDialog(cat, p.id, p.userName, val, alloc)}>
                                 <EditIcon sx={{ fontSize: 15 }} />
                               </IconButton>
@@ -720,18 +721,26 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
                               ? <Typography variant="body2" color="text.secondary">{formatMoney(fixedPersonAmt)}</Typography>
                               : <Typography component="span" variant="body2" color="text.disabled">—</Typography>
                           ) : alloc ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-                              <EditCell value={val} onSave={(amount) => handleUpsert(cat.id, p.id, amount, alloc)} />
-                              <IconButton size="small" onClick={() => handleUpsert(cat.id, p.id, null, alloc)}>
-                                <ClearIcon sx={{ fontSize: 14 }} />
-                              </IconButton>
-                            </Box>
+                            canEdit ? (
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                                <EditCell value={val} onSave={(amount) => handleUpsert(cat.id, p.id, amount, alloc)} />
+                                <IconButton size="small" onClick={() => handleUpsert(cat.id, p.id, null, alloc)}>
+                                  <ClearIcon sx={{ fontSize: 14 }} />
+                                </IconButton>
+                              </Box>
+                            ) : (
+                              <Typography variant="body2" sx={{ textAlign: 'right' }}>
+                                {val != null ? formatMoney(val) : '—'}
+                              </Typography>
+                            )
                           ) : fixedPersonAmt != null ? (
                             <Typography variant="body2" color="text.secondary">{formatMoney(fixedPersonAmt)}</Typography>
-                          ) : (
+                          ) : canEdit ? (
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
                               <EditCell value={undefined} onSave={(amount) => handleUpsert(cat.id, p.id, amount, undefined)} />
                             </Box>
+                          ) : (
+                            <Typography component="span" variant="body2" color="text.disabled">—</Typography>
                           )}
                         </TableCell>
                       )
@@ -747,7 +756,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId }: Props) {
                         : <Typography component="span" variant="body2" color="text.disabled">—</Typography>}
                     </TableCell>
                     <TableCell align="right">
-                      {!isSavings && !isFixedOnly && (
+                      {canEdit && !isSavings && !isFixedOnly && (
                         <Tooltip title={t('removeRow')} placement="left">
                           <IconButton
                             size="small"

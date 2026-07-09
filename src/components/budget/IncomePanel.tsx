@@ -26,6 +26,7 @@ interface Props {
   showBeforeTax?: boolean
   addOpen?: boolean
   onAddClose?: () => void
+  canEdit?: boolean
 }
 
 function formatMoney(units: bigint, nanos: number): string {
@@ -33,7 +34,7 @@ function formatMoney(units: bigint, nanos: number): string {
   return total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
 
-export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, onAddClose }: Props) {
+export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, onAddClose, canEdit = true }: Props) {
   const t = useTranslations('budget.income')
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
@@ -86,9 +87,11 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Typography variant="subtitle1" fontWeight={600}>{t('title')}</Typography>
-          <IconButton size="small" onClick={() => setLocalAddOpen(true)}>
-            <AddIcon fontSize="small" />
-          </IconButton>
+          {canEdit && (
+            <IconButton size="small" onClick={() => setLocalAddOpen(true)}>
+              <AddIcon fontSize="small" />
+            </IconButton>
+          )}
         </Box>
         <Typography variant="subtitle2" color="success.main">
           {total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} {t('perMonth')}
@@ -107,14 +110,16 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
                 key={src.id.toString()}
                 disableGutters
                 secondaryAction={
-                  <Box>
-                    <IconButton size="small" onClick={() => setEditingSource(src)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDelete(src.id)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
+                  canEdit ? (
+                    <Box>
+                      <IconButton size="small" onClick={() => setEditingSource(src)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(src.id)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ) : undefined
                 }
               >
                 <ListItemText

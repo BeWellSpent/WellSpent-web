@@ -51,6 +51,18 @@ function decodeBase64Url(base64url: string): string {
   return new TextDecoder('utf-8').decode(bytes)
 }
 
+/** Extracts the user ID (sub claim) from a JWT. Returns '' for malformed tokens. */
+export function getUserIdFromToken(token: string): string {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return ''
+    const payload = JSON.parse(decodeBase64Url(parts[1])) as { sub?: string }
+    return payload.sub ?? ''
+  } catch {
+    return ''
+  }
+}
+
 /**
  * Decodes the JWT payload and checks whether the token is expired.
  * Works in both Node.js (server) and browser (client) environments.

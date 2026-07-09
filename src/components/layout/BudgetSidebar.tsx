@@ -7,7 +7,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
+import { BudgetRole } from '@/gen/spendsense/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetRole } from '@/hooks/useBudgetRole'
 import { FullScreenDrawer } from '@/components/ui/FullScreenDrawer'
 import { PeoplePanel } from '@/components/budget/PeoplePanel'
 import { InvitePanel } from '@/components/budget/InvitePanel'
@@ -87,6 +89,10 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     })
   }
 
+  const myRole = useBudgetRole(budgetId)
+  const canEdit = myRole === BudgetRole.ADMIN || myRole === BudgetRole.COLLABORATOR
+  const canManageUsers = myRole === BudgetRole.ADMIN
+
   const { data } = useQuery({
     queryKey: ['budget-profile', budgetId],
     queryFn: () => client.getBudgetProfile({ id: budgetId }),
@@ -130,7 +136,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     { label: t('paymentMethods'), icon: <CreditCardIcon />, action: () => setPaymentMethodsOpen(true) },
     { label: t('categories'), icon: <CategoryIcon />, action: () => setCategoriesOpen(true) },
     { label: t('people'), icon: <PeopleIcon />, action: () => setPeopleOpen(true) },
-    { label: t('invitations'), icon: <MailIcon />, action: () => setInvitesOpen(true) },
+    ...(canManageUsers ? [{ label: t('invitations'), icon: <MailIcon />, action: () => setInvitesOpen(true) }] : []),
   ]
 
   const appItems: NavItem[] = [
@@ -385,27 +391,27 @@ export function BudgetSidebar({ budgetId, children }: Props) {
 
       {/* Management panels */}
       <FullScreenDrawer open={categoriesOpen} onClose={() => setCategoriesOpen(false)} title={t('categories')}>
-        <CategoriesPanel />
+        <CategoriesPanel canEdit={canEdit} />
       </FullScreenDrawer>
 
       <FullScreenDrawer open={peopleOpen} onClose={() => setPeopleOpen(false)} title={t('people')}>
-        <PeoplePanel budgetProfileId={budgetId} />
+        <PeoplePanel budgetProfileId={budgetId} canManageUsers={canManageUsers} />
       </FullScreenDrawer>
 
       <FullScreenDrawer open={invitesOpen} onClose={() => setInvitesOpen(false)} title={t('invitations')}>
-        <InvitePanel budgetProfileId={budgetId} />
+        <InvitePanel budgetProfileId={budgetId} canManageUsers={canManageUsers} />
       </FullScreenDrawer>
 
       <FullScreenDrawer open={incomeOpen} onClose={() => setIncomeOpen(false)} title={t('income')}>
-        <IncomePanel budgetProfileId={budgetId} showBeforeTax={showBeforeTax} />
+        <IncomePanel budgetProfileId={budgetId} showBeforeTax={showBeforeTax} canEdit={canEdit} />
       </FullScreenDrawer>
 
       <FullScreenDrawer open={savingsOpen} onClose={() => setSavingsOpen(false)} title={t('savings')}>
-        <SavingsPanel budgetProfileId={budgetId} activePeriodStart={activePeriodStart} />
+        <SavingsPanel budgetProfileId={budgetId} activePeriodStart={activePeriodStart} canEdit={canEdit} />
       </FullScreenDrawer>
 
       <FullScreenDrawer open={paymentMethodsOpen} onClose={() => setPaymentMethodsOpen(false)} title={t('paymentMethods')}>
-        <PaymentMethodsPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} />
+        <PaymentMethodsPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} canEdit={canEdit} />
       </FullScreenDrawer>
     </Box>
   )

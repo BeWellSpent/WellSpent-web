@@ -36,6 +36,7 @@ import PaletteIcon from '@mui/icons-material/Palette'
 
 interface Props {
   budgetProfileId: string
+  canManageUsers?: boolean
 }
 
 function useRoleLabel() {
@@ -50,7 +51,7 @@ function useRoleLabel() {
   }
 }
 
-export function PeoplePanel({ budgetProfileId }: Props) {
+export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
   const { showError, showSuccess } = useSnackbar()
   const roleLabel = useRoleLabel()
   const client = useClient(BudgetService)
@@ -109,6 +110,14 @@ export function PeoplePanel({ budgetProfileId }: Props) {
   const { mutateAsync: doUpdatePerson, isPending: isUpdatingPerson } = useMutation({
     mutationFn: (vars: { id: bigint; budgetProfileId: string; color: string }) =>
       client.updateBudgetPerson(vars),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+    },
+  })
+
+  const { mutateAsync: doUpdateRole } = useMutation({
+    mutationFn: (vars: { personId: bigint; role: BudgetRole }) =>
+      client.updateBudgetPersonRole({ budgetProfileId, personId: vars.personId, role: vars.role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
     },
@@ -187,6 +196,16 @@ export function PeoplePanel({ budgetProfileId }: Props) {
     }
   }
 
+  async function handleUpdateRole(personId: bigint, role: BudgetRole) {
+    try {
+      await doUpdateRole({ personId, role })
+      logger.info('budget.people.update_role', { budgetProfileId, personId: personId.toString(), role })
+      showSuccess('Role updated')
+    } catch (err) {
+      showError(err)
+    }
+  }
+
   const people = data?.people ?? []
   const replacementPeople = people.filter((p) => removingPerson && p.id !== removingPerson.id)
   const replacementPersonPMs: PaymentMethod[] = (pmData?.methods ?? []).filter(
@@ -211,16 +230,18 @@ export function PeoplePanel({ budgetProfileId }: Props) {
                   key={p.id.toString()}
                   disableGutters
                   secondaryAction={
-                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                      <IconButton size="small" onClick={() => openEditColor(p)} aria-label="set color">
-                        <PaletteIcon fontSize="small" sx={p.color ? { color: p.color } : {}} />
-                      </IconButton>
-                      {!isOwner && (
-                        <IconButton size="small" onClick={() => openRemoveDialog(p)} aria-label="remove">
-                          <DeleteIcon fontSize="small" />
+                    canManageUsers ? (
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <IconButton size="small" onClick={() => openEditColor(p)} aria-label="set color">
+                          <PaletteIcon fontSize="small" sx={p.color ? { color: p.color } : {}} />
                         </IconButton>
-                      )}
-                    </Box>
+                        {!isOwner && (
+                          <IconButton size="small" onClick={() => openRemoveDialog(p)} aria-label="remove">
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                    ) : undefined
                   }
                 >
                   <ListItemText
@@ -230,12 +251,27 @@ export function PeoplePanel({ budgetProfileId }: Props) {
                           <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: p.color, flexShrink: 0 }} />
                         )}
                         <span>{p.userName}</span>
-                        <Chip
-                          label={roleLabel(p.role)}
-                          size="small"
-                          color={isOwner ? 'primary' : 'default'}
-                          variant="outlined"
-                        />
+                        {canManageUsers && !isOwner && p.userId && p.role !== BudgetRole.UNSPECIFIED ? (
+                          <FormControl size="small">
+                            <Select
+                              value={p.role}
+                              onChange={(e) => handleUpdateRole(p.id, e.target.value as BudgetRole)}
+                              size="small"
+                              sx={{ fontSize: '0.75rem', '.MuiSelect-select': { py: 0.5 } }}
+                            >
+                              <MenuItem value={BudgetRole.ADMIN}>{roleLabel(BudgetRole.ADMIN)}</MenuItem>
+                              <MenuItem value={BudgetRole.COLLABORATOR}>{roleLabel(BudgetRole.COLLABORATOR)}</MenuItem>
+                              <MenuItem value={BudgetRole.VIEWER}>{roleLabel(BudgetRole.VIEWER)}</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <Chip
+                            label={roleLabel(p.role)}
+                            size="small"
+                            color={isOwner ? 'primary' : 'default'}
+                            variant="outlined"
+                          />
+                        )}
                       </Stack>
                     }
                     secondary={p.userId ? undefined : 'Pending invite'}
@@ -247,44 +283,48 @@ export function PeoplePanel({ budgetProfileId }: Props) {
         )}
       </Box>
 
-      <Divider />
+      {canManageUsers && (
+        <>
+          <Divider />
 
-      <Box>
-        <Typography variant="subtitle1" fontWeight={600} mb={1}>Add people</Typography>
-        <Stack direction="row" spacing={1} mb={1}>
-          <TextField
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addToList()}
-            size="small"
-            fullWidth
-            placeholder="e.g. Jane"
-          />
-          <Button variant="outlined" onClick={addToList} disabled={!name.trim()}>Add</Button>
-        </Stack>
-        {pendingNames.length > 0 && (
-          <List dense disablePadding sx={{ mb: 1 }}>
-            {pendingNames.map((n, i) => (
-              <ListItem key={i} disableGutters secondaryAction={
-                <IconButton size="small" onClick={() => setPendingNames((prev) => prev.filter((_, idx) => idx !== i))}>
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              }>
-                <ListItemText primary={n} secondary="pending" />
-              </ListItem>
-            ))}
-          </List>
-        )}
-        <Button
-          variant="contained"
-          onClick={handleAdd}
-          disabled={pendingNames.length === 0 || isAdding}
-          fullWidth
-        >
-          {isAdding ? 'Saving…' : pendingNames.length > 0 ? `Save (${pendingNames.length})` : 'Save'}
-        </Button>
-      </Box>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={600} mb={1}>Add people</Typography>
+            <Stack direction="row" spacing={1} mb={1}>
+              <TextField
+                label="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addToList()}
+                size="small"
+                fullWidth
+                placeholder="e.g. Jane"
+              />
+              <Button variant="outlined" onClick={addToList} disabled={!name.trim()}>Add</Button>
+            </Stack>
+            {pendingNames.length > 0 && (
+              <List dense disablePadding sx={{ mb: 1 }}>
+                {pendingNames.map((n, i) => (
+                  <ListItem key={i} disableGutters secondaryAction={
+                    <IconButton size="small" onClick={() => setPendingNames((prev) => prev.filter((_, idx) => idx !== i))}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  }>
+                    <ListItemText primary={n} secondary="pending" />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+            <Button
+              variant="contained"
+              onClick={handleAdd}
+              disabled={pendingNames.length === 0 || isAdding}
+              fullWidth
+            >
+              {isAdding ? 'Saving…' : pendingNames.length > 0 ? `Save (${pendingNames.length})` : 'Save'}
+            </Button>
+          </Box>
+        </>
+      )}
 
       {/* Edit color dialog */}
       <Dialog open={editingPerson !== null} onClose={() => setEditingPerson(null)} maxWidth="xs" fullWidth>
