@@ -52,7 +52,13 @@ function CallbackContent() {
         localStorage.setItem('spendsense_locale', userLocale)
         localStorage.setItem('spendsense_currency', userCurrency)
         logger.info('auth.google.callback', { isNewUser: res.isNewUser })
-        router.push(`/${userLocale}/budgets`)
+        const pendingRedirect = sessionStorage.getItem('google_oauth_redirect')
+        sessionStorage.removeItem('google_oauth_redirect')
+        if (pendingRedirect) {
+          window.location.href = pendingRedirect
+        } else {
+          router.push(`/${userLocale}/budgets`)
+        }
       })
       .catch((err) => {
         const message = err instanceof Error ? err.message : 'Google sign-in failed'
