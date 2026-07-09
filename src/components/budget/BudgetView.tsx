@@ -6,7 +6,9 @@ import { useTranslations } from 'next-intl'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
+import { BudgetRole } from '@/gen/spendsense/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetRole } from '@/hooks/useBudgetRole'
 import { TransactionsPanel } from './TransactionsPanel'
 import { ExpensesPanel } from './ExpensesPanel'
 import Box from '@mui/material/Box'
@@ -36,6 +38,9 @@ export function BudgetView({ budgetId }: Props) {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [activeView, setActiveView] = useState<ActiveView>('expenses')
   const [addTransactionOpen, setAddTransactionOpen] = useState(false)
+
+  const myRole = useBudgetRole(budgetId)
+  const canEdit = myRole === BudgetRole.ADMIN || myRole === BudgetRole.COLLABORATOR
 
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['budget-profile', budgetId],
@@ -103,13 +108,14 @@ export function BudgetView({ budgetId }: Props) {
       {/* Active panel */}
       <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
         {activeView === 'expenses' ? (
-          <ExpensesPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} />
+          <ExpensesPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} canEdit={canEdit} />
         ) : activePeriod ? (
           <TransactionsPanel
             budgetPeriodId={activePeriod.id}
             budgetProfileId={budgetId}
             addOpen={addTransactionOpen}
             onAddClose={() => setAddTransactionOpen(false)}
+            isEditable={canEdit}
           />
         ) : (
           <Typography variant="body2" color="text.secondary">{t('noActivePeriod')}</Typography>
@@ -117,14 +123,16 @@ export function BudgetView({ budgetId }: Props) {
       </Box>
 
       {/* FAB — switches to transactions view and opens add dialog */}
-      <Fab
-        color="primary"
-        aria-label={tFab('addTransaction')}
-        onClick={handleFabClick}
-        sx={{ position: 'fixed', bottom: { xs: 80, sm: 24 }, right: 24 }}
-      >
-        <AddIcon />
-      </Fab>
+      {canEdit && (
+        <Fab
+          color="primary"
+          aria-label={tFab('addTransaction')}
+          onClick={handleFabClick}
+          sx={{ position: 'fixed', bottom: { xs: 80, sm: 24 }, right: 24 }}
+        >
+          <AddIcon />
+        </Fab>
+      )}
 
       {/* Mobile bottom navigation — mirrors desktop tabs */}
       {isMobile && (

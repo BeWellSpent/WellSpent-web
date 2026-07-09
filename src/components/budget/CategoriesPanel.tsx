@@ -68,7 +68,7 @@ function ColorDot({ color }: { color: string }) {
   )
 }
 
-export function CategoriesPanel() {
+export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
   const { showError, showSuccess } = useSnackbar()
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
@@ -196,13 +196,15 @@ export function CategoriesPanel() {
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
           <Typography variant="subtitle1" fontWeight={600}>System categories</Typography>
-          <Tooltip title="Assign random colors to all">
-            <span>
-              <IconButton size="small" onClick={handleRandomizeSystemColors} disabled={isRandomizing || systemCats.length === 0}>
-                <ShuffleIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {canEdit && (
+            <Tooltip title="Assign random colors to all">
+              <span>
+                <IconButton size="small" onClick={handleRandomizeSystemColors} disabled={isRandomizing || systemCats.length === 0}>
+                  <ShuffleIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
         </Box>
         {isLoading ? (
           <CircularProgress size={20} />
@@ -215,9 +217,11 @@ export function CategoriesPanel() {
                 key={c.id}
                 disableGutters
                 secondaryAction={
-                  <IconButton size="small" onClick={() => openSystemColorEdit(c)} aria-label="set color">
-                    <PaletteIcon fontSize="small" sx={c.color ? { color: c.color } : {}} />
-                  </IconButton>
+                  canEdit ? (
+                    <IconButton size="small" onClick={() => openSystemColorEdit(c)} aria-label="set color">
+                      <PaletteIcon fontSize="small" sx={c.color ? { color: c.color } : {}} />
+                    </IconButton>
+                  ) : undefined
                 }
               >
                 <ColorDot color={c.color} />
@@ -245,14 +249,16 @@ export function CategoriesPanel() {
                 key={c.id}
                 disableGutters
                 secondaryAction={
-                  <Box>
-                    <IconButton size="small" onClick={() => openEdit(c)} aria-label="edit">
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => openDelete(c)} aria-label="delete">
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
+                  canEdit ? (
+                    <Box>
+                      <IconButton size="small" onClick={() => openEdit(c)} aria-label="edit">
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => openDelete(c)} aria-label="delete">
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ) : undefined
                 }
               >
                 <ColorDot color={c.color} />
@@ -265,34 +271,36 @@ export function CategoriesPanel() {
 
       <Divider />
 
-      {/* Add category */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight={600} mb={1}>Add a category</Typography>
-        <Stack spacing={2}>
-          <TextField
-            label="Name"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            size="small"
-            fullWidth
-            placeholder="e.g. Dining"
-          />
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-              Color (optional)
-            </Typography>
-            <ColorPicker value={newColor} onChange={setNewColor} />
-          </Box>
-          <Button
-            variant="contained"
-            onClick={handleCreate}
-            disabled={!newName.trim() || isCreating}
-          >
-            {isCreating ? 'Creating…' : 'Create'}
-          </Button>
-        </Stack>
-      </Box>
+      {/* Add category — hidden for viewers */}
+      {canEdit && (
+        <Box>
+          <Typography variant="subtitle1" fontWeight={600} mb={1}>Add a category</Typography>
+          <Stack spacing={2}>
+            <TextField
+              label="Name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              size="small"
+              fullWidth
+              placeholder="e.g. Dining"
+            />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                Color (optional)
+              </Typography>
+              <ColorPicker value={newColor} onChange={setNewColor} />
+            </Box>
+            <Button
+              variant="contained"
+              onClick={handleCreate}
+              disabled={!newName.trim() || isCreating}
+            >
+              {isCreating ? 'Creating…' : 'Create'}
+            </Button>
+          </Stack>
+        </Box>
+      )}
 
       {/* System category color dialog */}
       <Dialog open={editingSystemCat !== null} onClose={() => setEditingSystemCat(null)} maxWidth="xs" fullWidth>

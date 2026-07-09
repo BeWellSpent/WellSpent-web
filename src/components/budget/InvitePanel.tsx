@@ -33,6 +33,7 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 
 interface Props {
   budgetProfileId: string
+  canManageUsers?: boolean
 }
 
 const ROLE_OPTIONS = [
@@ -49,7 +50,7 @@ function statusColor(status: string): 'default' | 'warning' | 'success' | 'error
   }
 }
 
-export function InvitePanel({ budgetProfileId }: Props) {
+export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
   const t = useTranslations()
   const tInvites = useTranslations('budget.invites')
   const { showError, showSuccess } = useSnackbar()
@@ -179,63 +180,67 @@ export function InvitePanel({ budgetProfileId }: Props) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Send invite form */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight={600} mb={1}>
-          {tInvites('send.title')}
-        </Typography>
-        <Stack spacing={1.5}>
-          <TextField
-            label={tInvites('send.email')}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            size="small"
-            fullWidth
-          />
-          <FormControl fullWidth size="small">
-            <InputLabel>{tInvites('send.role')}</InputLabel>
-            <Select
-              label={tInvites('send.role')}
-              value={role}
-              onChange={(e) => setRole(e.target.value as BudgetRole)}
-            >
-              {ROLE_OPTIONS.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {t(opt.labelKey)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {guestPeople.length > 0 && (
-            <FormControl fullWidth size="small">
-              <InputLabel>{tInvites('send.linkPerson')}</InputLabel>
-              <Select
-                label={tInvites('send.linkPerson')}
-                value={budgetPersonId === 0n ? '' : budgetPersonId.toString()}
-                onChange={(e) => setBudgetPersonId(e.target.value ? BigInt(e.target.value as string) : 0n)}
+      {/* Send invite form — admin only */}
+      {canManageUsers && (
+        <>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={600} mb={1}>
+              {tInvites('send.title')}
+            </Typography>
+            <Stack spacing={1.5}>
+              <TextField
+                label={tInvites('send.email')}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                size="small"
+                fullWidth
+              />
+              <FormControl fullWidth size="small">
+                <InputLabel>{tInvites('send.role')}</InputLabel>
+                <Select
+                  label={tInvites('send.role')}
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as BudgetRole)}
+                >
+                  {ROLE_OPTIONS.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {t(opt.labelKey)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {guestPeople.length > 0 && (
+                <FormControl fullWidth size="small">
+                  <InputLabel>{tInvites('send.linkPerson')}</InputLabel>
+                  <Select
+                    label={tInvites('send.linkPerson')}
+                    value={budgetPersonId === 0n ? '' : budgetPersonId.toString()}
+                    onChange={(e) => setBudgetPersonId(e.target.value ? BigInt(e.target.value as string) : 0n)}
+                  >
+                    <MenuItem value="">{tInvites('send.noPerson')}</MenuItem>
+                    {guestPeople.map((p) => (
+                      <MenuItem key={p.id.toString()} value={p.id.toString()}>
+                        {p.userName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+              <Button
+                variant="contained"
+                onClick={handleSend}
+                disabled={!email.trim() || isSending}
+                fullWidth
               >
-                <MenuItem value="">{tInvites('send.noPerson')}</MenuItem>
-                {guestPeople.map((p) => (
-                  <MenuItem key={p.id.toString()} value={p.id.toString()}>
-                    {p.userName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
-          <Button
-            variant="contained"
-            onClick={handleSend}
-            disabled={!email.trim() || isSending}
-            fullWidth
-          >
-            {isSending ? tInvites('send.submitting') : tInvites('send.submit')}
-          </Button>
-        </Stack>
-      </Box>
+                {isSending ? tInvites('send.submitting') : tInvites('send.submit')}
+              </Button>
+            </Stack>
+          </Box>
 
-      <Divider />
+          <Divider />
+        </>
+      )}
 
       {/* Invite list */}
       <Box>
@@ -253,7 +258,7 @@ export function InvitePanel({ budgetProfileId }: Props) {
                 key={inv.id}
                 disableGutters
                 secondaryAction={
-                  inv.status !== InviteStatus.ACCEPTED && (
+                  canManageUsers && inv.status !== InviteStatus.ACCEPTED && (
                     <Stack direction="row" spacing={0.5}>
                       <Tooltip title={tInvites('list.resend')}>
                         <span>

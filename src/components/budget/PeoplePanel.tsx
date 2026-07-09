@@ -36,6 +36,7 @@ import PaletteIcon from '@mui/icons-material/Palette'
 
 interface Props {
   budgetProfileId: string
+  canManageUsers?: boolean
 }
 
 function useRoleLabel() {
@@ -50,7 +51,7 @@ function useRoleLabel() {
   }
 }
 
-export function PeoplePanel({ budgetProfileId }: Props) {
+export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
   const { showError, showSuccess } = useSnackbar()
   const roleLabel = useRoleLabel()
   const client = useClient(BudgetService)
@@ -211,16 +212,18 @@ export function PeoplePanel({ budgetProfileId }: Props) {
                   key={p.id.toString()}
                   disableGutters
                   secondaryAction={
-                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                      <IconButton size="small" onClick={() => openEditColor(p)} aria-label="set color">
-                        <PaletteIcon fontSize="small" sx={p.color ? { color: p.color } : {}} />
-                      </IconButton>
-                      {!isOwner && (
-                        <IconButton size="small" onClick={() => openRemoveDialog(p)} aria-label="remove">
-                          <DeleteIcon fontSize="small" />
+                    canManageUsers ? (
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <IconButton size="small" onClick={() => openEditColor(p)} aria-label="set color">
+                          <PaletteIcon fontSize="small" sx={p.color ? { color: p.color } : {}} />
                         </IconButton>
-                      )}
-                    </Box>
+                        {!isOwner && (
+                          <IconButton size="small" onClick={() => openRemoveDialog(p)} aria-label="remove">
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                    ) : undefined
                   }
                 >
                   <ListItemText
@@ -247,44 +250,48 @@ export function PeoplePanel({ budgetProfileId }: Props) {
         )}
       </Box>
 
-      <Divider />
+      {canManageUsers && (
+        <>
+          <Divider />
 
-      <Box>
-        <Typography variant="subtitle1" fontWeight={600} mb={1}>Add people</Typography>
-        <Stack direction="row" spacing={1} mb={1}>
-          <TextField
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addToList()}
-            size="small"
-            fullWidth
-            placeholder="e.g. Jane"
-          />
-          <Button variant="outlined" onClick={addToList} disabled={!name.trim()}>Add</Button>
-        </Stack>
-        {pendingNames.length > 0 && (
-          <List dense disablePadding sx={{ mb: 1 }}>
-            {pendingNames.map((n, i) => (
-              <ListItem key={i} disableGutters secondaryAction={
-                <IconButton size="small" onClick={() => setPendingNames((prev) => prev.filter((_, idx) => idx !== i))}>
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              }>
-                <ListItemText primary={n} secondary="pending" />
-              </ListItem>
-            ))}
-          </List>
-        )}
-        <Button
-          variant="contained"
-          onClick={handleAdd}
-          disabled={pendingNames.length === 0 || isAdding}
-          fullWidth
-        >
-          {isAdding ? 'Saving…' : pendingNames.length > 0 ? `Save (${pendingNames.length})` : 'Save'}
-        </Button>
-      </Box>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={600} mb={1}>Add people</Typography>
+            <Stack direction="row" spacing={1} mb={1}>
+              <TextField
+                label="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addToList()}
+                size="small"
+                fullWidth
+                placeholder="e.g. Jane"
+              />
+              <Button variant="outlined" onClick={addToList} disabled={!name.trim()}>Add</Button>
+            </Stack>
+            {pendingNames.length > 0 && (
+              <List dense disablePadding sx={{ mb: 1 }}>
+                {pendingNames.map((n, i) => (
+                  <ListItem key={i} disableGutters secondaryAction={
+                    <IconButton size="small" onClick={() => setPendingNames((prev) => prev.filter((_, idx) => idx !== i))}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  }>
+                    <ListItemText primary={n} secondary="pending" />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+            <Button
+              variant="contained"
+              onClick={handleAdd}
+              disabled={pendingNames.length === 0 || isAdding}
+              fullWidth
+            >
+              {isAdding ? 'Saving…' : pendingNames.length > 0 ? `Save (${pendingNames.length})` : 'Save'}
+            </Button>
+          </Box>
+        </>
+      )}
 
       {/* Edit color dialog */}
       <Dialog open={editingPerson !== null} onClose={() => setEditingPerson(null)} maxWidth="xs" fullWidth>

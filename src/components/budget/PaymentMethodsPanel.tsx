@@ -48,9 +48,10 @@ const PAYMENT_TYPE_KEYS: { value: PaymentType; key: string }[] = [
 interface Props {
   budgetProfileId: string
   budgetPeriodId?: string
+  canEdit?: boolean
 }
 
-export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId }: Props) {
+export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit = true }: Props) {
   const t = useTranslations('budget.paymentMethods')
   const { showError, showSuccess } = useSnackbar()
   const theme = useTheme()
@@ -178,9 +179,11 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId }: Props) 
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="subtitle1" fontWeight={600}>{t('title')}</Typography>
-        <IconButton size="small" onClick={() => setAddOpen(true)}>
-          <AddIcon fontSize="small" />
-        </IconButton>
+        {canEdit && (
+          <IconButton size="small" onClick={() => setAddOpen(true)}>
+            <AddIcon fontSize="small" />
+          </IconButton>
+        )}
       </Box>
 
       {methods.length === 0 ? (
@@ -196,24 +199,26 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId }: Props) 
                 key={m.id}
                 disableGutters
                 secondaryAction={
-                  <Box>
-                    <Tooltip title={t('editTooltip')}>
-                      <IconButton size="small" onClick={() => openEdit(m)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={t('deactivateTooltip')}>
-                      <span>
-                        <IconButton
-                          size="small"
-                          onClick={() => openDelete(m)}
-                          disabled={methods.length <= 1}
-                        >
-                          <DeleteIcon fontSize="small" />
+                  canEdit ? (
+                    <Box>
+                      <Tooltip title={t('editTooltip')}>
+                        <IconButton size="small" onClick={() => openEdit(m)}>
+                          <EditIcon fontSize="small" />
                         </IconButton>
-                      </span>
-                    </Tooltip>
-                  </Box>
+                      </Tooltip>
+                      <Tooltip title={t('deactivateTooltip')}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => openDelete(m)}
+                            disabled={methods.length <= 1}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </Box>
+                  ) : undefined
                 }
               >
                 <ListItemText

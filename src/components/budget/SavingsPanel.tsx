@@ -30,6 +30,7 @@ interface Props {
   activePeriodStart?: Date
   addOpen?: boolean
   onAddClose?: () => void
+  canEdit?: boolean
 }
 
 function formatMoney(units: bigint, nanos: number): string {
@@ -47,7 +48,7 @@ const FREQ_KEY: Record<RecurringType, string> = {
 }
 
 
-export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = false, onAddClose }: Props) {
+export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = false, onAddClose, canEdit = true }: Props) {
   const t = useTranslations('budget.savings')
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
@@ -99,9 +100,11 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Typography variant="subtitle1" fontWeight={600}>{t('title')}</Typography>
-          <IconButton size="small" onClick={() => setLocalAddOpen(true)}>
-            <AddIcon fontSize="small" />
-          </IconButton>
+          {canEdit && (
+            <IconButton size="small" onClick={() => setLocalAddOpen(true)}>
+              <AddIcon fontSize="small" />
+            </IconButton>
+          )}
         </Box>
         <Typography variant="subtitle2" color="info.main">
           {savingsTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
@@ -125,7 +128,7 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
                     <Tooltip title={t('taxTooltip')} placement="left">
                       <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', mt: 0.5 }} />
                     </Tooltip>
-                  ) : (
+                  ) : canEdit ? (
                     <Box>
                       <IconButton size="small" onClick={() => setEditingSource(src)}>
                         <EditIcon fontSize="small" />
@@ -134,7 +137,7 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Box>
-                  )
+                  ) : undefined
                 }
               >
                 <ListItemText

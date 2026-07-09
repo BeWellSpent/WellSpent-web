@@ -4,11 +4,12 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import { TransportProvider } from '@connectrpc/connect-query'
 import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
 import { createTransport } from '@/lib/api/client'
-import { isTokenExpired } from '@/lib/auth/token'
+import { getUserIdFromToken, isTokenExpired } from '@/lib/auth/token'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 
 interface AuthContextValue {
   token: string
+  userId: string
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -26,6 +27,7 @@ async function redirectToLogin() {
 export function AuthProvider({ token, children }: { token: string; children: React.ReactNode }) {
   const { showError } = useSnackbar()
   const transport = useMemo(() => createTransport(token), [token])
+  const userId = useMemo(() => getUserIdFromToken(token), [token])
 
   // Keep a stable ref to showError so the QueryCache callback never goes stale
   const showErrorRef = useRef(showError)
@@ -59,7 +61,7 @@ export function AuthProvider({ token, children }: { token: string; children: Rea
   }))
 
   return (
-    <AuthContext.Provider value={{ token }}>
+    <AuthContext.Provider value={{ token, userId }}>
       <TransportProvider transport={transport}>
         <QueryClientProvider client={queryClient}>
           {children}
