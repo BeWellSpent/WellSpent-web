@@ -72,26 +72,16 @@ export function BudgetView({ budgetId }: Props) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', pb: { xs: 12, sm: 10 } }}>
-      {/* Budget name shown only on desktop; mobile AppBar already shows it */}
-      {!isMobile && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h5" fontWeight={700}>{profile?.name}</Typography>
-          {activePeriod?.startDate && activePeriod?.endDate && (
-            <Typography variant="body2" color="text.secondary">
-              {new Date(Number(activePeriod.startDate.seconds) * 1000).toLocaleDateString()} —{' '}
-              {new Date(Number(activePeriod.endDate.seconds) * 1000).toLocaleDateString()}
-            </Typography>
-          )}
-        </Box>
-      )}
-
-      {/* Period date shown on mobile (name is in AppBar) */}
-      {isMobile && activePeriod?.startDate && activePeriod?.endDate && (
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          {new Date(Number(activePeriod.startDate.seconds) * 1000).toLocaleDateString()} —{' '}
-          {new Date(Number(activePeriod.endDate.seconds) * 1000).toLocaleDateString()}
-        </Typography>
-      )}
+      {/* Budget name + date — shown on all screen sizes */}
+      <Box sx={{ mb: 2 }}>
+        <Typography variant={isMobile ? 'h6' : 'h5'} fontWeight={700}>{profile?.name}</Typography>
+        {activePeriod?.startDate && activePeriod?.endDate && (
+          <Typography variant="body2" color="text.secondary">
+            {new Date(Number(activePeriod.startDate.seconds) * 1000).toLocaleDateString()} —{' '}
+            {new Date(Number(activePeriod.endDate.seconds) * 1000).toLocaleDateString()}
+          </Typography>
+        )}
+      </Box>
 
       {/* Desktop tab nav */}
       {!isMobile && (
