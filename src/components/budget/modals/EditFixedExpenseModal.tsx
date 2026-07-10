@@ -9,6 +9,7 @@ import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
+import { ScrollNumberPicker } from '@/components/ui/ScrollNumberPicker'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -17,6 +18,7 @@ import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
 import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
 import useMediaQuery from '@mui/material/useMediaQuery'
@@ -28,8 +30,6 @@ interface Props {
   onClose: () => void
   onDone: () => void
 }
-
-const INTERVAL_OPTIONS = Array.from({ length: 24 }, (_, i) => i + 1)
 
 function moneyToString(units: bigint, nanos: number): string {
   return (Number(units) + nanos / 1e9).toFixed(2)
@@ -45,10 +45,30 @@ function dateStringToTimestamp(str: string): { seconds: bigint; nanos: number } 
   return { seconds: BigInt(Math.floor(Date.UTC(year, month - 1, day) / 1000)), nanos: 0 }
 }
 
-function intervalLabel(t: (key: string, values?: Record<string, string | number | Date>) => string, n: number): string {
-  if (n === 1) return t('fields.intervalMonthly')
-  if (n === 12) return t('fields.intervalYearly')
-  return t('fields.intervalEvery', { n })
+type FrequencyUnitUI = 'week' | 'month' | 'year'
+
+const FREQUENCY_COUNT_RANGE: Record<FrequencyUnitUI, { min: number; max: number }> = {
+  week: { min: 1, max: 52 },
+  month: { min: 1, max: 24 },
+  year: { min: 1, max: 10 },
+}
+
+const DAY_OF_WEEK_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
+
+// Year has no backend representation (see spec) — a fixed expense is never
+// loaded back as "year", only "week" or "month", matching what was actually
+// persisted.
+function frequencyUnitUIFromWire(frequencyUnit: number): FrequencyUnitUI {
+  return frequencyUnit === 2 ? 'week' : 'month'
+}
+
+// frequencyUnit wire values: 1 = MONTH (also covers YEAR client-side via
+// interval_months = years * 12), 2 = WEEK.
+function frequencyFieldsFor(unit: FrequencyUnitUI, count: number, dayOfWeek: number) {
+  if (unit === 'week') {
+    return { frequencyUnit: 2, intervalMonths: 1, intervalWeeks: count, dayOfWeek }
+  }
+  return { frequencyUnit: 1, intervalMonths: unit === 'year' ? count * 12 : count, intervalWeeks: 1, dayOfWeek: 1 }
 }
 
 export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, onDone }: Props) {
@@ -65,7 +85,11 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
   const [categoryId, setCategoryId] = useState(fixedExpense.categoryId)
   const [paymentMethodId, setPaymentMethodId] = useState(fixedExpense.paymentMethodId)
   const [dayOfMonth, setDayOfMonth] = useState(fixedExpense.dayOfMonth)
-  const [intervalMonths, setIntervalMonths] = useState(fixedExpense.intervalMonths || 1)
+  const [dayOfWeek, setDayOfWeek] = useState(fixedExpense.dayOfWeek || 1) // ISO 8601: 1 = Monday ... 7 = Sunday
+  const [frequencyUnitUI, setFrequencyUnitUI] = useState<FrequencyUnitUI>(() => frequencyUnitUIFromWire(fixedExpense.frequencyUnit))
+  const [frequencyCount, setFrequencyCount] = useState(() =>
+    frequencyUnitUIFromWire(fixedExpense.frequencyUnit) === 'week' ? (fixedExpense.intervalWeeks || 1) : (fixedExpense.intervalMonths || 1)
+  )
   const [isFutureStart, setIsFutureStart] = useState(!!fixedExpense.anchorDate?.seconds)
   const [anchorDateStr, setAnchorDateStr] = useState(() => timestampToDateString(fixedExpense.anchorDate))
 
@@ -75,10 +99,18 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
     setCategoryId(fixedExpense.categoryId)
     setPaymentMethodId(fixedExpense.paymentMethodId)
     setDayOfMonth(fixedExpense.dayOfMonth)
-    setIntervalMonths(fixedExpense.intervalMonths || 1)
+    setDayOfWeek(fixedExpense.dayOfWeek || 1)
+    const unit = frequencyUnitUIFromWire(fixedExpense.frequencyUnit)
+    setFrequencyUnitUI(unit)
+    setFrequencyCount(unit === 'week' ? (fixedExpense.intervalWeeks || 1) : (fixedExpense.intervalMonths || 1))
     setIsFutureStart(!!fixedExpense.anchorDate?.seconds)
     setAnchorDateStr(timestampToDateString(fixedExpense.anchorDate))
   }, [fixedExpense])
+
+  function handleFrequencyUnitChange(next: FrequencyUnitUI) {
+    setFrequencyUnitUI(next)
+    setFrequencyCount(1) // a count picked in one unit isn't a meaningful default in another
+  }
 
   const { data: categoriesData } = useQuery({
     queryKey: ['categories', budgetProfileId],
@@ -93,11 +125,20 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
       paymentMethodId: string
       dayOfMonth: number
       intervalMonths: number
+      frequencyUnit: number
+      intervalWeeks: number
+      dayOfWeek: number
       anchorDate?: { seconds: bigint; nanos: number }
     }) => client.updateFixedExpense({ id: fixedExpense.id, budgetProfileId, ...vars }),
   })
 
-  const canSave = !!name.trim() && !!amount && (isFutureStart ? !!anchorDateStr : dayOfMonth >= 1 && dayOfMonth <= 31)
+  const canSave = !!name.trim() && !!amount && (
+    isFutureStart
+      ? !!anchorDateStr
+      : frequencyUnitUI === 'week'
+        ? dayOfWeek >= 1 && dayOfWeek <= 7
+        : dayOfMonth >= 1 && dayOfMonth <= 31
+  )
 
   async function handleSave() {
     if (!canSave) return
@@ -110,7 +151,7 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
         categoryId,
         paymentMethodId,
         dayOfMonth,
-        intervalMonths,
+        ...frequencyFieldsFor(frequencyUnitUI, frequencyCount, dayOfWeek),
         ...(isFutureStart ? { anchorDate: dateStringToTimestamp(anchorDateStr) } : {}),
       })
       logger.info('fixedExpense.update', { budgetProfileId, id: fixedExpense.id, name })
@@ -145,6 +186,19 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
               InputLabelProps={{ shrink: true }}
               helperText={t('fields.anchorDateHint')}
             />
+          ) : frequencyUnitUI === 'week' ? (
+            <TextField
+              select
+              label={t('fields.dayOfWeek')}
+              value={dayOfWeek}
+              onChange={(e) => setDayOfWeek(Number(e.target.value))}
+              fullWidth
+              helperText={t('fields.dayOfWeekHint')}
+            >
+              {DAY_OF_WEEK_KEYS.map((key, i) => (
+                <MenuItem key={key} value={i + 1}>{t(`days.${key}`)}</MenuItem>
+              ))}
+            </TextField>
           ) : (
             <TextField
               label={t('fields.dayOfMonth')}
@@ -160,18 +214,29 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
             control={<Checkbox checked={isFutureStart} onChange={(e) => setIsFutureStart(e.target.checked)} />}
             label={t('fields.startsInFuture')}
           />
-          <TextField
-            select
-            label={t('fields.intervalMonths')}
-            value={intervalMonths}
-            onChange={(e) => setIntervalMonths(Number(e.target.value))}
-            fullWidth
-            helperText={t('fields.intervalMonthsHint')}
-          >
-            {INTERVAL_OPTIONS.map((n) => (
-              <MenuItem key={n} value={n}>{intervalLabel(t, n)}</MenuItem>
-            ))}
-          </TextField>
+          <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="flex-start">
+            <TextField
+              select
+              label={t('fields.repeatsEvery')}
+              value={frequencyUnitUI}
+              onChange={(e) => handleFrequencyUnitChange(e.target.value as FrequencyUnitUI)}
+              sx={{ minWidth: 140 }}
+            >
+              <MenuItem value="week">{t('fields.unitWeek')}</MenuItem>
+              <MenuItem value="month">{t('fields.unitMonth')}</MenuItem>
+              <MenuItem value="year">{t('fields.unitYear')}</MenuItem>
+            </TextField>
+            <Stack spacing={0.5} alignItems="center">
+              <ScrollNumberPicker
+                value={frequencyCount}
+                onChange={setFrequencyCount}
+                min={FREQUENCY_COUNT_RANGE[frequencyUnitUI].min}
+                max={FREQUENCY_COUNT_RANGE[frequencyUnitUI].max}
+                aria-label={t('fields.repeatCount')}
+              />
+              <Typography variant="caption" color="text.secondary">{t('fields.repeatsHint')}</Typography>
+            </Stack>
+          </Stack>
           <TextField select label={t('fields.category')} value={categoryId} onChange={(e) => setCategoryId(Number(e.target.value))} fullWidth>
             <MenuItem value={0}>{t('fields.noCategory')}</MenuItem>
             {(categoriesData?.categories ?? []).map((c) => (

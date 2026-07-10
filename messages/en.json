@@ -261,14 +261,26 @@
         "startsInFuture": "This expense starts in the future",
         "anchorDate": "Start date",
         "anchorDateHint": "First date this expense is due — no transaction until then",
-        "intervalMonths": "Repeats",
-        "intervalMonthsHint": "How often this expense is due",
-        "intervalMonthly": "Monthly",
-        "intervalYearly": "Yearly",
-        "intervalEvery": "Every {n} months",
+        "dayOfWeek": "Day of week",
+        "dayOfWeekHint": "Which day of the week this expense falls on",
+        "repeatsEvery": "Repeats every",
+        "repeatsHint": "How often this expense is due",
+        "repeatCount": "Repeat count",
+        "unitWeek": "Week(s)",
+        "unitMonth": "Month(s)",
+        "unitYear": "Year(s)",
         "category": "Category",
         "noCategory": "— None —",
         "paymentMethod": "Payment method"
+      },
+      "days": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
       }
     },
     "fab": {

@@ -261,14 +261,26 @@
         "startsInFuture": "Este gasto comienza en el futuro",
         "anchorDate": "Fecha de inicio",
         "anchorDateHint": "Primera fecha en que vence este gasto — sin transacción hasta entonces",
-        "intervalMonths": "Se repite",
-        "intervalMonthsHint": "Con qué frecuencia vence este gasto",
-        "intervalMonthly": "Mensual",
-        "intervalYearly": "Anual",
-        "intervalEvery": "Cada {n} meses",
+        "dayOfWeek": "Día de la semana",
+        "dayOfWeekHint": "Qué día de la semana cae este gasto",
+        "repeatsEvery": "Se repite cada",
+        "repeatsHint": "Con qué frecuencia vence este gasto",
+        "repeatCount": "Número de repetición",
+        "unitWeek": "Semana(s)",
+        "unitMonth": "Mes(es)",
+        "unitYear": "Año(s)",
         "category": "Categoría",
         "noCategory": "— Ninguna —",
         "paymentMethod": "Método de pago"
+      },
+      "days": {
+        "monday": "Lunes",
+        "tuesday": "Martes",
+        "wednesday": "Miércoles",
+        "thursday": "Jueves",
+        "friday": "Viernes",
+        "saturday": "Sábado",
+        "sunday": "Domingo"
       }
     },
     "fab": {
