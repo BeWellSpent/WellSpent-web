@@ -840,8 +840,8 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
       {effectiveViewMode === 'tabbed' ? (
         <Box onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)} sx={{ mb: 1 }}>
-            <Tab label={t('fixed')} />
-            <Tab label={t('variable')} />
+            <Tab label={t('fixed')} sx={{ fontWeight: 700 }} />
+            <Tab label={t('variable')} sx={{ fontWeight: 700 }} />
           </Tabs>
           {tabIndex === 0
             ? <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={notDueFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} />
