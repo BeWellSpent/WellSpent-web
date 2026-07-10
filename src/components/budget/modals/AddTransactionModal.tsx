@@ -55,6 +55,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState(todayString)
   const [dayOfMonth, setDayOfMonth] = useState(todayDay)
+  const [intervalMonths, setIntervalMonths] = useState(1)
   const [categoryId, setCategoryId] = useState<number>(0)
   const [paymentMethodId, setPaymentMethodId] = useState('')
   const [typeId, setTypeId] = useState<number>(defaultTypeId)
@@ -95,6 +96,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
       categoryId: number
       paymentMethodId: string
       dayOfMonth: number
+      intervalMonths: number
     }) => client.createFixedExpense({ budgetProfileId, ...vars }),
   })
 
@@ -118,9 +120,10 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
     const nanos = Math.round((parseFloat(amount) - Number(units)) * 1e9)
     try {
       if (isFixed) {
-        await createFixed({ name, plannedAmount: { units, nanos }, categoryId, paymentMethodId, dayOfMonth })
+        await createFixed({ name, plannedAmount: { units, nanos }, categoryId, paymentMethodId, dayOfMonth, intervalMonths })
         logger.info('fixedExpense.create', { budgetProfileId, name, amount })
         queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId, 1] })
+        queryClient.invalidateQueries({ queryKey: ['fixed-expenses', budgetProfileId] })
       } else {
         await createTx({
           name,
@@ -162,15 +165,30 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
         <MenuItem value={2}>Variable</MenuItem>
       </TextField>
       {isFixed ? (
-        <TextField
-          label="Day of month"
-          type="number"
-          value={dayOfMonth}
-          onChange={(e) => setDayOfMonth(Math.min(31, Math.max(1, Number(e.target.value))))}
-          fullWidth
-          inputProps={{ min: 1, max: 31, inputMode: 'decimal' }}
-          helperText="Which day of the month this expense falls on"
-        />
+        <>
+          <TextField
+            label="Day of month"
+            type="number"
+            value={dayOfMonth}
+            onChange={(e) => setDayOfMonth(Math.min(31, Math.max(1, Number(e.target.value))))}
+            fullWidth
+            inputProps={{ min: 1, max: 31, inputMode: 'decimal' }}
+            helperText="Which day of the month this expense falls on"
+          />
+          <TextField
+            select
+            label="Repeats"
+            value={intervalMonths}
+            onChange={(e) => setIntervalMonths(Number(e.target.value))}
+            fullWidth
+            helperText="How often this expense is due"
+          >
+            <MenuItem value={1}>Monthly</MenuItem>
+            <MenuItem value={3}>Every 3 months</MenuItem>
+            <MenuItem value={6}>Every 6 months</MenuItem>
+            <MenuItem value={12}>Yearly</MenuItem>
+          </TextField>
+        </>
       ) : (
         <TextField
           label="Date"

@@ -478,6 +478,10 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     queryKey: ['budget-people', budgetProfileId],
     queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
+  const { data: fixedExpensesData } = useQuery({
+    queryKey: ['fixed-expenses', budgetProfileId],
+    queryFn: () => client.listFixedExpenses({ budgetProfileId }),
+  })
 
   const categoryMap = new Map((categoriesData?.categories ?? []).map((c) => [c.id, c]))
   const methodMap = new Map((methodsData?.methods ?? []).map((m) => [m.id, m]))
@@ -575,12 +579,18 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
       )}
 
       {editTarget && (editTarget.fixedExpenseId ? (
-        <EditFixedExpenseModal
-          budgetProfileId={budgetProfileId}
-          transaction={editTarget}
-          onClose={() => setEditTarget(null)}
-          onDone={() => { setEditTarget(null); refresh() }}
-        />
+        (() => {
+          const fe = (fixedExpensesData?.expenses ?? []).find((f) => f.id === editTarget.fixedExpenseId)
+          if (!fe) return null
+          return (
+            <EditFixedExpenseModal
+              budgetProfileId={budgetProfileId}
+              fixedExpense={fe}
+              onClose={() => setEditTarget(null)}
+              onDone={() => { setEditTarget(null); refresh(); queryClient.invalidateQueries({ queryKey: ['fixed-expenses', budgetProfileId] }) }}
+            />
+          )
+        })()
       ) : (
         <EditTransactionModal
           budgetProfileId={budgetProfileId}

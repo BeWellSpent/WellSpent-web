@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
-import type { Transaction } from '@/gen/spendsense/v1/budget_pb'
+import type { FixedExpense } from '@/gen/spendsense/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -22,42 +22,41 @@ import { useTheme } from '@mui/material/styles'
 
 interface Props {
   budgetProfileId: string
-  transaction: Transaction
+  fixedExpense: FixedExpense
   onClose: () => void
   onDone: () => void
 }
+
+const INTERVAL_OPTIONS = [1, 3, 6, 12]
 
 function moneyToString(units: bigint, nanos: number): string {
   return (Number(units) + nanos / 1e9).toFixed(2)
 }
 
-function timestampToDayOfMonth(ts: { seconds: bigint } | undefined): number {
-  if (!ts || ts.seconds === 0n) return new Date().getUTCDate()
-  return new Date(Number(ts.seconds) * 1000).getUTCDate()
-}
-
-export function EditFixedExpenseModal({ budgetProfileId, transaction, onClose, onDone }: Props) {
+export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, onDone }: Props) {
   const t = useTranslations('budget.fixedExpense')
   const { showError } = useSnackbar()
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const client = useClient(BudgetService)
 
-  const [name, setName] = useState(transaction.name)
+  const [name, setName] = useState(fixedExpense.name)
   const [amount, setAmount] = useState(() =>
-    moneyToString(transaction.plannedAmount?.units ?? 0n, transaction.plannedAmount?.nanos ?? 0)
+    moneyToString(fixedExpense.plannedAmount?.units ?? 0n, fixedExpense.plannedAmount?.nanos ?? 0)
   )
-  const [categoryId, setCategoryId] = useState(transaction.categoryId)
-  const [paymentMethodId, setPaymentMethodId] = useState(transaction.paymentMethodId)
-  const [dayOfMonth, setDayOfMonth] = useState(() => timestampToDayOfMonth(transaction.date))
+  const [categoryId, setCategoryId] = useState(fixedExpense.categoryId)
+  const [paymentMethodId, setPaymentMethodId] = useState(fixedExpense.paymentMethodId)
+  const [dayOfMonth, setDayOfMonth] = useState(fixedExpense.dayOfMonth)
+  const [intervalMonths, setIntervalMonths] = useState(fixedExpense.intervalMonths || 1)
 
   useEffect(() => {
-    setName(transaction.name)
-    setAmount(moneyToString(transaction.plannedAmount?.units ?? 0n, transaction.plannedAmount?.nanos ?? 0))
-    setCategoryId(transaction.categoryId)
-    setPaymentMethodId(transaction.paymentMethodId)
-    setDayOfMonth(timestampToDayOfMonth(transaction.date))
-  }, [transaction])
+    setName(fixedExpense.name)
+    setAmount(moneyToString(fixedExpense.plannedAmount?.units ?? 0n, fixedExpense.plannedAmount?.nanos ?? 0))
+    setCategoryId(fixedExpense.categoryId)
+    setPaymentMethodId(fixedExpense.paymentMethodId)
+    setDayOfMonth(fixedExpense.dayOfMonth)
+    setIntervalMonths(fixedExpense.intervalMonths || 1)
+  }, [fixedExpense])
 
   const { data: categoriesData } = useQuery({
     queryKey: ['categories', budgetProfileId],
@@ -71,7 +70,8 @@ export function EditFixedExpenseModal({ budgetProfileId, transaction, onClose, o
       categoryId: number
       paymentMethodId: string
       dayOfMonth: number
-    }) => client.updateFixedExpense({ id: transaction.fixedExpenseId, budgetProfileId, ...vars }),
+      intervalMonths: number
+    }) => client.updateFixedExpense({ id: fixedExpense.id, budgetProfileId, ...vars }),
   })
 
   const canSave = !!name.trim() && !!amount && dayOfMonth >= 1 && dayOfMonth <= 31
@@ -81,8 +81,15 @@ export function EditFixedExpenseModal({ budgetProfileId, transaction, onClose, o
     const units = Math.floor(parseFloat(amount))
     const nanos = Math.round((parseFloat(amount) - units) * 1e9)
     try {
-      await mutateAsync({ name, plannedAmount: { units: BigInt(units), nanos }, categoryId, paymentMethodId, dayOfMonth })
-      logger.info('fixedExpense.update', { budgetProfileId, id: transaction.fixedExpenseId, name })
+      await mutateAsync({
+        name,
+        plannedAmount: { units: BigInt(units), nanos },
+        categoryId,
+        paymentMethodId,
+        dayOfMonth,
+        intervalMonths,
+      })
+      logger.info('fixedExpense.update', { budgetProfileId, id: fixedExpense.id, name })
       onDone()
     } catch (err) {
       showError(err)
@@ -112,6 +119,18 @@ export function EditFixedExpenseModal({ budgetProfileId, transaction, onClose, o
             inputProps={{ min: 1, max: 31, inputMode: 'decimal' }}
             helperText={t('fields.dayOfMonthHint')}
           />
+          <TextField
+            select
+            label={t('fields.intervalMonths')}
+            value={intervalMonths}
+            onChange={(e) => setIntervalMonths(Number(e.target.value))}
+            fullWidth
+            helperText={t('fields.intervalMonthsHint')}
+          >
+            {INTERVAL_OPTIONS.map((n) => (
+              <MenuItem key={n} value={n}>{t(`fields.intervalOptions.${n}`)}</MenuItem>
+            ))}
+          </TextField>
           <TextField select label={t('fields.category')} value={categoryId} onChange={(e) => setCategoryId(Number(e.target.value))} fullWidth>
             <MenuItem value={0}>{t('fields.noCategory')}</MenuItem>
             {(categoriesData?.categories ?? []).map((c) => (
