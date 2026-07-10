@@ -211,7 +211,8 @@
         "cancel": "Cancelar"
       },
       "empty": "No hay transacciones {label} aún.",
-      "subtotal": "Subtotal {label}"
+      "subtotal": "Subtotal {label}",
+      "notDueTooltip": "No vence este período — próximo vencimiento {date}"
     },
     "expenses": {
       "title": "Plan de Gastos",

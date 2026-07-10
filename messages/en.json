@@ -211,7 +211,8 @@
         "cancel": "Cancel"
       },
       "empty": "No {label} transactions yet.",
-      "subtotal": "{label} subtotal"
+      "subtotal": "{label} subtotal",
+      "notDueTooltip": "Not due this period — next due {date}"
     },
     "expenses": {
       "title": "Expense Plan",
