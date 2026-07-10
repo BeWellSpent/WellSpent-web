@@ -165,7 +165,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
 
   const { data: categoriesData, isLoading: catsLoading } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => client.listCategories({}),
+    queryFn: () => client.listCategories({ budgetProfileId }),
   })
 
   const { data: peopleData, isLoading: peopleLoading } = useQuery({

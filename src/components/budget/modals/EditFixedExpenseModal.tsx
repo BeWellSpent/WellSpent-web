@@ -60,8 +60,8 @@ export function EditFixedExpenseModal({ budgetProfileId, transaction, onClose, o
   }, [transaction])
 
   const { data: categoriesData } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => client.listCategories({}),
+    queryKey: ['categories', budgetProfileId],
+    queryFn: () => client.listCategories({ budgetProfileId }),
   })
 
   const { mutateAsync, isPending } = useMutation({

@@ -71,8 +71,8 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
   }, [open, defaultTypeId])
 
   const { data: categoriesData } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => client.listCategories({}),
+    queryKey: ['categories', budgetProfileId],
+    queryFn: () => client.listCategories({ budgetProfileId }),
   })
 
   const { mutateAsync: createTx, isPending: txPending } = useMutation({
