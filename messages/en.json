@@ -1,7 +1,7 @@
 {
   "auth": {
     "login": {
-      "title": "Sign in to WellSpent",
+      "title": "Sign In",
       "email": "Email",
       "password": "Password",
       "rememberMe": "Remember me for 90 days",
