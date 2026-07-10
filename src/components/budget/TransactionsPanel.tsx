@@ -467,8 +467,8 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 2 }),
   })
   const { data: categoriesData } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => client.listCategories({}),
+    queryKey: ['categories', budgetProfileId],
+    queryFn: () => client.listCategories({ budgetProfileId }),
   })
   const { data: methodsData } = useQuery({
     queryKey: ['paymentMethods', budgetProfileId],

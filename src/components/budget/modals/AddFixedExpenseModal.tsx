@@ -46,8 +46,8 @@ export function AddFixedExpenseModal({ budgetProfileId, budgetPeriodId, open, on
   const [dayOfMonth, setDayOfMonth] = useState(todayDay)
 
   const { data: categoriesData } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => client.listCategories({}),
+    queryKey: ['categories', budgetProfileId],
+    queryFn: () => client.listCategories({ budgetProfileId }),
   })
 
   const { mutateAsync, isPending } = useMutation({
