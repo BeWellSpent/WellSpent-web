@@ -1,6 +1,8 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
@@ -687,12 +689,24 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const client = useClient(BudgetService)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const router = useRouter()
   const [viewMode, setViewMode] = useViewPreference('tabbed')
   const [editTarget, setEditTarget] = useState<Transaction | null>(null)
   const [editFixedExpenseTarget, setEditFixedExpenseTarget] = useState<FixedExpense | null>(null)
-  const [tabIndex, setTabIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const touchStartXRef = useRef<number | null>(null)
+
+  // Which sub-tab (Fixed vs Variable) is stored in the URL, not component
+  // state, so a page reload lands back where you were.
+  const tabIndex = searchParams.get('tab') === 'variable' ? 1 : 0
+
+  function setTabIndex(index: number) {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', index === 1 ? 'variable' : 'fixed')
+    router.replace({ pathname, query: Object.fromEntries(params) }, { scroll: false })
+  }
 
   // Split view needs room for two columns side by side — always tabbed on mobile.
   const effectiveViewMode: ViewMode = isMobile ? 'tabbed' : viewMode
@@ -706,8 +720,8 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     if (startX === null) return
     const deltaX = e.changedTouches[0].clientX - startX
     const threshold = 50
-    if (deltaX > threshold) setTabIndex((i) => Math.max(0, i - 1))
-    else if (deltaX < -threshold) setTabIndex((i) => Math.min(1, i + 1))
+    if (deltaX > threshold) setTabIndex(Math.max(0, tabIndex - 1))
+    else if (deltaX < -threshold) setTabIndex(Math.min(1, tabIndex + 1))
   }
 
   const { data: fixedData, isLoading: fixedLoading } = useQuery({

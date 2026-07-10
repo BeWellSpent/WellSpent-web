@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { useTheme } from '@mui/material/styles'
@@ -36,8 +38,19 @@ export function BudgetView({ budgetId }: Props) {
   const client = useClient(BudgetService)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const [activeView, setActiveView] = useState<ActiveView>('expenses')
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const router = useRouter()
+  // Which top-level section (Expense Plan vs Transactions) is stored in the
+  // URL, not component state, so a page reload lands back where you were.
+  const activeView: ActiveView = searchParams.get('view') === 'transactions' ? 'transactions' : 'expenses'
   const [addTransactionOpen, setAddTransactionOpen] = useState(false)
+
+  function setActiveView(view: ActiveView) {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('view', view)
+    router.replace({ pathname, query: Object.fromEntries(params) }, { scroll: false })
+  }
 
   const myRole = useBudgetRole(budgetId)
   const canEdit = myRole === BudgetRole.ADMIN || myRole === BudgetRole.COLLABORATOR
