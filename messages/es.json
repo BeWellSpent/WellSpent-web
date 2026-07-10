@@ -227,6 +227,7 @@
       "plannedAllocations": "Asignaciones planificadas + Gastos fijos",
       "remainder": "Saldo restante",
       "spent": "Gastado",
+      "notDueTooltip": "No vence este período — próximo vencimiento {date}",
       "chart": {
         "pie": "Pastel",
         "bar": "Barras",
@@ -253,6 +254,14 @@
         "amount": "Monto planificado",
         "dayOfMonth": "Día del mes",
         "dayOfMonthHint": "Qué día del mes cae este gasto",
+        "intervalMonths": "Se repite",
+        "intervalMonthsHint": "Con qué frecuencia vence este gasto",
+        "intervalOptions": {
+          "1": "Mensual",
+          "3": "Cada 3 meses",
+          "6": "Cada 6 meses",
+          "12": "Anual"
+        },
         "category": "Categoría",
         "noCategory": "— Ninguna —",
         "paymentMethod": "Método de pago"

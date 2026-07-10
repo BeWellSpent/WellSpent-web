@@ -5,7 +5,8 @@ import { useTranslations } from 'next-intl'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useTheme, useMediaQuery } from '@mui/material'
 import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
-import type { Category, ExpenseAllocation } from '@/gen/spendsense/v1/budget_pb'
+import type { Category, ExpenseAllocation, FixedExpense } from '@/gen/spendsense/v1/budget_pb'
+import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpenseModal'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -39,6 +40,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import ClearIcon from '@mui/icons-material/Clear'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditIcon from '@mui/icons-material/Edit'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import Tooltip from '@mui/material/Tooltip'
 
 const CHART_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7', '#14b8a6', '#f97316']
@@ -162,6 +164,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     existing: ExpenseAllocation | undefined
   }>({ open: false, catId: 0, catName: '', personId: 0n, personName: '', existing: undefined })
   const [editDraft, setEditDraft] = useState('')
+  const [editFixedExpense, setEditFixedExpense] = useState<FixedExpense | null>(null)
 
   const { data: categoriesData, isLoading: catsLoading } = useQuery({
     queryKey: ['categories'],
@@ -197,6 +200,11 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   const { data: incomeData, isLoading: incomeLoading } = useQuery({
     queryKey: ['income-sources', budgetProfileId],
     queryFn: () => client.listIncomeSources({ budgetProfileId }),
+  })
+
+  const { data: fixedExpensesData, isLoading: fixedExpensesLoading, refetch: refetchFixedExpenses } = useQuery({
+    queryKey: ['fixed-expenses', budgetProfileId],
+    queryFn: () => client.listFixedExpenses({ budgetProfileId }),
   })
 
   const { mutateAsync: upsertAlloc } = useMutation({
@@ -264,7 +272,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     setEditDialog((prev) => ({ ...prev, open: false }))
   }
 
-  const isLoading = catsLoading || peopleLoading || allocsLoading || txnsLoading || pmLoading || savingsLoading || incomeLoading
+  const isLoading = catsLoading || peopleLoading || allocsLoading || txnsLoading || pmLoading || savingsLoading || incomeLoading || fixedExpensesLoading
   if (isLoading) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
 
   const categories = categoriesData?.categories ?? []
@@ -274,6 +282,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   const paymentMethods = paymentMethodsData?.methods ?? []
   const savingsSources = savingsData?.sources ?? []
   const incomeSources = incomeData?.sources ?? []
+  const fixedExpenses = (fixedExpensesData?.expenses ?? []).filter((fe) => fe.isActive)
 
   // allocation lookup: "catId:personId" → allocation
   const allocMap = new Map<string, ExpenseAllocation>()
@@ -323,10 +332,31 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     }
   }
 
+  // Fixed-expense categories not reflected by a due transaction this period
+  // — shown as a muted "not due" row so the category never simply vanishes
+  // between due periods (see docs/features/fixed-transactions-frequency.md).
+  const notDueFixedByCat = new Map<number, { amount: number; nextDue: Date | undefined; fixedExpense: FixedExpense }>()
+  const fixedExpenseCatIds = new Set<number>()
+  for (const fe of fixedExpenses) {
+    if (!fe.categoryId) continue
+    if (savingsCat && fe.categoryId === savingsCat.id) continue
+    fixedExpenseCatIds.add(fe.categoryId)
+    if (fixedPlannedByCat.has(fe.categoryId)) continue // already has a due transaction this period
+    const amt = parseMoney(fe.plannedAmount?.units ?? 0n, fe.plannedAmount?.nanos ?? 0)
+    const nextDue = fe.nextDueDate ? new Date(Number(fe.nextDueDate.seconds) * 1000) : undefined
+    const existing = notDueFixedByCat.get(fe.categoryId)
+    if (existing) {
+      existing.amount += amt
+      if (nextDue && (!existing.nextDue || nextDue < existing.nextDue)) existing.nextDue = nextDue
+    } else {
+      notDueFixedByCat.set(fe.categoryId, { amount: amt, nextDue, fixedExpense: fe })
+    }
+  }
+
   const visibleCats = categories.filter(
     (c) => catIdsWithAllocs.has(c.id) || txnActualByCat.has(c.id) || pinnedCategoryIds.has(c.id) ||
            (savingsCat?.id === c.id && savingsSources.length > 0) ||
-           fixedPlannedByCat.has(c.id),
+           fixedPlannedByCat.has(c.id) || fixedExpenseCatIds.has(c.id),
   )
   const visibleCatIds = new Set(visibleCats.map((c) => c.id))
   // Savings category is system-managed — exclude from the manual picker
@@ -539,11 +569,15 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {visibleCats.map((cat) => {
             const isSavings = savingsCat?.id === cat.id
-            const isFixedOnly = !isSavings && !catIdsWithAllocs.has(cat.id) && fixedPlannedByCat.has(cat.id)
+            const notDueInfo = notDueFixedByCat.get(cat.id)
+            const isNotDue = !isSavings && !!notDueInfo
+            const isFixedOnly = !isSavings && !catIdsWithAllocs.has(cat.id) && (fixedPlannedByCat.has(cat.id) || isNotDue)
             const actual = txnActualByCat.get(cat.id) ?? 0
             let plannedTotal = 0
             if (isSavings) {
               plannedTotal = savingsTotal
+            } else if (isNotDue) {
+              plannedTotal = notDueInfo.amount
             } else {
               for (const p of people) {
                 const alloc = allocMap.get(`${cat.id}:${p.id}`)
@@ -552,7 +586,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
               if (plannedTotal === 0) plannedTotal = fixedPlannedByCat.get(cat.id) ?? 0
             }
             const colorFn = isSavings ? savingsActualColor : actualColor
-            const headerActualColor = colorFn(actual, plannedTotal)
+            const headerActualColor = isNotDue ? undefined : colorFn(actual, plannedTotal)
             return (
               <Paper key={cat.id} variant="outlined" sx={{ p: 1.5 }}>
                 {/* Card header */}
@@ -565,11 +599,18 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
                     {cat.isSystem && (
                       <Chip label={t('global')} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 16 }} />
                     )}
+                    {isNotDue && (
+                      <Tooltip title={t('notDueTooltip', { date: notDueInfo.nextDue ? notDueInfo.nextDue.toLocaleDateString() : '' })}>
+                        <IconButton size="small" onClick={() => canEdit && setEditFixedExpense(notDueInfo.fixedExpense)}>
+                          <ErrorOutlineIcon sx={{ fontSize: 16 }} color="warning" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
                     <Box sx={{ textAlign: 'right' }}>
                       <Typography variant="caption" color="text.secondary" display="block">{t('plannedAmount')}</Typography>
-                      <Typography variant="body2" fontWeight={600}>
+                      <Typography variant="body2" fontWeight={600} color={isNotDue ? 'text.disabled' : undefined}>
                         {plannedTotal > 0 ? formatMoney(plannedTotal) : '—'}
                       </Typography>
                     </Box>
@@ -671,11 +712,15 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
             <TableBody>
               {visibleCats.map((cat) => {
                 const isSavings = savingsCat?.id === cat.id
-                const isFixedOnly = !isSavings && !catIdsWithAllocs.has(cat.id) && fixedPlannedByCat.has(cat.id)
+                const notDueInfo = notDueFixedByCat.get(cat.id)
+                const isNotDue = !isSavings && !!notDueInfo
+                const isFixedOnly = !isSavings && !catIdsWithAllocs.has(cat.id) && (fixedPlannedByCat.has(cat.id) || isNotDue)
                 const actual = txnActualByCat.get(cat.id) ?? 0
                 let plannedTotal = 0
                 if (isSavings) {
                   plannedTotal = savingsTotal
+                } else if (isNotDue) {
+                  plannedTotal = notDueInfo.amount
                 } else {
                   for (const p of people) {
                     const alloc = allocMap.get(`${cat.id}:${p.id}`)
@@ -684,7 +729,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
                   if (plannedTotal === 0) plannedTotal = fixedPlannedByCat.get(cat.id) ?? 0
                 }
                 const colorFn = isSavings ? savingsActualColor : actualColor
-                const color = colorFn(actual, plannedTotal)
+                const color = isNotDue ? undefined : colorFn(actual, plannedTotal)
                 return (
                   <TableRow key={cat.id} hover>
                     <TableCell sx={{ whiteSpace: 'nowrap' }}>
@@ -695,6 +740,13 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
                         {cat.name}
                         {cat.isSystem && (
                           <Chip label={t('global')} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 16 }} />
+                        )}
+                        {isNotDue && (
+                          <Tooltip title={t('notDueTooltip', { date: notDueInfo.nextDue ? notDueInfo.nextDue.toLocaleDateString() : '' })}>
+                            <IconButton size="small" onClick={() => canEdit && setEditFixedExpense(notDueInfo.fixedExpense)}>
+                              <ErrorOutlineIcon sx={{ fontSize: 16 }} color="warning" />
+                            </IconButton>
+                          </Tooltip>
                         )}
                       </Box>
                     </TableCell>
@@ -747,7 +799,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
                     })}
                     <TableCell align="right">
                       {plannedTotal > 0
-                        ? formatMoney(plannedTotal)
+                        ? <Typography component="span" variant="body2" color={isNotDue ? 'text.disabled' : undefined}>{formatMoney(plannedTotal)}</Typography>
                         : <Typography component="span" variant="body2" color="text.disabled">—</Typography>}
                     </TableCell>
                     <TableCell align="right" sx={{ color }}>
@@ -832,6 +884,15 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
           <Button onClick={commitEditDialog} variant="contained">{t('editDialog.save')}</Button>
         </DialogActions>
       </Dialog>
+
+      {editFixedExpense && (
+        <EditFixedExpenseModal
+          budgetProfileId={budgetProfileId}
+          fixedExpense={editFixedExpense}
+          onClose={() => setEditFixedExpense(null)}
+          onDone={() => { setEditFixedExpense(null); refetchFixedExpenses() }}
+        />
+      )}
 
       {/* Plan summary */}
       {totalCommitted > 0 && (

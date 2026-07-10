@@ -227,6 +227,7 @@
       "plannedAllocations": "Planned allocations + Fixed expenses",
       "remainder": "Remainder",
       "spent": "Spent",
+      "notDueTooltip": "Not due this period — next due {date}",
       "chart": {
         "pie": "Pie",
         "bar": "Bar",
@@ -253,6 +254,14 @@
         "amount": "Planned amount",
         "dayOfMonth": "Day of month",
         "dayOfMonthHint": "Which day of the month this expense falls on",
+        "intervalMonths": "Repeats",
+        "intervalMonthsHint": "How often this expense is due",
+        "intervalOptions": {
+          "1": "Monthly",
+          "3": "Every 3 months",
+          "6": "Every 6 months",
+          "12": "Yearly"
+        },
         "category": "Category",
         "noCategory": "— None —",
         "paymentMethod": "Payment method"
