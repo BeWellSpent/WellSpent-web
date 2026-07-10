@@ -1,5 +1,10 @@
 jest.mock('next-intl', () => ({ useTranslations: () => (key: string) => key }))
 jest.mock('@/gen/spendsense/v1/budget_connect', () => ({ BudgetService: {} }))
+jest.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }))
+jest.mock('@/i18n/navigation', () => ({
+  usePathname: () => '/mock',
+  useRouter: () => ({ replace: jest.fn(), push: jest.fn() }),
+}))
 
 import {
   resolveCategoryName,
