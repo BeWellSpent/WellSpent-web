@@ -60,11 +60,10 @@ function formatMoney(amount: number): string {
   return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
 
-function formatVariableAmount(amount: number): { text: string; received: boolean } {
-  if (amount < 0) {
-    return { text: `+${formatMoney(-amount)}`, received: true }
-  }
-  return { text: formatMoney(amount), received: false }
+function formatVariableAmount(amount: number): { text: string; color: string | undefined } {
+  if (amount < 0) return { text: `+${formatMoney(-amount)}`, color: 'success.main' }
+  if (amount > 0) return { text: `-${formatMoney(amount)}`, color: 'error.main' }
+  return { text: formatMoney(0), color: undefined }
 }
 
 function formatDate(ts: { seconds: bigint } | undefined): string {
@@ -387,8 +386,8 @@ function TransactionTable({
                             {isFixed ? (
                               <Typography variant="body2">{formatMoney(txPlannedAmount(tx))}</Typography>
                             ) : (() => {
-                              const { text, received } = formatVariableAmount(txAmount(tx))
-                              return <Typography variant="body2" color={received ? 'success.main' : 'inherit'}>{text}</Typography>
+                              const { text, color } = formatVariableAmount(txAmount(tx))
+                              return <Typography variant="body2" color={color ?? 'inherit'}>{text}</Typography>
                             })()}
                             {isFixed && tx.isPaid && (
                               <Typography variant="caption" color="success.main">
@@ -594,8 +593,8 @@ function TransactionTable({
                       ) : (
                         <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                           {(() => {
-                            const { text, received } = formatVariableAmount(txAmount(tx))
-                            return <Typography variant="body2" component="span" color={received ? 'success.main' : 'inherit'}>{text}</Typography>
+                            const { text, color } = formatVariableAmount(txAmount(tx))
+                            return <Typography variant="body2" component="span" color={color ?? 'inherit'}>{text}</Typography>
                           })()}
                         </TableCell>
                       )}

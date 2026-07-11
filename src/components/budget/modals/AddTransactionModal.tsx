@@ -224,14 +224,6 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
         </Typography>
       )}
       <TextField label="Description" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-      <TextField
-        label="Amount"
-        type="number"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        fullWidth
-        inputProps={{ min: 0, step: '0.01', inputMode: 'decimal' }}
-      />
       <Stack direction="row" spacing={1} alignItems="flex-start">
         {!isFixed && (
           <ToggleButtonGroup
@@ -345,6 +337,14 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
         label="Payment method"
         required={!isFixed}
         size="medium"
+      />
+      <TextField
+        label="Amount"
+        type="number"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        fullWidth
+        inputProps={{ min: 0, step: '0.01', inputMode: 'decimal' }}
       />
       {!isFixed && (
         <FormControlLabel
