@@ -60,6 +60,13 @@ function formatMoney(amount: number): string {
   return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
 
+function formatVariableAmount(amount: number): { text: string; received: boolean } {
+  if (amount < 0) {
+    return { text: `+${formatMoney(-amount)}`, received: true }
+  }
+  return { text: formatMoney(amount), received: false }
+}
+
 function formatDate(ts: { seconds: bigint } | undefined): string {
   if (!ts || ts.seconds === 0n) return ''
   return new Date(Number(ts.seconds) * 1000).toLocaleDateString('en-US', {
@@ -377,7 +384,12 @@ function TransactionTable({
                         </TableCell>
                         <TableCell align="right" sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 1.5 }}>
                           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            <Typography variant="body2">{formatMoney(txPlannedAmount(tx))}</Typography>
+                            {isFixed ? (
+                              <Typography variant="body2">{formatMoney(txPlannedAmount(tx))}</Typography>
+                            ) : (() => {
+                              const { text, received } = formatVariableAmount(txAmount(tx))
+                              return <Typography variant="body2" color={received ? 'success.main' : 'inherit'}>{text}</Typography>
+                            })()}
                             {isFixed && tx.isPaid && (
                               <Typography variant="caption" color="success.main">
                                 {t('paid')}: {formatMoney(txAmount(tx))}
@@ -581,7 +593,10 @@ function TransactionTable({
                         </>
                       ) : (
                         <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                          {formatMoney(txAmount(tx))}
+                          {(() => {
+                            const { text, received } = formatVariableAmount(txAmount(tx))
+                            return <Typography variant="body2" component="span" color={received ? 'success.main' : 'inherit'}>{text}</Typography>
+                          })()}
                         </TableCell>
                       )}
                       {isEditable && (
