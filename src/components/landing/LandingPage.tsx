@@ -78,9 +78,7 @@ export function LandingPage() {
   const [slideVisible, setSlideVisible] = useState(true)
 
   // Before mount, effective is 'light' (matches SSR). After mount, follows user preference.
-  const isDark = mounted && effective === 'dark'
-  const logoSrc = isDark ? '/web-header-dark.png' : '/web-header-light.png'
-  const iconSrc = isDark ? '/app-icon-dark.png' : '/app-icon-light.png'
+  const iconSrc = mounted && effective === 'dark' ? '/app-icon-dark.png' : '/app-icon-light.png'
 
   useEffect(() => setMounted(true), [])
 
@@ -133,7 +131,7 @@ export function LandingPage() {
             {isMobile ? (
               <Image src={iconSrc} alt="WellSpent" width={36} height={36} style={{ objectFit: 'contain' }} />
             ) : (
-              <Image src={logoSrc} alt="WellSpent" width={160} height={36} style={{ objectFit: 'contain', objectPosition: 'left' }} />
+              <Image src="/web-header.png" alt="WellSpent" width={160} height={36} style={{ objectFit: 'contain', objectPosition: 'left' }} />
             )}
           </Box>
 
@@ -584,7 +582,7 @@ export function LandingPage() {
         }}
       >
         <Box sx={{ mb: 2 }}>
-          <Image src="/web-header-dark.png" alt="WellSpent" width={140} height={31} style={{ objectFit: 'contain' }} />
+          <Image src="/web-header.png" alt="WellSpent" width={140} height={31} style={{ objectFit: 'contain' }} />
         </Box>
         <Typography variant="body2" sx={{ mb: 1, color: 'rgba(255,255,255,0.5)', fontStyle: 'italic' }}>
           {t('footer.tagline')}
