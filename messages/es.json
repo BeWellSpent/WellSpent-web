@@ -248,10 +248,18 @@
         "spent": "Gasto",
         "received": "Ingreso"
       },
+      "markForReview": "Marcar para revisión",
       "filter": {
         "spentOnly": "Solo gastos",
         "exceededOnly": "Solo excedido"
       }
+    },
+    "markForReview": {
+      "title": "Marcar para revisión",
+      "flagging": "Transacción",
+      "noFixed": "No hay gastos fijos activos para comparar.",
+      "confirm": "Marcar",
+      "cancel": "Cancelar"
     },
     "expenses": {
       "title": "Plan de Gastos",
