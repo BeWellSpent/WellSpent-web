@@ -94,7 +94,15 @@
       "failedToLoad": "No se pudo cargar el presupuesto.",
       "noActivePeriod": "No se encontró un período activo.",
       "expensePlan": "Plan de Gastos",
-      "transactions": "Transacciones"
+      "transactions": "Transacciones",
+      "toReview": "Por Revisar"
+    },
+    "review": {
+      "description": "Estas transacciones importadas pueden coincidir con un gasto fijo. Confirma para marcar el gasto fijo como pagado y eliminar el duplicado, o descarta para conservarla como transacción regular.",
+      "matchedTo": "Coincide con:",
+      "confirm": "Confirmar",
+      "dismiss": "Descartar",
+      "empty": "No hay transacciones por revisar."
     },
     "sidebar": {
       "allBudgets": "Todos los Presupuestos",

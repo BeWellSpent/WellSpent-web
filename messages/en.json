@@ -94,7 +94,15 @@
       "failedToLoad": "Failed to load budget.",
       "noActivePeriod": "No active period found.",
       "expensePlan": "Expense Plan",
-      "transactions": "Transactions"
+      "transactions": "Transactions",
+      "toReview": "To Review"
+    },
+    "review": {
+      "description": "These imported transactions may match a fixed expense. Confirm to mark the fixed expense as paid and remove the duplicate, or dismiss to keep it as a regular transaction.",
+      "matchedTo": "Matched to:",
+      "confirm": "Confirm",
+      "dismiss": "Dismiss",
+      "empty": "No transactions to review."
     },
     "sidebar": {
       "allBudgets": "All Budgets",
