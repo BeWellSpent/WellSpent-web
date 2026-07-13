@@ -248,10 +248,18 @@
         "spent": "Spent",
         "received": "Received"
       },
+      "markForReview": "Flag for review",
       "filter": {
         "spentOnly": "Spent only",
         "exceededOnly": "Exceeded only"
       }
+    },
+    "markForReview": {
+      "title": "Flag for Review",
+      "flagging": "Transaction",
+      "noFixed": "No active fixed expenses to match against.",
+      "confirm": "Flag",
+      "cancel": "Cancel"
     },
     "expenses": {
       "title": "Expense Plan",

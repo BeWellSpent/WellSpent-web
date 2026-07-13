@@ -78,9 +78,9 @@ export function BudgetView({ budgetId }: Props) {
     ?? periods[0]
 
   const { data: reviewData } = useQuery({
-    queryKey: ['transaction-reviews', activePeriod?.id],
-    queryFn: () => client.listTransactionReviews({ budgetPeriodId: activePeriod!.id }),
-    enabled: !!activePeriod?.id,
+    queryKey: ['transaction-reviews', budgetId],
+    queryFn: () => client.listTransactionReviews({ budgetProfileId: budgetId }),
+    enabled: !!budgetId,
   })
   const pendingReviewCount = reviewData?.reviews.filter((r) => r.status === 'pending').length ?? 0
 

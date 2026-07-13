@@ -31,16 +31,16 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
   const { showError } = useSnackbar()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['transaction-reviews', budgetPeriodId],
-    queryFn: () => client.listTransactionReviews({ budgetPeriodId: budgetPeriodId! }),
-    enabled: !!budgetPeriodId,
+    queryKey: ['transaction-reviews', budgetProfileId],
+    queryFn: () => client.listTransactionReviews({ budgetProfileId }),
+    enabled: !!budgetProfileId,
   })
 
   const confirmMutation = useMutation({
     mutationFn: (reviewId: string) =>
       client.confirmTransactionReview({ reviewId, budgetProfileId }),
     onSuccess: (_, reviewId) => {
-      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetPeriodId] })
+      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetProfileId] })
       queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
       queryClient.invalidateQueries({ queryKey: ['fixed-expenses', budgetProfileId] })
       logger.info('review.confirm', { reviewId })
@@ -51,7 +51,7 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
     mutationFn: (reviewId: string) =>
       client.dismissTransactionReview({ reviewId }),
     onSuccess: (_, reviewId) => {
-      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetPeriodId] })
+      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetProfileId] })
       logger.info('review.dismiss', { reviewId })
     },
   })

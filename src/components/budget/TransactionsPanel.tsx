@@ -15,6 +15,7 @@ import { AddTransactionModal } from './modals/AddTransactionModal'
 import { EditTransactionModal } from './modals/EditTransactionModal'
 import { EditFixedExpenseModal } from './modals/EditFixedExpenseModal'
 import { MarkAsPaidDialog } from './modals/MarkAsPaidDialog'
+import { MarkForReviewDialog } from './modals/MarkForReviewDialog'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Tabs from '@mui/material/Tabs'
@@ -37,6 +38,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
+import FlagIcon from '@mui/icons-material/Flag'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
@@ -231,6 +233,7 @@ function TransactionTable({
   const [sortKey, setSortKey] = useState<SortKey>('day')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [markPaidTarget, setMarkPaidTarget] = useState<Transaction | null>(null)
+  const [markReviewTarget, setMarkReviewTarget] = useState<Transaction | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -445,6 +448,13 @@ function TransactionTable({
                                   </IconButton>
                                 </Tooltip>
                               )}
+                              {!isFixed && isRowEditable(tx) && (
+                                <Tooltip title={t('markForReview')}>
+                                  <IconButton size="small" onClick={() => setMarkReviewTarget(tx)}>
+                                    <FlagIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                               {isRowEditable(tx) && (
                                 <>
                                   <IconButton size="small" onClick={() => onEdit(tx)}><EditIcon fontSize="small" /></IconButton>
@@ -522,6 +532,13 @@ function TransactionTable({
             onDone={() => { setMarkPaidTarget(null); onRefresh() }}
           />
         )}
+        <MarkForReviewDialog
+          open={!!markReviewTarget}
+          transaction={markReviewTarget}
+          budgetProfileId={budgetProfileId}
+          budgetPeriodId={budgetPeriodId}
+          onClose={() => setMarkReviewTarget(null)}
+        />
       </>
     )
   }
@@ -647,6 +664,13 @@ function TransactionTable({
                                 </IconButton>
                               </Tooltip>
                             )}
+                            {!isFixed && isRowEditable(tx) && (
+                              <Tooltip title={t('markForReview')}>
+                                <IconButton size="small" onClick={() => setMarkReviewTarget(tx)}>
+                                  <FlagIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
                             {isRowEditable(tx) && (
                               <>
                                 <IconButton size="small" onClick={() => onEdit(tx)}><EditIcon fontSize="small" /></IconButton>
@@ -725,6 +749,13 @@ function TransactionTable({
           onDone={() => { setMarkPaidTarget(null); onRefresh() }}
         />
       )}
+      <MarkForReviewDialog
+        open={!!markReviewTarget}
+        transaction={markReviewTarget}
+        budgetProfileId={budgetProfileId}
+        budgetPeriodId={budgetPeriodId}
+        onClose={() => setMarkReviewTarget(null)}
+      />
     </>
   )
 }
