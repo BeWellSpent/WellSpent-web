@@ -37,8 +37,8 @@ jest.mock('@/lib/api/client', () => ({
   publicTransport: {},
   createTransport: () => ({}),
 }))
-jest.mock('@/gen/spendsense/v1/auth_connect', () => ({ AuthService: {} }))
-jest.mock('@/gen/spendsense/v1/user_connect', () => ({ UserService: {} }))
+jest.mock('@/gen/wellspent/v1/auth_connect', () => ({ AuthService: {} }))
+jest.mock('@/gen/wellspent/v1/user_connect', () => ({ UserService: {} }))
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 

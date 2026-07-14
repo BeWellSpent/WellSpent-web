@@ -1,4 +1,4 @@
-export const TOKEN_COOKIE = 'spendsense_token'
+export const TOKEN_COOKIE = 'wellspent_token'
 
 // SameSite=Strict excludes the cookie not just on cross-site requests but on
 // some top-level navigations mobile browsers treat as "externally initiated"

@@ -1,8 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
-import { BudgetRole } from '@/gen/spendsense/v1/common_pb'
+import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
+import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useAuth } from '@/context/AuthContext'
 

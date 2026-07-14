@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@connectrpc/connect'
-import { AuthService } from '@/gen/spendsense/v1/auth_connect'
+import { AuthService } from '@/gen/wellspent/v1/auth_connect'
 import { publicTransport } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
@@ -54,7 +54,7 @@ export function LoginForm() {
   async function handleGoogleSignIn() {
     const state = crypto.randomUUID()
     sessionStorage.setItem('google_oauth_state', state)
-    localStorage.setItem('spendsense_locale', language)
+    localStorage.setItem('wellspent_locale', language)
     // Preserve the post-auth redirect (e.g. invite acceptance) across the OAuth round-trip.
     if (redirect) sessionStorage.setItem('google_oauth_redirect', redirect)
     try {
@@ -81,8 +81,8 @@ export function LoginForm() {
       // Store locale/currency for use throughout the app
       const userLocale = res.language || language
       const userCurrency = res.currency || 'USD'
-      localStorage.setItem('spendsense_locale', userLocale)
-      localStorage.setItem('spendsense_currency', userCurrency)
+      localStorage.setItem('wellspent_locale', userLocale)
+      localStorage.setItem('wellspent_currency', userCurrency)
       logger.info('auth.login')
       if (redirect) {
         window.location.href = redirect

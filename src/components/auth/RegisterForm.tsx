@@ -5,9 +5,9 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@connectrpc/connect'
-import { AuthService } from '@/gen/spendsense/v1/auth_connect'
-import { UserService } from '@/gen/spendsense/v1/user_connect'
-import { FilingStatus } from '@/gen/spendsense/v1/common_pb'
+import { AuthService } from '@/gen/wellspent/v1/auth_connect'
+import { UserService } from '@/gen/wellspent/v1/user_connect'
+import { FilingStatus } from '@/gen/wellspent/v1/common_pb'
 import { publicTransport, createTransport } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
@@ -98,8 +98,8 @@ export function RegisterForm() {
   async function handleGoogleSignIn() {
     const state = crypto.randomUUID()
     sessionStorage.setItem('google_oauth_state', state)
-    localStorage.setItem('spendsense_locale', language)
-    localStorage.setItem('spendsense_currency', currency)
+    localStorage.setItem('wellspent_locale', language)
+    localStorage.setItem('wellspent_currency', currency)
     try {
       const res = await authClient.getGoogleAuthURL({ state })
       window.location.href = res.url
@@ -141,8 +141,8 @@ export function RegisterForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: res.accessToken, expiresIn: Number(res.expiresIn) }),
       })
-      localStorage.setItem('spendsense_locale', language)
-      localStorage.setItem('spendsense_currency', currency)
+      localStorage.setItem('wellspent_locale', language)
+      localStorage.setItem('wellspent_currency', currency)
       logger.info('auth.register')
       if (redirect) {
         window.location.href = redirect

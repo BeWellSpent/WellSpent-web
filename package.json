@@ -1,5 +1,5 @@
 {
-  "name": "spendsense-web",
+  "name": "wellspent-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint src/",
-    "generate": "buf generate buf.build/xpendsense/spendsense",
+    "generate": "buf generate buf.build/bewellspent/wellspent",
     "test": "jest",
     "test:watch": "jest --watch"
   },

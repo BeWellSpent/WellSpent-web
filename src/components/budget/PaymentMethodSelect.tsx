@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
+import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'

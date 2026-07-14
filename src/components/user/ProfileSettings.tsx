@@ -5,8 +5,8 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { UserService } from '@/gen/spendsense/v1/user_connect'
-import { FilingStatus, TaxPaymentFrequency } from '@/gen/spendsense/v1/common_pb'
+import { UserService } from '@/gen/wellspent/v1/user_connect'
+import { FilingStatus, TaxPaymentFrequency } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -128,8 +128,8 @@ export function ProfileSettings() {
   async function handleSave() {
     try {
       await mutateAsync()
-      localStorage.setItem('spendsense_locale', language)
-      localStorage.setItem('spendsense_currency', currency)
+      localStorage.setItem('wellspent_locale', language)
+      localStorage.setItem('wellspent_currency', currency)
       logger.info('user.profile.update')
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
