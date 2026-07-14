@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { useViewPreference } from '../useViewPreference'
 
-const STORAGE_KEY = 'spendsense_view_mode'
+const STORAGE_KEY = 'wellspent_view_mode'
 
 beforeEach(() => localStorage.clear())
 

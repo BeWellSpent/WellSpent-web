@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@connectrpc/connect'
-import { AuthService } from '@/gen/spendsense/v1/auth_connect'
+import { AuthService } from '@/gen/wellspent/v1/auth_connect'
 import { publicTransport } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
@@ -37,8 +37,8 @@ function CallbackContent() {
     }
 
     const redirectUri = `${window.location.origin}/auth/callback`
-    const language = localStorage.getItem('spendsense_locale') || 'en'
-    const currency = localStorage.getItem('spendsense_currency') || 'USD'
+    const language = localStorage.getItem('wellspent_locale') || 'en'
+    const currency = localStorage.getItem('wellspent_currency') || 'USD'
 
     authClient.exchangeGoogleCode({ code, redirectUri, language, currency })
       .then(async (res) => {
@@ -49,8 +49,8 @@ function CallbackContent() {
         })
         const userLocale = res.language || language
         const userCurrency = res.currency || currency
-        localStorage.setItem('spendsense_locale', userLocale)
-        localStorage.setItem('spendsense_currency', userCurrency)
+        localStorage.setItem('wellspent_locale', userLocale)
+        localStorage.setItem('wellspent_currency', userCurrency)
         logger.info('auth.google.callback', { isNewUser: res.isNewUser })
         const pendingRedirect = sessionStorage.getItem('google_oauth_redirect')
         sessionStorage.removeItem('google_oauth_redirect')

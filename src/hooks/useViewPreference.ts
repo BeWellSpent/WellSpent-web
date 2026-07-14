@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 
 export type ViewMode = 'split' | 'tabbed'
 
-const STORAGE_KEY = 'spendsense_view_mode'
+const STORAGE_KEY = 'wellspent_view_mode'
 
 export function useViewPreference(defaultMode: ViewMode = 'tabbed'): [ViewMode, (m: ViewMode) => void] {
   const [mode, setMode] = useState<ViewMode>(defaultMode)

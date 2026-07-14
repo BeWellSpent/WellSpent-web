@@ -31,7 +31,7 @@ jest.mock('@connectrpc/connect', () => ({
   createClient: () => ({ login: (...args: unknown[]) => mockLogin?.(...args) }),
 }))
 jest.mock('@/lib/api/client', () => ({ publicTransport: {} }))
-jest.mock('@/gen/spendsense/v1/auth_connect', () => ({ AuthService: {} }))
+jest.mock('@/gen/wellspent/v1/auth_connect', () => ({ AuthService: {} }))
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 

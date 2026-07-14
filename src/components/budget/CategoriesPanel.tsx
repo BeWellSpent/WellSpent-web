@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/spendsense/v1/budget_connect'
-import type { Category } from '@/gen/spendsense/v1/budget_pb'
+import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
+import type { Category } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { ColorPicker } from '@/components/ui/ColorPicker'
