@@ -89,6 +89,28 @@ function fixedExpensePlannedAmount(fe: FixedExpense): number {
   return Number(fe.plannedAmount?.units ?? 0n) + (fe.plannedAmount?.nanos ?? 0) / 1e9
 }
 
+function monthsBetweenDates(from: Date, to: Date): number {
+  return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth())
+}
+
+function weeksBetweenDates(from: Date, to: Date): number {
+  return Math.floor((to.getTime() - from.getTime()) / (7 * 24 * 60 * 60 * 1000))
+}
+
+function paymentProgress(fe: FixedExpense): string | null {
+  if (!fe.totalPayments || fe.totalPayments <= 0) return null
+  if (!fe.anchorDate?.seconds) return `?/${fe.totalPayments}`
+  const anchor = new Date(Number(fe.anchorDate.seconds) * 1000)
+  const now = new Date()
+  let made: number
+  if (fe.frequencyUnit === 2) {
+    made = Math.floor(weeksBetweenDates(anchor, now) / (fe.intervalWeeks || 1)) + 1
+  } else {
+    made = Math.floor(monthsBetweenDates(anchor, now) / (fe.intervalMonths || 1)) + 1
+  }
+  return `${Math.min(Math.max(1, made), fe.totalPayments)}/${fe.totalPayments}`
+}
+
 function nextDueDateLabel(fe: FixedExpense): string {
   if (!fe.nextDueDate || fe.nextDueDate.seconds === 0n) return ''
   return new Date(Number(fe.nextDueDate.seconds) * 1000).toLocaleDateString('en-US', {
@@ -207,6 +229,7 @@ interface TableProps {
   methodMap: Map<string, PaymentMethod>
   personMap: Map<string, BudgetPerson>
   notDueFixedExpenses?: FixedExpense[]
+  fixedExpenseMap?: Map<string, FixedExpense>
   searchQuery?: string
   spentOnly?: boolean
   exceededOnly?: boolean
@@ -221,7 +244,7 @@ interface TableProps {
 
 function TransactionTable({
   transactions, isLoading, isEditable, isFixed, savingsCategoryId, budgetPeriodId, budgetProfileId, label,
-  categoryMap, methodMap, personMap, notDueFixedExpenses = [], searchQuery = '', spentOnly = false,
+  categoryMap, methodMap, personMap, notDueFixedExpenses = [], fixedExpenseMap, searchQuery = '', spentOnly = false,
   exceededOnly = false, overBudgetTxIds, onToggleSpentOnly, onToggleExceededOnly,
   onDeleted, onEdit, onEditFixedExpense, onRefresh,
 }: TableProps) {
@@ -394,7 +417,16 @@ function TransactionTable({
                       <TableRow key={tx.id} hover>
                         <TableCell>
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
-                            <Typography variant="body2" fontWeight={500}>{tx.name}</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Typography variant="body2" fontWeight={500}>{tx.name}</Typography>
+                              {isFixed && tx.fixedExpenseId && (() => {
+                                const fe = fixedExpenseMap?.get(tx.fixedExpenseId)
+                                const progress = fe ? paymentProgress(fe) : null
+                                return progress ? (
+                                  <Typography variant="caption" color="text.secondary">({progress})</Typography>
+                                ) : null
+                              })()}
+                            </Box>
                             {dateStr && (
                               <Typography variant="caption" color="text.secondary">{dateStr}</Typography>
                             )}
@@ -479,6 +511,12 @@ function TransactionTable({
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               <Typography variant="body2" fontWeight={500} color="text.disabled">{fe.name}</Typography>
+                              {(() => {
+                                const progress = paymentProgress(fe)
+                                return progress ? (
+                                  <Typography variant="caption" color="text.disabled">({progress})</Typography>
+                                ) : null
+                              })()}
                               <IconButton size="small" onClick={() => onEditFixedExpense?.(fe)}>
                                 <ErrorOutlineIcon sx={{ fontSize: 16 }} color="warning" />
                               </IconButton>
@@ -906,6 +944,10 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
 
+  const fixedExpenseMap = new Map<string, FixedExpense>(
+    (fixedExpensesData?.expenses ?? []).map((fe) => [fe.id, fe])
+  )
+
   const sharedTableProps = {
     isEditable,
     savingsCategoryId,
@@ -914,6 +956,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     categoryMap,
     methodMap,
     personMap,
+    fixedExpenseMap,
     searchQuery,
     spentOnly,
     exceededOnly,
