@@ -143,7 +143,16 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
   function getAnchor(): Date {
     if (isFutureStart && anchorDateStr) return parseUTCDate(anchorDateStr)
     if (fixedExpense.anchorDate?.seconds) return new Date(Number(fixedExpense.anchorDate.seconds) * 1000)
-    return new Date()
+    // No explicit anchor — use the first upcoming occurrence based on day-of-month/week
+    const today = new Date()
+    if (frequencyUnitUI === 'week') {
+      const todayDow = today.getUTCDay() || 7 // convert Sun=0 to 7
+      const daysUntil = (dayOfWeek - todayDow + 7) % 7
+      return new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + daysUntil))
+    }
+    const dom = dayOfMonth || today.getUTCDate()
+    const thisMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), dom))
+    return thisMonth >= today ? thisMonth : new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, dom))
   }
 
   function handleFrequencyUnitChange(next: FrequencyUnitUI) {
