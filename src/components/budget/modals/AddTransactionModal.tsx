@@ -182,7 +182,15 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
 
   function getAnchor(): Date {
     if (isFutureStart && anchorDateStr) return parseUTCDate(anchorDateStr)
-    return new Date()
+    const today = new Date()
+    if (frequencyUnitUI === 'week') {
+      const todayDow = today.getUTCDay() || 7
+      const daysUntil = (dayOfWeek - todayDow + 7) % 7
+      return new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + daysUntil))
+    }
+    const dom = dayOfMonth || today.getUTCDate()
+    const thisMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), dom))
+    return thisMonth >= today ? thisMonth : new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, dom))
   }
 
   function recalcEndDate(payments: string, unit: FrequencyUnitUI, count: number) {
