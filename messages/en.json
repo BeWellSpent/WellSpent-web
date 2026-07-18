@@ -70,6 +70,7 @@
     "plaid": {
       "empty": "No bank accounts connected yet.",
       "connect": "Connect a bank account",
+      "manageAccounts": "Manage accounts",
       "pickBudget": "Which budget should imported transactions go to?",
       "noBudgets": "You have no budgets. Create one first.",
       "cancel": "Cancel",
