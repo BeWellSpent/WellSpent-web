@@ -6,6 +6,7 @@ import {
   compareTransactions,
   groupTransactionsByDay,
   isTransactionExcluded,
+  resolveSwipeDirection,
 } from '../helpers'
 import type { Transaction, Category, PaymentMethod, BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 
@@ -171,6 +172,34 @@ describe('isTransactionExcluded', () => {
   it('returns false when incomeCategoryId is not provided', () => {
     const tx = makeTransaction({ isExcluded: false, categoryId: 1 })
     expect(isTransactionExcluded(tx, undefined)).toBe(false)
+  })
+})
+
+describe('resolveSwipeDirection', () => {
+  it('returns null for a mostly-vertical scroll with incidental sideways drift', () => {
+    expect(resolveSwipeDirection(40, 300)).toBeNull()
+  })
+
+  it('returns null when horizontal movement is below the threshold', () => {
+    expect(resolveSwipeDirection(30, 5)).toBeNull()
+  })
+
+  it('returns null when horizontal movement does not clearly dominate vertical', () => {
+    // Clears the threshold but deltaX is not >= 2x deltaY.
+    expect(resolveSwipeDirection(70, 50)).toBeNull()
+  })
+
+  it('returns "right" for a clear left-to-right swipe', () => {
+    expect(resolveSwipeDirection(100, 5)).toBe('right')
+  })
+
+  it('returns "left" for a clear right-to-left swipe', () => {
+    expect(resolveSwipeDirection(-100, 5)).toBe('left')
+  })
+
+  it('respects a custom threshold', () => {
+    expect(resolveSwipeDirection(70, 0, 100)).toBeNull()
+    expect(resolveSwipeDirection(120, 0, 100)).toBe('right')
   })
 })
 

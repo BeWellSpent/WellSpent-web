@@ -14,6 +14,7 @@ import { formatMoneyFromNumber } from '@/lib/format'
 import { MarkAsPaidDialog } from '../modals/MarkAsPaidDialog'
 import { MarkForReviewDialog } from '../modals/MarkForReviewDialog'
 import { SortHeader } from './SortHeader'
+import { MobileRowActions } from './MobileRowActions'
 import {
   type SortKey,
   formatVariableAmount,
@@ -263,45 +264,22 @@ export function TransactionTable({
           {isEditable && (
             <TableCell align="right" sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 0.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                {canMarkPaid(tx) && (
-                  <Tooltip title={t('markAsPaid.title')}>
-                    <IconButton size="small" onClick={() => setMarkPaidTarget(tx)} color="default">
-                      <CheckCircleOutlineIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                )}
-                {isFixed && tx.isPaid && (
-                  <Tooltip title={t('markAsPaid.alreadyPaid')}>
-                    <IconButton size="small" onClick={() => handleUnmark(tx)} disabled={unmarkPending} color="success">
-                      <CheckCircleIcon fontSize="small" color="success" />
-                    </IconButton>
-                  </Tooltip>
-                )}
-                {!isFixed && isEditable && (
-                  <Tooltip title={t('markForReview')}>
-                    <IconButton size="small" onClick={() => setMarkReviewTarget(tx)}>
-                      <FlagIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                )}
-                <Tooltip title={isIncomeRow(tx) ? t('exclude.incomeAlwaysExcluded') : (tx.isExcluded ? t('exclude.unexclude') : t('exclude.exclude'))}>
-                  <span>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleToggleExcluded(tx)}
-                      disabled={isIncomeRow(tx) || setExcludedPending}
-                      color={tx.isExcluded || isIncomeRow(tx) ? 'warning' : 'default'}
-                    >
-                      {tx.isExcluded || isIncomeRow(tx) ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                {isRowEditable(tx) && (
-                  <>
-                    <IconButton size="small" onClick={() => onEdit(tx)}><EditIcon fontSize="small" /></IconButton>
-                    <IconButton size="small" onClick={() => handleDelete(tx)}><DeleteIcon fontSize="small" /></IconButton>
-                  </>
-                )}
+                <MobileRowActions
+                  canMarkPaid={canMarkPaid(tx)}
+                  isAlreadyPaid={isFixed && tx.isPaid}
+                  unmarkPending={unmarkPending}
+                  canFlagForReview={!isFixed && isEditable}
+                  isExcluded={tx.isExcluded}
+                  isIncomeRow={isIncomeRow(tx)}
+                  excludePending={setExcludedPending}
+                  isRowEditable={isRowEditable(tx)}
+                  onMarkPaid={() => setMarkPaidTarget(tx)}
+                  onUnmark={() => handleUnmark(tx)}
+                  onFlagForReview={() => setMarkReviewTarget(tx)}
+                  onToggleExcluded={() => handleToggleExcluded(tx)}
+                  onEdit={() => onEdit(tx)}
+                  onDelete={() => handleDelete(tx)}
+                />
               </Box>
             </TableCell>
           )}
