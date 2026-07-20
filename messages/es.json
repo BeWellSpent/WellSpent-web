@@ -275,7 +275,10 @@
         "exclude": "Excluir del total",
         "unexclude": "Incluir en el total",
         "incomeAlwaysExcluded": "Las transacciones de ingresos siempre se excluyen del total"
-      }
+      },
+      "rowActions": "Más acciones",
+      "edit": "Editar",
+      "delete": "Eliminar"
     },
     "markForReview": {
       "title": "Marcar para revisión",

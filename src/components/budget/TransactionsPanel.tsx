@@ -12,7 +12,7 @@ import { useClient } from '@/hooks/useClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
 import { formatMoneyFromNumber } from '@/lib/format'
-import { txAmount, txPlannedAmount, fixedExpensePlannedAmount, isTransactionExcluded } from './transactionsPanel/helpers'
+import { txAmount, txPlannedAmount, fixedExpensePlannedAmount, isTransactionExcluded, resolveSwipeDirection } from './transactionsPanel/helpers'
 import { TransactionTable } from './transactionsPanel/TransactionTable'
 import { AddTransactionModal } from './modals/AddTransactionModal'
 import { EditTransactionModal } from './modals/EditTransactionModal'
@@ -57,7 +57,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const [spentOnly, setSpentOnly] = useState(false)
   const [exceededOnly, setExceededOnly] = useState(false)
   const [excludedOnly, setExcludedOnly] = useState(false)
-  const touchStartXRef = useRef<number | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
   // Which sub-tab (Fixed vs Variable) is stored in the URL, not component
   // state, so a page reload lands back where you were.
@@ -73,16 +73,17 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const effectiveViewMode: ViewMode = isMobile ? 'tabbed' : viewMode
 
   function handleTouchStart(e: React.TouchEvent) {
-    touchStartXRef.current = e.touches[0].clientX
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
   }
   function handleTouchEnd(e: React.TouchEvent) {
-    const startX = touchStartXRef.current
-    touchStartXRef.current = null
-    if (startX === null) return
-    const deltaX = e.changedTouches[0].clientX - startX
-    const threshold = 50
-    if (deltaX > threshold) setTabIndex(Math.max(0, tabIndex - 1))
-    else if (deltaX < -threshold) setTabIndex(Math.min(1, tabIndex + 1))
+    const start = touchStartRef.current
+    touchStartRef.current = null
+    if (!start) return
+    const deltaX = e.changedTouches[0].clientX - start.x
+    const deltaY = e.changedTouches[0].clientY - start.y
+    const direction = resolveSwipeDirection(deltaX, deltaY)
+    if (direction === 'right') setTabIndex(Math.max(0, tabIndex - 1))
+    else if (direction === 'left') setTabIndex(Math.min(1, tabIndex + 1))
   }
 
   const { data: fixedData, isLoading: fixedLoading } = useQuery({

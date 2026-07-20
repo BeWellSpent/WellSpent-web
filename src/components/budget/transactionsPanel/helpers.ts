@@ -28,6 +28,17 @@ export function txAmount(t: Transaction): number {
   return Number(t.amount?.units ?? 0n) + (t.amount?.nanos ?? 0) / 1e9
 }
 
+export type SwipeDirection = 'left' | 'right' | null
+
+// Determines whether a touch gesture was an intentional horizontal swipe, as
+// opposed to a vertical scroll with incidental sideways drift (very easy to
+// trigger on a tall list without this check). Horizontal movement must clear
+// the threshold and dominate vertical movement by at least 2x.
+export function resolveSwipeDirection(deltaX: number, deltaY: number, threshold = 60): SwipeDirection {
+  if (Math.abs(deltaX) < threshold || Math.abs(deltaX) < Math.abs(deltaY) * 2) return null
+  return deltaX > 0 ? 'right' : 'left'
+}
+
 // A transaction is left out of totals if manually flagged, or if it's the
 // Income category — payroll deposits (auto-tagged by Plaid) and any manually
 // categorized income should never count toward the spending total.
