@@ -12,17 +12,8 @@ import { formatMoneyFromNumber } from '@/lib/format'
 import { parseMoney, computeActualTotals } from './expensesPanel/helpers'
 import { isTransactionExcluded } from './transactionsPanel/helpers'
 import { ExpenseChart, type ExpenseChartDatum } from './expensesPanel/ExpenseChart'
-import { CategoryOverviewRow } from './expenseOverviewPanel/CategoryOverviewRow'
-import { CategoryOverviewCard } from './expenseOverviewPanel/CategoryOverviewCard'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
-import TableFooter from '@mui/material/TableFooter'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 
 const CHART_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7', '#14b8a6', '#f97316']
@@ -44,7 +35,6 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
 
   const [chartType, setChartType] = useState<'pie' | 'bar'>('bar')
   const [chartGrouping, setChartGrouping] = useState<'person' | 'category'>('category')
-  const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set())
 
   const { data: categoriesData, isLoading: catsLoading } = useQuery({
     queryKey: ['categories'],
@@ -93,7 +83,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
     pmPersonMap.set(pm.id, pm.budgetPersonId)
   }
 
-  const { byCat: txnActualByCat, byPersonCat: txnActualByPersonCat, uncategorized: uncategorizedActual } = computeActualTotals(transactions, pmPersonMap)
+  const { byCat: txnActualByCat, byPersonCat: txnActualByPersonCat } = computeActualTotals(transactions, pmPersonMap)
 
   const allocMap = new Map<string, ExpenseAllocation>()
   for (const a of allocations) {
@@ -142,6 +132,10 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
     fixedPlannedByCat.has(c.id),
   )
 
+  const totalPlanned = visibleCats.reduce((sum, cat) => sum + getCategoryPlanned(cat.id), 0)
+  const totalActual = [...txnActualByCat.values()].reduce((a, b) => a + b, 0)
+  const remainder = totalPlanned - totalActual
+
   // Chart: actual amounts per category (red when overspent), or by person
   const chartData: ExpenseChartDatum[] = (() => {
     if (chartGrouping === 'category') {
@@ -165,39 +159,17 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
     }).filter((d) => d.value > 0)
   })()
 
-  const totalActual = [...txnActualByCat.values()].reduce((a, b) => a + b, 0)
-
-  // Amount spent beyond the plan: uncategorized actual + full actual for unplanned categories
-  // + only the excess for categories where actual > planned. Mirrors the old PlanSummary "Spent" row.
-  let totalOverspent = uncategorizedActual
-  for (const cat of visibleCats) {
-    const actual = txnActualByCat.get(cat.id) ?? 0
-    const planned = getCategoryPlanned(cat.id)
-    if (planned <= 0) {
-      totalOverspent += actual
-    } else if (actual > planned) {
-      totalOverspent += actual - planned
-    }
-  }
-
-  function toggleCategory(catId: number) {
-    setExpandedCats((prev) => {
-      const next = new Set(prev)
-      if (next.has(catId)) next.delete(catId)
-      else next.add(catId)
-      return next
-    })
-  }
-
-  const footerCellSx = { borderTop: '2px solid', borderColor: 'divider', fontSize: '0.95rem', fontWeight: 700 }
-
   return (
     <Box>
       <Box sx={{ mb: 1.5 }}>
         <Typography variant="subtitle1" fontWeight={600}>{t('title')}</Typography>
       </Box>
 
-      {visibleCats.length > 0 && chartData.length > 0 && (
+      {visibleCats.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 1 }}>
+          {t('noData')}
+        </Typography>
+      ) : chartData.length > 0 ? (
         <ExpenseChart
           chartData={chartData}
           chartType={chartType}
@@ -209,95 +181,27 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
           barLabel={t('actual')}
           noDataText={t('noData')}
         />
-      )}
+      ) : null}
 
-      {visibleCats.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 1 }}>
-          {t('noData')}
-        </Typography>
-      ) : isMobile ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {visibleCats.map((cat) => (
-            <CategoryOverviewCard
-              key={cat.id}
-              cat={cat}
-              people={people}
-              actual={txnActualByCat.get(cat.id) ?? 0}
-              planned={getCategoryPlanned(cat.id)}
-              txnActualByPersonCat={txnActualByPersonCat}
-              allocMap={allocMap}
-              savingsByPerson={savingsByPerson}
-              isSavings={savingsCat?.id === cat.id}
-              isExpanded={expandedCats.has(cat.id)}
-              onToggle={() => toggleCategory(cat.id)}
-              formatMoney={formatMoney}
-            />
-          ))}
-          <Box sx={{ pt: 1, borderTop: '2px solid', borderColor: 'divider' }}>
-            {totalActual > 0 && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" fontWeight={700}>{t('total')}</Typography>
-                <Typography variant="body2" fontWeight={700}>{formatMoney(totalActual)}</Typography>
-              </Box>
-            )}
-            {totalOverspent > 0 && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-                <Typography variant="body2" fontWeight={700} color="error.main">{t('overPlan')}</Typography>
-                <Typography variant="body2" fontWeight={700} color="error.main">{formatMoney(totalOverspent)}</Typography>
-              </Box>
-            )}
+      {visibleCats.length > 0 && (
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="body2" color="text.secondary">{t('planned')}</Typography>
+            <Typography variant="body2">{formatMoney(totalPlanned)}</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="body2" color="text.secondary">{t('actual')}</Typography>
+            <Typography variant="body2" color={totalActual > totalPlanned ? 'error.main' : 'text.primary'}>
+              {formatMoney(totalActual)}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid', borderColor: 'divider', pt: 0.5, mt: 0.5 }}>
+            <Typography variant="body2" fontWeight={600}>{t('remainder')}</Typography>
+            <Typography variant="body2" fontWeight={600} color={remainder < 0 ? 'error.main' : 'success.main'}>
+              {formatMoney(remainder)}
+            </Typography>
           </Box>
         </Box>
-      ) : (
-        <TableContainer sx={{ overflowX: 'auto' }}>
-          <Table size="small" sx={{ tableLayout: 'auto' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: 36 }} />
-                <TableCell sx={{ fontWeight: 600 }}>{t('category')}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>{t('actual')}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>{t('planned')}</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {visibleCats.map((cat) => (
-                <CategoryOverviewRow
-                  key={cat.id}
-                  cat={cat}
-                  people={people}
-                  actual={txnActualByCat.get(cat.id) ?? 0}
-                  planned={getCategoryPlanned(cat.id)}
-                  txnActualByPersonCat={txnActualByPersonCat}
-                  allocMap={allocMap}
-                  savingsByPerson={savingsByPerson}
-                  isSavings={savingsCat?.id === cat.id}
-                  isExpanded={expandedCats.has(cat.id)}
-                  onToggle={() => toggleCategory(cat.id)}
-                  formatMoney={formatMoney}
-                />
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow sx={{ '& td': footerCellSx }}>
-                <TableCell />
-                <TableCell>{t('total')}</TableCell>
-                <TableCell align="right">{totalActual > 0 ? formatMoney(totalActual) : '—'}</TableCell>
-                <TableCell />
-                <TableCell />
-              </TableRow>
-              {totalOverspent > 0 && (
-                <TableRow sx={{ '& td': { ...footerCellSx, borderTop: 'none', color: 'error.main' } }}>
-                  <TableCell />
-                  <TableCell>{t('overPlan')}</TableCell>
-                  <TableCell align="right">{formatMoney(totalOverspent)}</TableCell>
-                  <TableCell />
-                  <TableCell />
-                </TableRow>
-              )}
-            </TableFooter>
-          </Table>
-        </TableContainer>
       )}
     </Box>
   )
