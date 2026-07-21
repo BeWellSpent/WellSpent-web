@@ -119,6 +119,7 @@
       "planned": "Planned",
       "total": "Total",
       "overPlan": "Over plan",
+      "remainder": "Remainder",
       "global": "global",
       "noData": "No spending data yet for this period."
     },
