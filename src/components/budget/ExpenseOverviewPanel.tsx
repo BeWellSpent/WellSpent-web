@@ -143,6 +143,8 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   )
 
   const totalActual = [...txnActualByCat.values()].reduce((a, b) => a + b, 0)
+  const totalPlanned = visibleCats.reduce((sum, cat) => sum + getCategoryPlanned(cat.id), 0)
+  const remainder = totalPlanned - totalActual
 
   let totalOverspent = uncategorizedActual
   for (const cat of visibleCats) {
@@ -228,13 +230,21 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
               formatMoney={formatMoney}
             />
           ))}
-          <Box sx={{ pt: 1, borderTop: '2px solid', borderColor: 'divider' }}>
+          <Box sx={{ pt: 1, borderTop: '2px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" fontWeight={700}>{t('total')}</Typography>
               <Typography variant="body2" fontWeight={700}>{totalActual > 0 ? formatMoney(totalActual) : '—'}</Typography>
             </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="text.secondary">{t('planned')}</Typography>
+              <Typography variant="body2">{totalPlanned > 0 ? formatMoney(totalPlanned) : '—'}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color={remainder < 0 ? 'error.main' : 'success.main'} fontWeight={600}>{t('remainder')}</Typography>
+              <Typography variant="body2" color={remainder < 0 ? 'error.main' : 'success.main'} fontWeight={600}>{formatMoney(remainder)}</Typography>
+            </Box>
             {totalOverspent > 0 && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" fontWeight={700} color="error.main">{t('overPlan')}</Typography>
                 <Typography variant="body2" fontWeight={700} color="error.main">{formatMoney(totalOverspent)}</Typography>
               </Box>
@@ -276,7 +286,14 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
                 <TableCell />
                 <TableCell>{t('total')}</TableCell>
                 <TableCell align="right">{totalActual > 0 ? formatMoney(totalActual) : '—'}</TableCell>
+                <TableCell align="right">{totalPlanned > 0 ? formatMoney(totalPlanned) : '—'}</TableCell>
                 <TableCell />
+              </TableRow>
+              <TableRow sx={{ '& td': { ...footerCellSx, borderTop: 'none', color: remainder < 0 ? 'error.main' : 'success.main' } }}>
+                <TableCell />
+                <TableCell>{t('remainder')}</TableCell>
+                <TableCell />
+                <TableCell align="right">{formatMoney(remainder)}</TableCell>
                 <TableCell />
               </TableRow>
               {totalOverspent > 0 && (
