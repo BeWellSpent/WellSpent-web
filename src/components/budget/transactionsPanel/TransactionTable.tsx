@@ -133,6 +133,12 @@ export function TransactionTable({
       await doUnmark(tx)
       logger.info('transaction.unmarkAsPaid', { id: tx.id })
       queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
+      // Unmarking resets the matched review back to pending and un-excludes
+      // its imported variable transaction server-side — without this, the
+      // freed-up transaction wouldn't show its "(fixed)" badge again, and the
+      // review wouldn't reappear in the To Review tab, until an unrelated
+      // refetch happened to run.
+      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetProfileId] })
       onRefresh()
     } catch (err) {
       showError(err)
