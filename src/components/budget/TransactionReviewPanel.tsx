@@ -72,7 +72,7 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
     }
   }
 
-  const reviews = data?.reviews ?? []
+  const reviews = (data?.reviews ?? []).filter((r) => r.status === 'pending')
 
   if (isLoading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}><CircularProgress /></Box>
