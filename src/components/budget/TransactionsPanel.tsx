@@ -167,7 +167,22 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     (fixedExpensesData?.expenses ?? []).map((fe) => [fe.id, fe])
   )
 
-  const pendingReviewMatchByTxId = buildPendingReviewMatchMap(reviewsData?.reviews ?? [])
+  const allReviews = reviewsData?.reviews ?? []
+  const pendingReviewMatchByTxId = buildPendingReviewMatchMap(allReviews)
+
+  // Variable transactions confirmed as matching a fixed expense: hidden from
+  // the variable tab and shown inline under the matched fixed transaction.
+  const confirmedReviewVariableTxIds = new Set<string>(
+    allReviews.filter((r) => r.status === 'confirmed').map((r) => r.transactionId),
+  )
+  const linkedVariableByFixedTxId = new Map<string, Transaction[]>()
+  for (const review of allReviews.filter((r) => r.status === 'confirmed')) {
+    const varTx = variableTxs.find((tx) => tx.id === review.transactionId)
+    if (!varTx) continue
+    const list = linkedVariableByFixedTxId.get(review.matchedTransactionId) ?? []
+    list.push(varTx)
+    linkedVariableByFixedTxId.set(review.matchedTransactionId, list)
+  }
 
   const sharedTableProps = {
     isEditable,
@@ -279,19 +294,19 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
             <Tab label={t('variable')} sx={{ fontWeight: 700 }} />
           </Tabs>
           {tabIndex === 0
-            ? <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={notDueFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} />
-            : <TransactionTable {...sharedTableProps} isFixed={false} transactions={variableTxs} isLoading={variableLoading} label={t('variable')} />
+            ? <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={notDueFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} linkedVariableByFixedTxId={linkedVariableByFixedTxId} />
+            : <TransactionTable {...sharedTableProps} isFixed={false} transactions={variableTxs} isLoading={variableLoading} label={t('variable')} confirmedReviewVariableTxIds={confirmedReviewVariableTxIds} />
           }
         </Box>
       ) : (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 3 }}>
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block' }}>{t('fixed').toUpperCase()}</Typography>
-            <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={notDueFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} />
+            <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={notDueFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} linkedVariableByFixedTxId={linkedVariableByFixedTxId} />
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block' }}>{t('variable').toUpperCase()}</Typography>
-            <TransactionTable {...sharedTableProps} isFixed={false} transactions={variableTxs} isLoading={variableLoading} label={t('variable')} />
+            <TransactionTable {...sharedTableProps} isFixed={false} transactions={variableTxs} isLoading={variableLoading} label={t('variable')} confirmedReviewVariableTxIds={confirmedReviewVariableTxIds} />
           </Box>
         </Box>
       )}
