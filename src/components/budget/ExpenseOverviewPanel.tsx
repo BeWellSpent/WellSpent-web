@@ -217,7 +217,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
         />
       )}
 
-      {visibleCats.length === 0 ? (
+      {visibleCats.length === 0 && uncategorizedActual === 0 ? (
         <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 1 }}>
           {t('noData')}
         </Typography>
@@ -239,7 +239,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
               formatMoney={formatMoney}
             />
           ))}
-          {uncategorizedActual > 0 && (
+          {uncategorizedActual !== 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, py: 0.75, bgcolor: 'action.hover', borderRadius: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>{t('uncategorized')}</Typography>
               <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 600 }}>{formatMoney(uncategorizedActual)}</Typography>
@@ -303,7 +303,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
                   formatMoney={formatMoney}
                 />
               ))}
-              {uncategorizedActual > 0 && (
+              {uncategorizedActual !== 0 && (
                 <TableRow sx={{ bgcolor: 'action.hover' }}>
                   <TableCell sx={{ py: 0.5, pr: 0 }} />
                   <TableCell sx={{ py: 0.5 }}>
