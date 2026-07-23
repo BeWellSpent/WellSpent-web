@@ -19,6 +19,7 @@ interface Props {
   people: BudgetPerson[]
   actual: number
   planned: number
+  totalActual: number
   txnActualByPersonCat: Map<string, number>
   allocMap: Map<string, ExpenseAllocation>
   savingsByPerson: Map<string, number>
@@ -33,7 +34,7 @@ interface Props {
 }
 
 export function CategoryOverviewCard({
-  cat, people, actual, planned, txnActualByPersonCat, allocMap, savingsByPerson,
+  cat, people, actual, planned, totalActual, txnActualByPersonCat, allocMap, savingsByPerson,
   isSavings, isExpanded, onToggle, formatMoney,
   catTransactions, categoryMap, methodMap, personMap,
 }: Props) {
@@ -42,6 +43,7 @@ export function CategoryOverviewCard({
   const actualColor = actual > 0 ? (isOver ? 'error.main' : 'success.main') : 'text.disabled'
   const hasPeople = people.length > 1
   const isExpandable = hasPeople || catTransactions.length > 0
+  const pct = totalActual > 0 && actual > 0 ? Math.round(actual / totalActual * 100) : null
 
   return (
     <Paper variant="outlined" sx={{ p: 1.5 }}>
@@ -54,6 +56,9 @@ export function CategoryOverviewCard({
             <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: cat.color, flexShrink: 0 }} />
           )}
           <Typography variant="body2" fontWeight={600} noWrap>{cat.name}</Typography>
+          {pct !== null && (
+            <Chip label={`${pct}%`} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 16 }} />
+          )}
           {cat.isSystem && (
             <Chip label={t('global')} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 16 }} />
           )}
