@@ -243,6 +243,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
               people={people}
               actual={txnActualByCat.get(cat.id) ?? 0}
               planned={getCategoryPlanned(cat.id)}
+              totalActual={totalActual}
               txnActualByPersonCat={txnActualByPersonCat}
               allocMap={allocMap}
               savingsByPerson={savingsByPerson}
@@ -317,6 +318,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
                   people={people}
                   actual={txnActualByCat.get(cat.id) ?? 0}
                   planned={getCategoryPlanned(cat.id)}
+                  totalActual={totalActual}
                   txnActualByPersonCat={txnActualByPersonCat}
                   allocMap={allocMap}
                   savingsByPerson={savingsByPerson}

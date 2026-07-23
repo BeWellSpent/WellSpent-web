@@ -30,6 +30,7 @@ interface Props {
 
 export function ExpenseChart({ chartData, chartType, chartGrouping, onChartTypeChange, onChartGroupingChange, formatMoney, isMobile, barLabel, noDataText }: Props) {
   const t = useTranslations('budget.expenses')
+  const total = chartData.reduce((sum, d) => sum + d.value, 0)
 
   return (
     <Box mb={2}>
@@ -58,16 +59,33 @@ export function ExpenseChart({ chartData, chartType, chartGrouping, onChartTypeC
       ) : (
         <>
           {chartType === 'pie' ? (
-            <ResponsiveContainer width="100%" height={isMobile ? 180 : 240}>
-              <PieChart>
-                <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={isMobile ? 70 : 90}>
-                  {chartData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartTooltip formatter={(v) => typeof v === 'number' ? formatMoney(v) : ''} />
-              </PieChart>
-            </ResponsiveContainer>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexDirection: isMobile ? 'column' : 'row' }}>
+              <Box sx={{ width: isMobile ? '100%' : 220, height: isMobile ? 180 : 240, flexShrink: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={isMobile ? 70 : 90}>
+                      {chartData.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartTooltip formatter={(v) => typeof v === 'number' ? formatMoney(v) : ''} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.75, minWidth: 0, ...(isMobile && { width: '100%' }) }}>
+                {chartData.map((entry) => {
+                  const pct = total > 0 ? (entry.value / total * 100).toFixed(1) : '0.0'
+                  return (
+                    <Box key={entry.name} sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: entry.color, flexShrink: 0 }} />
+                      <Typography variant="caption" noWrap sx={{ flex: 1, minWidth: 0 }}>{entry.name}</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>{formatMoney(entry.value)}</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, minWidth: 38, textAlign: 'right' }}>{pct}%</Typography>
+                    </Box>
+                  )
+                })}
+              </Box>
+            </Box>
           ) : (
             <ResponsiveContainer width="100%" height={isMobile ? 180 : 240}>
               <BarChart data={chartData} margin={{ top: 4, right: 8, left: 8, bottom: 32 }}>
@@ -82,7 +100,6 @@ export function ExpenseChart({ chartData, chartType, chartGrouping, onChartTypeC
               </BarChart>
             </ResponsiveContainer>
           )}
-
         </>
       )}
     </Box>
