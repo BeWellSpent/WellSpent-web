@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     ],
     apple: { url: '/favicon-128.png', sizes: '128x128' },
   },
+  other: {
+    'google-adsense-account': 'ca-pub-8875066498176869',
+  },
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

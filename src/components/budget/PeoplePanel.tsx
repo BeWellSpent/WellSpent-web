@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { useRoleLabel } from './peoplePanel/useRoleLabel'
@@ -27,6 +29,7 @@ import Chip from '@mui/material/Chip'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import FormControl from '@mui/material/FormControl'
+import Tooltip from '@mui/material/Tooltip'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PaletteIcon from '@mui/icons-material/Palette'
 
@@ -36,7 +39,9 @@ interface Props {
 }
 
 export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
+  const t = useTranslations('budget.people')
   const { showError, showSuccess } = useSnackbar()
+  const isFree = useIsFreeTier()
   const roleLabel = useRoleLabel()
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
@@ -165,6 +170,7 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
   }
 
   const people = data?.people ?? []
+  const isAtPeopleLimit = isFree && people.length >= 2
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -242,17 +248,27 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
 
           <Box>
             <Typography variant="subtitle1" fontWeight={600} mb={1}>Add people</Typography>
+            {isAtPeopleLimit && (
+              <Typography variant="caption" color="warning.main" sx={{ display: 'block', mb: 1 }}>
+                {t('freeTierLimit')}
+              </Typography>
+            )}
             <Stack direction="row" spacing={1} mb={1}>
               <TextField
                 label="Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addToList()}
+                onKeyDown={(e) => e.key === 'Enter' && !isAtPeopleLimit && addToList()}
                 size="small"
                 fullWidth
                 placeholder="e.g. Jane"
+                disabled={isAtPeopleLimit}
               />
-              <Button variant="outlined" onClick={addToList} disabled={!name.trim()}>Add</Button>
+              <Tooltip title={isAtPeopleLimit ? t('freeTierLimit') : ''} disableHoverListener={!isAtPeopleLimit}>
+                <span>
+                  <Button variant="outlined" onClick={addToList} disabled={!name.trim() || isAtPeopleLimit}>Add</Button>
+                </span>
+              </Tooltip>
             </Stack>
             {pendingNames.length > 0 && (
               <List dense disablePadding sx={{ mb: 1 }}>

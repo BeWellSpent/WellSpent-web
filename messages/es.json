@@ -96,6 +96,15 @@
         "disconnected": "Desconectado",
         "error": "Error"
       }
+    },
+    "subscription": {
+      "title": "Suscripción",
+      "planLabel": "Plan actual",
+      "free": "Gratuito",
+      "pro": "Pro",
+      "lifetime": "Vitalicio",
+      "freeDescription": "Mejora a Pro para personas, fuentes de ingresos, alertas, sincronización Plaid y sin anuncios ilimitados.",
+      "upgradeButton": "Mejorar a Pro — Próximamente"
     }
   },
   "budget": {
@@ -120,7 +129,8 @@
       "expensePlan": "Plan de Gastos",
       "expenseOverview": "Resumen",
       "transactions": "Transacciones",
-      "toReview": "Por Revisar"
+      "toReview": "Por Revisar",
+      "reports": "Informes"
     },
     "overview": {
       "title": "Resumen de Gastos",
@@ -165,7 +175,8 @@
     "income": {
       "title": "Ingresos",
       "perMonth": "/ mes",
-      "empty": "No hay fuentes de ingresos aÃºn."
+      "empty": "No hay fuentes de ingresos aÃºn.",
+      "freeTierNote": "máx 2/persona · Plan gratuito"
     },
     "savings": {
       "title": "Ahorros",
@@ -437,6 +448,14 @@
         "viewer": "Observador",
         "unspecified": "Invitado"
       }
+    },
+    "reports": {
+      "title": "Informes",
+      "description": "Análisis de gastos y tendencias entre períodos presupuestarios.",
+      "comingSoon": "Próximamente — esta función está en desarrollo"
+    },
+    "people": {
+      "freeTierLimit": "Plan gratuito: máximo 2 personas por presupuesto. Mejora a Pro para miembros ilimitados."
     }
   },
   "landing": {
@@ -571,7 +590,8 @@
       "scopes": {
         "budget": "Presupuesto total",
         "category": "Por categorÃ­a"
-      }
+      },
+      "freeTierNote": "Gratuito: máx 2 tipos de alerta · new_transaction requiere Pro"
     }
   }
 }

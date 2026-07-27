@@ -15,6 +15,7 @@ import { TransactionsPanel } from './TransactionsPanel'
 import { ExpensesPanel } from './ExpensesPanel'
 import { ExpenseOverviewPanel } from './ExpenseOverviewPanel'
 import { TransactionReviewPanel, transactionReviewCount } from './TransactionReviewPanel'
+import { ReportsPlaceholder } from './ReportsPlaceholder'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -30,8 +31,9 @@ import AssignmentIcon from '@mui/icons-material/Assignment'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 import RuleIcon from '@mui/icons-material/Rule'
+import InsightsIcon from '@mui/icons-material/Insights'
 
-type ActiveView = 'expenses' | 'overview' | 'transactions' | 'review'
+type ActiveView = 'expenses' | 'overview' | 'transactions' | 'review' | 'reports'
 
 interface Props {
   budgetId: string
@@ -49,7 +51,7 @@ export function BudgetView({ budgetId }: Props) {
   // Which top-level section (Expense Plan vs Transactions) is stored in the
   // URL, not component state, so a page reload lands back where you were.
   const rawView = searchParams.get('view')
-  const activeView: ActiveView = rawView === 'transactions' ? 'transactions' : rawView === 'review' ? 'review' : rawView === 'overview' ? 'overview' : 'expenses'
+  const activeView: ActiveView = rawView === 'transactions' ? 'transactions' : rawView === 'review' ? 'review' : rawView === 'overview' ? 'overview' : rawView === 'reports' ? 'reports' : 'expenses'
   const [addTransactionOpen, setAddTransactionOpen] = useState(false)
 
   function setActiveView(view: ActiveView) {
@@ -131,6 +133,7 @@ export function BudgetView({ budgetId }: Props) {
             icon={<RuleIcon />}
             iconPosition="start"
           />
+          <Tab value="reports" label={t('reports')} icon={<InsightsIcon />} iconPosition="start" />
         </Tabs>
       )}
 
@@ -146,6 +149,8 @@ export function BudgetView({ budgetId }: Props) {
             budgetPeriodId={activePeriod?.id}
             isEditable={canEdit}
           />
+        ) : activeView === 'reports' ? (
+          <ReportsPlaceholder />
         ) : activePeriod ? (
           <TransactionsPanel
             budgetPeriodId={activePeriod.id}
@@ -211,6 +216,7 @@ export function BudgetView({ budgetId }: Props) {
                 </Badge>
               }
             />
+            <BottomNavigationAction value="reports" label={t('reports')} icon={<InsightsIcon />} />
           </BottomNavigation>
         </Paper>
       )}

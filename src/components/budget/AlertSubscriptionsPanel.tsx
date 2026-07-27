@@ -4,10 +4,12 @@ import { useTranslations } from 'next-intl'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { NotificationService } from '@/gen/wellspent/v1/notification_connect'
 import { useClient } from '@/hooks/useClient'
+import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { AlertTypeRow } from './alertSubscriptionsPanel/AlertTypeRow'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
+import Chip from '@mui/material/Chip'
 import type { AlertSubscription } from '@/gen/wellspent/v1/notification_pb'
 
 interface Props {
@@ -17,10 +19,12 @@ interface Props {
 type AlertType = 'new_transaction' | 'spending_threshold' | 'period_created' | 'review_pending'
 type Channel = 'in_app' | 'email' | 'both'
 
-const ALERT_TYPES: AlertType[] = ['new_transaction', 'spending_threshold', 'period_created', 'review_pending']
+const ALL_ALERT_TYPES: AlertType[] = ['new_transaction', 'spending_threshold', 'period_created', 'review_pending']
+const FREE_ALERT_TYPES: AlertType[] = ['spending_threshold', 'period_created', 'review_pending']
 
 export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
   const t = useTranslations('notifications.alerts')
+  const isFree = useIsFreeTier()
   const client = useClient(NotificationService)
   const qc = useQueryClient()
 
@@ -66,6 +70,10 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
   }
 
   const isPending = upsertMutation.isPending || deleteMutation.isPending
+  const alertTypes = isFree ? FREE_ALERT_TYPES : ALL_ALERT_TYPES
+  const activeSubCount = (data?.subscriptions ?? []).length
+  // Free-tier: block enabling a 3rd subscription type (updates to existing ones are always allowed)
+  const isAtSubLimit = isFree && activeSubCount >= 2
 
   return (
     <Box sx={{ px: { xs: 2, sm: 3 }, py: 2 }}>
@@ -73,24 +81,38 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
         {t('description')}
       </Typography>
 
-      {ALERT_TYPES.map((alertType) => (
-        <AlertTypeRow
-          key={alertType}
-          alertType={alertType}
-          subscription={subsByType.get(alertType)}
-          isPending={isPending}
-          onEnable={(channel, thresholdPct, thresholdScope) =>
-            upsertMutation.mutate({ alertType, channel, thresholdPct, thresholdScope })
-          }
-          onDisable={() => {
-            const sub = subsByType.get(alertType)
-            if (sub) deleteMutation.mutate(sub.id)
-          }}
-          onUpdate={(channel, thresholdPct, thresholdScope) =>
-            upsertMutation.mutate({ alertType, channel, thresholdPct, thresholdScope })
-          }
+      {isFree && (
+        <Chip
+          label={t('freeTierNote')}
+          size="small"
+          color="warning"
+          variant="outlined"
+          sx={{ mb: 2 }}
         />
-      ))}
+      )}
+
+      {alertTypes.map((alertType) => {
+        const isEnabled = !!subsByType.get(alertType)
+        const isLocked = isAtSubLimit && !isEnabled
+        return (
+          <AlertTypeRow
+            key={alertType}
+            alertType={alertType}
+            subscription={subsByType.get(alertType)}
+            isPending={isPending || isLocked}
+            onEnable={(channel, thresholdPct, thresholdScope) =>
+              upsertMutation.mutate({ alertType, channel, thresholdPct, thresholdScope })
+            }
+            onDisable={() => {
+              const sub = subsByType.get(alertType)
+              if (sub) deleteMutation.mutate(sub.id)
+            }}
+            onUpdate={(channel, thresholdPct, thresholdScope) =>
+              upsertMutation.mutate({ alertType, channel, thresholdPct, thresholdScope })
+            }
+          />
+        )
+      })}
     </Box>
   )
 }

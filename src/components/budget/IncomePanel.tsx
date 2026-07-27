@@ -7,6 +7,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { IncomeSource } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useCurrency } from '@/hooks/useCurrency'
+import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { formatMoney, formatMoneyFromNumber } from '@/lib/format'
@@ -34,6 +35,7 @@ interface Props {
 export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, onAddClose, canEdit = true }: Props) {
   const t = useTranslations('budget.income')
   const { showError } = useSnackbar()
+  const isFree = useIsFreeTier()
   const { currency, locale } = useCurrency()
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
@@ -89,6 +91,11 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
             <IconButton size="small" onClick={() => setLocalAddOpen(true)}>
               <AddIcon fontSize="small" />
             </IconButton>
+          )}
+          {isFree && canEdit && (
+            <Typography variant="caption" color="text.disabled" sx={{ ml: 0.5 }}>
+              ({t('freeTierNote')})
+            </Typography>
           )}
         </Box>
         <Typography variant="subtitle2" color="success.main">
