@@ -89,6 +89,15 @@ composition + dead-code cleanup" PR for the reference shape of a proper split.)
   `en-US`/`USD` — use `formatMoney`/`formatMoneyFromNumber` from
   `src/lib/format.ts`).
 
+## Version bump (required for every feature)
+
+After implementing any feature, bump the version in `package.json`:
+- Patch (`0.0.X`): bug fixes, cosmetic tweaks, copy changes
+- Minor (`0.X.0`): new user-visible feature or behaviour
+- Major (`X.0.0`): breaking change or major redesign
+
+The version is read at build time from `package.json` and exposed via `NEXT_PUBLIC_APP_VERSION` (wired in `next.config.mjs`). It renders in the app footer via `src/lib/version.ts` + `src/components/ui/AppVersionBadge.tsx`.
+
 ## Git workflow
 
 `main` is production. Never commit or push directly to `main`.

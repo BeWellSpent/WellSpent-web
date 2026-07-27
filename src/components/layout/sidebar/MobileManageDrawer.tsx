@@ -13,6 +13,7 @@ import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import Tooltip from '@mui/material/Tooltip'
 import LogoutIcon from '@mui/icons-material/Logout'
+import { AppVersionBadge } from '@/components/ui/AppVersionBadge'
 import type { NavItem } from './types'
 
 interface Props {
@@ -79,6 +80,7 @@ export function MobileManageDrawer({ open, onClose, budgetName, iconSrc, managem
             </ListItemButton>
           </ListItem>
         </List>
+        <AppVersionBadge />
       </Box>
     </Drawer>
   )

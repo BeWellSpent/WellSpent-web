@@ -19,6 +19,7 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import { AppVersionBadge } from '@/components/ui/AppVersionBadge'
 import type { NavItem } from './types'
 
 const SIDEBAR_WIDTH = 240
@@ -175,6 +176,8 @@ export function DesktopSidebar({ collapsed, onToggleCollapsed, budgetName, iconS
             </Tooltip>
           </ListItem>
         </List>
+
+        {!collapsed && <AppVersionBadge />}
       </Box>
     </Drawer>
   )
