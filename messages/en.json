@@ -283,6 +283,7 @@
       },
       "markForReview": "Flag for review",
       "filter": {
+        "none": "All transactions",
         "spentOnly": "Spent only",
         "exceededOnly": "Exceeded only",
         "excludedOnly": "Excluded only"

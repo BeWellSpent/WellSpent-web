@@ -12,7 +12,7 @@ import { useClient } from '@/hooks/useClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
 import { formatMoneyFromNumber } from '@/lib/format'
-import { txAmount, txPlannedAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds } from './transactionsPanel/helpers'
+import { type FilterOption, txAmount, txPlannedAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds } from './transactionsPanel/helpers'
 import { TransactionTable } from './transactionsPanel/TransactionTable'
 import { AddTransactionModal } from './modals/AddTransactionModal'
 import { EditTransactionModal } from './modals/EditTransactionModal'
@@ -22,6 +22,8 @@ import Typography from '@mui/material/Typography'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import TextField from '@mui/material/TextField'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import InputAdornment from '@mui/material/InputAdornment'
 import IconButton from '@mui/material/IconButton'
 import ToggleButton from '@mui/material/ToggleButton'
@@ -54,9 +56,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const [editTarget, setEditTarget] = useState<Transaction | null>(null)
   const [editFixedExpenseTarget, setEditFixedExpenseTarget] = useState<FixedExpense | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [spentOnly, setSpentOnly] = useState(false)
-  const [exceededOnly, setExceededOnly] = useState(false)
-  const [excludedOnly, setExcludedOnly] = useState(false)
+  const [activeFilter, setActiveFilter] = useState<FilterOption>('none')
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
   // Which sub-tab (Fixed vs Variable) is stored in the URL, not component
@@ -64,6 +64,9 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const tabIndex = searchParams.get('tab') === 'variable' ? 1 : 0
 
   function setTabIndex(index: number) {
+    if (index === 0 && (activeFilter === 'spentOnly' || activeFilter === 'exceededOnly')) {
+      setActiveFilter('none')
+    }
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', index === 1 ? 'variable' : 'fixed')
     router.replace({ pathname, query: Object.fromEntries(params) }, { scroll: false })
@@ -196,13 +199,9 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     fixedExpenseMap,
     pendingReviewMatchByTxId,
     searchQuery,
-    spentOnly,
-    exceededOnly,
-    excludedOnly,
+    activeFilter,
     overBudgetTxIds,
-    onToggleSpentOnly: () => setSpentOnly((v) => !v),
-    onToggleExceededOnly: () => setExceededOnly((v) => !v),
-    onToggleExcludedOnly: () => setExcludedOnly((v) => !v),
+    onFilterChange: (f: FilterOption) => setActiveFilter(f),
     onDeleted: refresh,
     onEdit: setEditTarget,
     onRefresh: refresh,
@@ -255,35 +254,23 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
             ),
           }}
         />
-        {!isMobile && (effectiveViewMode === 'split' || tabIndex === 1) && (
-          <>
-            <ToggleButton
-              value="spentOnly"
-              selected={spentOnly}
-              onChange={() => setSpentOnly((v) => !v)}
-              size="small"
-            >
-              {t('filter.spentOnly')}
-            </ToggleButton>
-            <ToggleButton
-              value="exceededOnly"
-              selected={exceededOnly}
-              onChange={() => setExceededOnly((v) => !v)}
-              size="small"
-            >
-              {t('filter.exceededOnly')}
-            </ToggleButton>
-          </>
-        )}
         {!isMobile && (
-          <ToggleButton
-            value="excludedOnly"
-            selected={excludedOnly}
-            onChange={() => setExcludedOnly((v) => !v)}
+          <Select
             size="small"
+            value={activeFilter}
+            onChange={(e) => setActiveFilter(e.target.value as FilterOption)}
+            displayEmpty
+            sx={{ minWidth: 160 }}
           >
-            {t('filter.excludedOnly')}
-          </ToggleButton>
+            <MenuItem value="none">{t('filter.none')}</MenuItem>
+            {(effectiveViewMode === 'split' || tabIndex === 1) && (
+              <MenuItem value="spentOnly">{t('filter.spentOnly')}</MenuItem>
+            )}
+            {(effectiveViewMode === 'split' || tabIndex === 1) && (
+              <MenuItem value="exceededOnly">{t('filter.exceededOnly')}</MenuItem>
+            )}
+            <MenuItem value="excludedOnly">{t('filter.excludedOnly')}</MenuItem>
+          </Select>
         )}
       </Box>
 

@@ -18,6 +18,7 @@ import { MobileRowActions } from './MobileRowActions'
 import { TxRow } from './TxRow'
 import {
   type SortKey,
+  type FilterOption,
   txAmount,
   fixedExpensePlannedAmount,
   paymentProgress,
@@ -34,10 +35,10 @@ import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
+import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import { LoadingIconButton } from '@/components/ui/LoadingIconButton'
-import ToggleButton from '@mui/material/ToggleButton'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tooltip from '@mui/material/Tooltip'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -70,13 +71,9 @@ export interface TransactionTableProps {
   confirmedReviewVariableTxIds?: Set<string>
   linkedVariableByFixedTxId?: Map<string, Transaction[]>
   searchQuery?: string
-  spentOnly?: boolean
-  exceededOnly?: boolean
-  excludedOnly?: boolean
+  activeFilter?: FilterOption
   overBudgetTxIds?: Set<string>
-  onToggleSpentOnly?: () => void
-  onToggleExceededOnly?: () => void
-  onToggleExcludedOnly?: () => void
+  onFilterChange?: (filter: FilterOption) => void
   onDeleted: () => void
   onEdit: (t: Transaction) => void
   onEditFixedExpense?: (fe: FixedExpense) => void
@@ -87,8 +84,8 @@ export function TransactionTable({
   transactions, isLoading, isEditable, isFixed, savingsCategoryId, incomeCategoryId, budgetPeriodId, budgetProfileId, label,
   categoryMap, methodMap, personMap, notDueFixedExpenses = [], fixedExpenseMap, pendingReviewMatchByTxId,
   confirmedReviewVariableTxIds, linkedVariableByFixedTxId,
-  searchQuery = '', spentOnly = false, exceededOnly = false, excludedOnly = false, overBudgetTxIds,
-  onToggleSpentOnly, onToggleExceededOnly, onToggleExcludedOnly,
+  searchQuery = '', activeFilter = 'none', overBudgetTxIds,
+  onFilterChange,
   onDeleted, onEdit, onEditFixedExpense, onRefresh,
 }: TransactionTableProps) {
   const t = useTranslations('budget.transactions')
@@ -189,9 +186,9 @@ export function TransactionTable({
 
   const filteredTransactions = transactions.filter((tx) => {
     if (!isFixed && confirmedReviewVariableTxIds?.has(tx.id)) return false
-    if (!isFixed && spentOnly && txAmount(tx) <= 0) return false
-    if (!isFixed && exceededOnly && overBudgetTxIds && !overBudgetTxIds.has(tx.id)) return false
-    if (excludedOnly && !isTransactionExcluded(tx, incomeCategoryId)) return false
+    if (!isFixed && activeFilter === 'spentOnly' && txAmount(tx) <= 0) return false
+    if (!isFixed && activeFilter === 'exceededOnly' && overBudgetTxIds && !overBudgetTxIds.has(tx.id)) return false
+    if (activeFilter === 'excludedOnly' && !isTransactionExcluded(tx, incomeCategoryId)) return false
     return matchesSearch(tx.name, tx.categoryId, tx.paymentMethodId, searchQuery, categoryMap, methodMap, personMap)
   })
   const filteredNotDue = notDueFixedExpenses.filter((fe) =>
@@ -415,37 +412,18 @@ export function TransactionTable({
           >
             {sortDir === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
           </IconButton>
-          {!isFixed && (
-            <>
-              <ToggleButton
-                value="spentOnly"
-                selected={spentOnly}
-                onChange={() => onToggleSpentOnly?.()}
-                size="small"
-                sx={{ alignSelf: 'center', whiteSpace: 'nowrap' }}
-              >
-                {t('filter.spentOnly')}
-              </ToggleButton>
-              <ToggleButton
-                value="exceededOnly"
-                selected={exceededOnly}
-                onChange={() => onToggleExceededOnly?.()}
-                size="small"
-                sx={{ alignSelf: 'center', whiteSpace: 'nowrap' }}
-              >
-                {t('filter.exceededOnly')}
-              </ToggleButton>
-            </>
-          )}
-          <ToggleButton
-            value="excludedOnly"
-            selected={excludedOnly}
-            onChange={() => onToggleExcludedOnly?.()}
+          <Select
             size="small"
-            sx={{ alignSelf: 'center', whiteSpace: 'nowrap' }}
+            value={activeFilter}
+            onChange={(e) => onFilterChange?.(e.target.value as FilterOption)}
+            displayEmpty
+            sx={{ flex: 1 }}
           >
-            {t('filter.excludedOnly')}
-          </ToggleButton>
+            <MenuItem value="none">{t('filter.none')}</MenuItem>
+            {!isFixed && <MenuItem value="spentOnly">{t('filter.spentOnly')}</MenuItem>}
+            {!isFixed && <MenuItem value="exceededOnly">{t('filter.exceededOnly')}</MenuItem>}
+            <MenuItem value="excludedOnly">{t('filter.excludedOnly')}</MenuItem>
+          </Select>
         </Box>
       )}
 

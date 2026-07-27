@@ -283,6 +283,7 @@
       },
       "markForReview": "Marcar para revisión",
       "filter": {
+        "none": "Todas las transacciones",
         "spentOnly": "Solo gastos",
         "exceededOnly": "Solo excedido",
         "excludedOnly": "Solo excluidas"
