@@ -246,17 +246,6 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     }
   }
 
-  const visibleCats = categories.filter(
-    (c) => catIdsWithAllocs.has(c.id) || pinnedCategoryIds.has(c.id) ||
-           (savingsCat?.id === c.id && savingsSources.length > 0) ||
-           fixedPlannedByCat.has(c.id) || fixedExpenseCatIds.has(c.id),
-  )
-  const visibleCatIds = new Set(visibleCats.map((c) => c.id))
-  // Savings category is system-managed — exclude from the manual picker
-  const addableCategories = categories.filter(
-    (c) => !visibleCatIds.has(c.id) && c.id !== savingsCat?.id,
-  )
-
   // savings — amount is already the monthly figure; frequency is the cadence, not a multiplier
   const savingsByPerson = new Map<string, number>()
   for (const s of savingsSources) {
@@ -265,6 +254,30 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     savingsByPerson.set(personKey, (savingsByPerson.get(personKey) ?? 0) + amt)
   }
   const savingsTotal = [...savingsByPerson.values()].reduce((a, b) => a + b, 0)
+
+  // Sort by planned amount descending so highest-budget categories appear first.
+  const getCatPlanned = (catId: number): number => {
+    if (savingsCat?.id === catId) return savingsTotal
+    let total = 0
+    for (const p of people) {
+      const alloc = allocMap.get(`${catId}:${p.id}`)
+      if (alloc) total += parseMoney(alloc.plannedAmount?.units ?? 0n, alloc.plannedAmount?.nanos ?? 0)
+    }
+    return total || (fixedPlannedByCat.get(catId) ?? (notDueFixedByCat.get(catId)?.amount ?? 0))
+  }
+
+  const visibleCats = categories
+    .filter(
+      (c) => catIdsWithAllocs.has(c.id) || pinnedCategoryIds.has(c.id) ||
+             (savingsCat?.id === c.id && savingsSources.length > 0) ||
+             fixedPlannedByCat.has(c.id) || fixedExpenseCatIds.has(c.id),
+    )
+    .sort((a, b) => getCatPlanned(b.id) - getCatPlanned(a.id))
+  const visibleCatIds = new Set(visibleCats.map((c) => c.id))
+  // Savings category is system-managed — exclude from the manual picker
+  const addableCategories = categories.filter(
+    (c) => !visibleCatIds.has(c.id) && c.id !== savingsCat?.id,
+  )
 
   const categoryRowContext = {
     people, savingsCat, savingsTotal, notDueFixedByCat, catIdsWithAllocs, fixedPlannedByCat, allocMap,
