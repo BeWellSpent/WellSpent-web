@@ -151,13 +151,16 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
     return planned > 0 ? planned : (fixedPlannedByCat.get(catId) ?? 0)
   }
 
-  // Show categories with actual spending OR a plan (so unspent budget is visible too)
-  const visibleCats = categories.filter((c) =>
-    txnActualByCat.has(c.id) ||
-    catIdsWithAllocs.has(c.id) ||
-    (savingsCat?.id === c.id && savingsSources.length > 0) ||
-    fixedPlannedByCat.has(c.id),
-  )
+  // Show categories with actual spending OR a plan (so unspent budget is visible too),
+  // sorted by actual amount descending so highest-spend categories appear first.
+  const visibleCats = categories
+    .filter((c) =>
+      txnActualByCat.has(c.id) ||
+      catIdsWithAllocs.has(c.id) ||
+      (savingsCat?.id === c.id && savingsSources.length > 0) ||
+      fixedPlannedByCat.has(c.id),
+    )
+    .sort((a, b) => (txnActualByCat.get(b.id) ?? 0) - (txnActualByCat.get(a.id) ?? 0))
 
   const incomeEntries = incomeData?.entries ?? []
   const totalIncome = incomeEntries.reduce((sum, e) => sum + parseMoney(e.amount?.units ?? 0n, e.amount?.nanos ?? 0), 0)
