@@ -26,6 +26,7 @@ import Alert from '@mui/material/Alert'
 import IconButton from '@mui/material/IconButton'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { PlaidSection } from './PlaidSection'
+import { AccountManagement } from './AccountManagement'
 
 const US_STATES = [
   ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
@@ -305,6 +306,11 @@ export function ProfileSettings() {
         >
           {t('save')}
         </LoadingButton>
+
+        <Divider>
+          <Typography variant="caption" color="text.secondary">{t('accountManagement.title')}</Typography>
+        </Divider>
+        <AccountManagement />
       </Stack>
     </Box>
   )

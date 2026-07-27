@@ -66,6 +66,16 @@
     "save": "Guardar cambios",
     "saving": "Guardando…",
     "saved": "Perfil guardado.",
+    "accountManagement": {
+      "title": "Gestión de cuenta",
+      "deleteAccount": "Eliminar cuenta",
+      "deleteDescription": "Tu cuenta se desactivará de inmediato. Tienes 30 días para contactar al soporte si cambias de opinión.",
+      "confirmTitle": "¿Eliminar tu cuenta?",
+      "confirmBody": "Esto desactivará tu cuenta de inmediato. Cerrarás sesión y no podrás volver a iniciarla. Contacta al soporte dentro de 30 días si deseas recuperarla.",
+      "confirmDelete": "Sí, eliminar mi cuenta",
+      "cancel": "Cancelar",
+      "deleting": "Eliminando…"
+    },
     "plaidTitle": "Cuentas bancarias conectadas",
     "plaid": {
       "empty": "Aún no hay cuentas bancarias conectadas.",
