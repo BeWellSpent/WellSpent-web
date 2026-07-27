@@ -2,6 +2,7 @@ import type { Transaction, Category, PaymentMethod, BudgetPerson, FixedExpense, 
 import { formatMoneyFromNumber } from '@/lib/format'
 
 export type SortKey = 'name' | 'day' | 'amount' | 'category' | 'paymentMethod' | 'owner'
+export type FilterOption = 'none' | 'spentOnly' | 'exceededOnly' | 'excludedOnly'
 
 export interface TransactionDayGroup {
   day: number
