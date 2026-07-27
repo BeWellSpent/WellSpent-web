@@ -159,7 +159,8 @@
       "theme": "Theme",
       "expand": "Expand sidebar",
       "collapse": "Collapse sidebar",
-      "manage": "Manage"
+      "manage": "Manage",
+      "alerts": "Alert Settings"
     },
     "income": {
       "title": "Income",
@@ -533,6 +534,44 @@
       "accepted": "This invite has already been accepted.",
       "expired": "This invite has expired.",
       "notFound": "Invite not found or invalid."
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all read",
+    "alerts": {
+      "description": "Choose which budget events notify you and how.",
+      "channel": "Delivery",
+      "threshold": "Alert threshold",
+      "scope": "Alert scope",
+      "types": {
+        "new_transaction": {
+          "label": "New Transaction",
+          "description": "Notify when another member adds a transaction"
+        },
+        "spending_threshold": {
+          "label": "Spending Threshold",
+          "description": "Notify when spending crosses a percentage of the plan"
+        },
+        "period_created": {
+          "label": "New Budget Period",
+          "description": "Notify when a new budget period starts"
+        },
+        "review_pending": {
+          "label": "Review Pending",
+          "description": "Notify when a Plaid import is queued for review"
+        }
+      },
+      "channels": {
+        "in_app": "In-app",
+        "email": "Email",
+        "both": "Both"
+      },
+      "scopes": {
+        "budget": "Total budget",
+        "category": "Per category"
+      }
     }
   }
 }

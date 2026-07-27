@@ -14,9 +14,10 @@ interface Props {
   iconSrc: string
   onBackToBudgets: () => void
   onOpenManage: () => void
+  notificationBell?: React.ReactNode
 }
 
-export function MobileTopBar({ iconSrc, onBackToBudgets, onOpenManage }: Props) {
+export function MobileTopBar({ iconSrc, onBackToBudgets, onOpenManage, notificationBell }: Props) {
   const t = useTranslations('budget.sidebar')
 
   return (
@@ -29,6 +30,7 @@ export function MobileTopBar({ iconSrc, onBackToBudgets, onOpenManage }: Props) 
           <Image src={iconSrc} alt="WellSpent" width={32} height={32} />
         </Box>
         <ThemeToggle />
+        {notificationBell}
         <IconButton onClick={onOpenManage} aria-label={t('manage')} sx={{ ml: 0.5 }}>
           <MenuIcon />
         </IconButton>

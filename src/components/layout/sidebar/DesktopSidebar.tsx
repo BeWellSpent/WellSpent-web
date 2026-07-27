@@ -33,9 +33,10 @@ interface Props {
   navItems: NavItem[]
   onBackToBudgets: () => void
   onLogout: () => void
+  notificationBell?: React.ReactNode
 }
 
-export function DesktopSidebar({ collapsed, onToggleCollapsed, budgetName, iconSrc, navItems, onBackToBudgets, onLogout }: Props) {
+export function DesktopSidebar({ collapsed, onToggleCollapsed, budgetName, iconSrc, navItems, onBackToBudgets, onLogout, notificationBell }: Props) {
   const t = useTranslations('budget.sidebar')
   const theme = useTheme()
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH
@@ -79,11 +80,21 @@ export function DesktopSidebar({ collapsed, onToggleCollapsed, budgetName, iconS
               <Typography variant="h6" fontWeight={700} noWrap>{budgetName}</Typography>
             </Box>
           )}
-          <Tooltip title={collapsed ? t('expand') : t('collapse')} placement="right">
-            <IconButton onClick={onToggleCollapsed} size="small">
-              {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-            </IconButton>
-          </Tooltip>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: collapsed ? 'column' : 'row',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
+          >
+            {notificationBell}
+            <Tooltip title={collapsed ? t('expand') : t('collapse')} placement="right">
+              <IconButton onClick={onToggleCollapsed} size="small">
+                {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
 
         <Divider />

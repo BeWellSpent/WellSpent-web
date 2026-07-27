@@ -159,7 +159,8 @@
       "theme": "Tema",
       "expand": "Expandir barra lateral",
       "collapse": "Contraer barra lateral",
-      "manage": "Gestionar"
+      "manage": "Gestionar",
+      "alerts": "Configuración de alertas"
     },
     "income": {
       "title": "Ingresos",
@@ -533,6 +534,44 @@
       "accepted": "Esta invitación ya fue aceptada.",
       "expired": "Esta invitación ha vencido.",
       "notFound": "Invitación no encontrada o inválida."
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "Sin notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "alerts": {
+      "description": "Elige qué eventos del presupuesto te notifican y cómo.",
+      "channel": "Entrega",
+      "threshold": "Umbral de alerta",
+      "scope": "Alcance de la alerta",
+      "types": {
+        "new_transaction": {
+          "label": "Nueva transacción",
+          "description": "Notificar cuando otro miembro agrega una transacción"
+        },
+        "spending_threshold": {
+          "label": "Umbral de gasto",
+          "description": "Notificar cuando el gasto supera un porcentaje del plan"
+        },
+        "period_created": {
+          "label": "Nuevo período de presupuesto",
+          "description": "Notificar cuando comienza un nuevo período de presupuesto"
+        },
+        "review_pending": {
+          "label": "Revisión pendiente",
+          "description": "Notificar cuando una importación de Plaid está pendiente de revisión"
+        }
+      },
+      "channels": {
+        "in_app": "En la app",
+        "email": "Correo electrónico",
+        "both": "Ambos"
+      },
+      "scopes": {
+        "budget": "Presupuesto total",
+        "category": "Por categoría"
+      }
     }
   }
 }
