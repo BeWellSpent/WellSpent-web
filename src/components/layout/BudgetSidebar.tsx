@@ -24,7 +24,6 @@ import NotificationsIcon from '@mui/icons-material/Notifications'
 import PeopleIcon from '@mui/icons-material/People'
 import MailIcon from '@mui/icons-material/Mail'
 import CategoryIcon from '@mui/icons-material/Category'
-import BarChartIcon from '@mui/icons-material/BarChart'
 import SettingsIcon from '@mui/icons-material/Settings'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import SavingsIcon from '@mui/icons-material/Savings'
@@ -126,13 +125,6 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   ]
 
   const appItems: NavItem[] = [
-    {
-      label: t('reports'),
-      icon: <BarChartIcon />,
-      action: () => {},
-      disabled: true,
-      tooltip: t('reportsSoon'),
-    },
     {
       label: t('settings'),
       icon: <SettingsIcon />,
