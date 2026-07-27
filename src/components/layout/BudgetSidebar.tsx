@@ -17,8 +17,10 @@ import { MobileManageDrawer } from './sidebar/MobileManageDrawer'
 import { ManagementDrawers } from './sidebar/ManagementDrawers'
 import type { NavItem } from './sidebar/types'
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
+import NotificationsIcon from '@mui/icons-material/Notifications'
 import PeopleIcon from '@mui/icons-material/People'
 import MailIcon from '@mui/icons-material/Mail'
 import CategoryIcon from '@mui/icons-material/Category'
@@ -49,6 +51,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   const [incomeOpen, setIncomeOpen] = useState(false)
   const [savingsOpen, setSavingsOpen] = useState(false)
   const [paymentMethodsOpen, setPaymentMethodsOpen] = useState(false)
+  const [alertsOpen, setAlertsOpen] = useState(false)
   const [mobileManageOpen, setMobileManageOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [themeMounted, setThemeMounted] = useState(false)
@@ -119,6 +122,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     { label: t('categories'), icon: <CategoryIcon />, action: () => setCategoriesOpen(true) },
     { label: t('people'), icon: <PeopleIcon />, action: () => setPeopleOpen(true) },
     ...(canManageUsers ? [{ label: t('invitations'), icon: <MailIcon />, action: () => setInvitesOpen(true) }] : []),
+    { label: t('alerts'), icon: <NotificationsIcon />, action: () => setAlertsOpen(true) },
   ]
 
   const appItems: NavItem[] = [
@@ -150,6 +154,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           navItems={navItems}
           onBackToBudgets={goToBudgets}
           onLogout={handleLogout}
+          notificationBell={<NotificationBell budgetId={budgetId} />}
         />
       )}
 
@@ -157,7 +162,12 @@ export function BudgetSidebar({ budgetId, children }: Props) {
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <EmailVerificationBanner />
         {isMobile && (
-          <MobileTopBar iconSrc={iconSrc} onBackToBudgets={goToBudgets} onOpenManage={() => setMobileManageOpen(true)} />
+          <MobileTopBar
+            iconSrc={iconSrc}
+            onBackToBudgets={goToBudgets}
+            onOpenManage={() => setMobileManageOpen(true)}
+            notificationBell={<NotificationBell budgetId={budgetId} />}
+          />
         )}
 
         <Box sx={{ flex: 1 }}>
@@ -184,6 +194,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           income: incomeOpen,
           savings: savingsOpen,
           paymentMethods: paymentMethodsOpen,
+          alerts: alertsOpen,
         }}
         onClose={{
           categories: () => setCategoriesOpen(false),
@@ -192,6 +203,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           income: () => setIncomeOpen(false),
           savings: () => setSavingsOpen(false),
           paymentMethods: () => setPaymentMethodsOpen(false),
+          alerts: () => setAlertsOpen(false),
         }}
         budgetId={budgetId}
         canEdit={canEdit}
