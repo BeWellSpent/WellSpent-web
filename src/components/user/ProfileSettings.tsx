@@ -6,7 +6,7 @@ import { useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { UserService } from '@/gen/wellspent/v1/user_connect'
-import { FilingStatus, TaxPaymentFrequency } from '@/gen/wellspent/v1/common_pb'
+import { AccountPlan, FilingStatus, TaxPaymentFrequency } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -23,8 +23,11 @@ import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import InputAdornment from '@mui/material/InputAdornment'
 import Alert from '@mui/material/Alert'
+import Chip from '@mui/material/Chip'
+import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium'
 import { PlaidSection } from './PlaidSection'
 import { AccountManagement } from './AccountManagement'
 
@@ -306,6 +309,41 @@ export function ProfileSettings() {
         >
           {t('save')}
         </LoadingButton>
+
+        <Divider>
+          <Typography variant="caption" color="text.secondary">{t('subscription.title')}</Typography>
+        </Divider>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WorkspacePremiumIcon fontSize="small" color={user?.plan === AccountPlan.LIFETIME ? 'warning' : user?.plan === AccountPlan.PRO ? 'primary' : 'disabled'} />
+            <Typography variant="body2" fontWeight={600}>{t('subscription.planLabel')}</Typography>
+            <Chip
+              label={
+                user?.plan === AccountPlan.LIFETIME ? t('subscription.lifetime') :
+                user?.plan === AccountPlan.PRO ? t('subscription.pro') :
+                t('subscription.free')
+              }
+              size="small"
+              color={user?.plan === AccountPlan.LIFETIME ? 'warning' : user?.plan === AccountPlan.PRO ? 'primary' : 'default'}
+            />
+          </Box>
+          {(user?.plan === AccountPlan.FREE || user?.plan === AccountPlan.UNSPECIFIED) && (
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                {t('subscription.freeDescription')}
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<WorkspacePremiumIcon />}
+                disabled
+              >
+                {t('subscription.upgradeButton')}
+              </Button>
+            </Box>
+          )}
+        </Box>
 
         <Divider>
           <Typography variant="caption" color="text.secondary">{t('accountManagement.title')}</Typography>

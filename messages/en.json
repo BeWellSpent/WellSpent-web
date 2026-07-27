@@ -96,6 +96,15 @@
         "disconnected": "Disconnected",
         "error": "Error"
       }
+    },
+    "subscription": {
+      "title": "Subscription",
+      "planLabel": "Current plan",
+      "free": "Free",
+      "pro": "Pro",
+      "lifetime": "Lifetime",
+      "freeDescription": "Upgrade to Pro for unlimited people, income sources, alerts, Plaid sync, and no ads.",
+      "upgradeButton": "Upgrade to Pro — Coming Soon"
     }
   },
   "budget": {
@@ -120,7 +129,8 @@
       "expensePlan": "Expense Plan",
       "expenseOverview": "Overview",
       "transactions": "Transactions",
-      "toReview": "To Review"
+      "toReview": "To Review",
+      "reports": "Reports"
     },
     "overview": {
       "title": "Expense Overview",
@@ -165,7 +175,8 @@
     "income": {
       "title": "Income",
       "perMonth": "/ mo",
-      "empty": "No income sources yet."
+      "empty": "No income sources yet.",
+      "freeTierNote": "max 2/person · Free"
     },
     "savings": {
       "title": "Savings",
@@ -437,6 +448,14 @@
         "viewer": "Viewer",
         "unspecified": "Guest"
       }
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Spending analysis and trends across budget periods.",
+      "comingSoon": "Coming soon — this feature is in development"
+    },
+    "people": {
+      "freeTierLimit": "Free tier: budget is limited to 2 people. Upgrade to Pro for unlimited members."
     }
   },
   "landing": {
@@ -571,7 +590,8 @@
       "scopes": {
         "budget": "Total budget",
         "category": "Per category"
-      }
+      },
+      "freeTierNote": "Free: max 2 alert types · new_transaction requires Pro"
     }
   }
 }
