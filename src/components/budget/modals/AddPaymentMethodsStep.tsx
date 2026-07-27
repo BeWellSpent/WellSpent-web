@@ -153,12 +153,12 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
       <ColorPicker value={color} onChange={setColor} />
 
       <Stack direction="row" spacing={1} justifyContent="flex-end">
-        <LoadingButton variant="outlined" onClick={handleAdd} disabled={!name.trim() || budgetPersonId === 0n} loading={isPending}>
-          Add
-        </LoadingButton>
-        <Button variant="contained" onClick={onDone}>
+        <Button variant="outlined" onClick={onDone}>
           {savedMethods.length === 0 ? 'Skip' : 'Continue'}
         </Button>
+        <LoadingButton variant="contained" onClick={handleAdd} disabled={!name.trim() || budgetPersonId === 0n} loading={isPending}>
+          Add
+        </LoadingButton>
       </Stack>
     </Stack>
   )

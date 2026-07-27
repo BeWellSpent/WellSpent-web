@@ -154,12 +154,12 @@ export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone 
       )}
 
       <Stack direction="row" spacing={1} justifyContent="flex-end">
-        <LoadingButton variant="outlined" onClick={handleAdd} disabled={!name.trim() || !amount || !!amountError} loading={isPending}>
-          Add
-        </LoadingButton>
-        <Button variant="contained" onClick={handleDone} disabled={isPending}>
+        <Button variant="outlined" onClick={handleDone} disabled={isPending}>
           {savedSources.length === 0 ? 'Skip' : 'Continue'}
         </Button>
+        <LoadingButton variant="contained" onClick={handleAdd} disabled={!name.trim() || !amount || !!amountError} loading={isPending}>
+          Add
+        </LoadingButton>
       </Stack>
     </Stack>
   )
