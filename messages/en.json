@@ -66,6 +66,16 @@
     "save": "Save changes",
     "saving": "Saving…",
     "saved": "Profile saved.",
+    "accountManagement": {
+      "title": "Account management",
+      "deleteAccount": "Delete account",
+      "deleteDescription": "Your account will be immediately deactivated. You have 30 days to contact support if you change your mind.",
+      "confirmTitle": "Delete your account?",
+      "confirmBody": "This will immediately deactivate your account. You will be signed out and will not be able to log back in. Contact support within 30 days if you want to recover it.",
+      "confirmDelete": "Yes, delete my account",
+      "cancel": "Cancel",
+      "deleting": "Deleting…"
+    },
     "plaidTitle": "Connected bank accounts",
     "plaid": {
       "empty": "No bank accounts connected yet.",
