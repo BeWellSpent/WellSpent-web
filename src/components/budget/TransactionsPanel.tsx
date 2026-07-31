@@ -12,7 +12,7 @@ import { useClient } from '@/hooks/useClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
 import { formatMoneyFromNumber } from '@/lib/format'
-import { type FilterOption, txAmount, txPlannedAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds } from './transactionsPanel/helpers'
+import { type FilterOption, txAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds } from './transactionsPanel/helpers'
 import { TransactionTable } from './transactionsPanel/TransactionTable'
 import { AddTransactionModal } from './modals/AddTransactionModal'
 import { EditTransactionModal } from './modals/EditTransactionModal'
@@ -144,17 +144,16 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     (fe) => fe.isActive && !fixedTxs.some((tx) => tx.fixedExpenseId === fe.id),
   )
 
-  // Fixed/variable totals feed only the panel's overall grand-total line —
-  // per-tab totals were removed from the tab labels themselves (too much
-  // visual weight on mobile for little value). Excluded transactions (manually
-  // flagged, or Income-category — e.g. payroll deposits) never count here.
-  const fixedPlannedTotal = fixedTxs
-    .filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
-    .reduce((sum, tx) => sum + txPlannedAmount(tx), 0)
+  // Grand total = what was actually paid. Fixed only counts once marked paid
+  // (using the actual amount paid, not the planned amount). Variable always
+  // counts. Excluded transactions and Income-category rows never count here.
+  const fixedActualTotal = fixedTxs
+    .filter((tx) => !isTransactionExcluded(tx, incomeCategoryId) && tx.isPaid)
+    .reduce((sum, tx) => sum + txAmount(tx), 0)
   const variableTotal = variableTxs
     .filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
     .reduce((sum, tx) => sum + txAmount(tx), 0)
-  const grandTotal = fixedPlannedTotal + variableTotal
+  const grandTotal = fixedActualTotal + variableTotal
 
   const overBudgetTxIds = computeOverBudgetTxIds(
     variableTxs,
