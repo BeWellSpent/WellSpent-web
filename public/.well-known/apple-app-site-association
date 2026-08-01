@@ -5,7 +5,8 @@
       {
         "appIDs": ["76FQ7V92H5.com.bewellspent.WellSpent"],
         "components": [
-          { "/": "/*/invite/*" }
+          { "/": "/*/invite/*" },
+          { "/": "/plaid-oauth-redirect" }
         ]
       }
     ]
