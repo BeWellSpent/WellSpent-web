@@ -19,12 +19,21 @@ import DeleteIcon from '@mui/icons-material/Delete'
 export interface MobileRowActionsProps {
   canMarkPaid: boolean
   isAlreadyPaid: boolean
+  /** False when full mutation is blocked (archived period) — hides the
+   * unmark action even though the row is factually already paid. */
+  canUnmark: boolean
   unmarkPending: boolean
   canFlagForReview: boolean
   isExcluded: boolean
   isIncomeRow: boolean
+  /** False when full mutation is blocked (archived period). */
+  canExclude: boolean
   excludePending: boolean
   isRowEditable: boolean
+  /** False when full mutation is blocked (archived period) — Edit stays
+   * reachable via isRowEditable regardless, since a Variable transaction's
+   * category can still change even then; only Delete is gated by this. */
+  canDelete: boolean
   onMarkPaid: () => void
   onUnmark: () => void
   onFlagForReview: () => void
@@ -38,8 +47,8 @@ export interface MobileRowActionsProps {
 // Consolidating them behind a single "more" menu keeps every mobile row
 // within the viewport.
 export function MobileRowActions({
-  canMarkPaid, isAlreadyPaid, unmarkPending, canFlagForReview, isExcluded, isIncomeRow, excludePending,
-  isRowEditable, onMarkPaid, onUnmark, onFlagForReview, onToggleExcluded, onEdit, onDelete,
+  canMarkPaid, isAlreadyPaid, canUnmark, unmarkPending, canFlagForReview, isExcluded, isIncomeRow, canExclude, excludePending,
+  isRowEditable, canDelete, onMarkPaid, onUnmark, onFlagForReview, onToggleExcluded, onEdit, onDelete,
 }: MobileRowActionsProps) {
   const t = useTranslations('budget.transactions')
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
@@ -64,7 +73,7 @@ export function MobileRowActions({
             <ListItemText>{t('markAsPaid.title')}</ListItemText>
           </MenuItem>
         )}
-        {isAlreadyPaid && (
+        {isAlreadyPaid && canUnmark && (
           <MenuItem onClick={() => run(onUnmark)} disabled={unmarkPending}>
             <ListItemIcon><CheckCircleIcon fontSize="small" color="success" /></ListItemIcon>
             <ListItemText>{t('markAsPaid.unmark')}</ListItemText>
@@ -76,7 +85,7 @@ export function MobileRowActions({
             <ListItemText>{t('markForReview')}</ListItemText>
           </MenuItem>
         )}
-        {isIncomeRow ? (
+        {canExclude && (isIncomeRow ? (
           <MenuItem disabled>
             <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
             <ListItemText>{t('exclude.incomeAlwaysExcluded')}</ListItemText>
@@ -86,14 +95,14 @@ export function MobileRowActions({
             <ListItemIcon>{isExcluded ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}</ListItemIcon>
             <ListItemText>{isExcluded ? t('exclude.unexclude') : t('exclude.exclude')}</ListItemText>
           </MenuItem>
-        )}
+        ))}
         {isRowEditable && (
           <MenuItem onClick={() => run(onEdit)}>
             <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
             <ListItemText>{t('edit')}</ListItemText>
           </MenuItem>
         )}
-        {isRowEditable && (
+        {isRowEditable && canDelete && (
           <MenuItem onClick={() => run(onDelete)}>
             <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
             <ListItemText>{t('delete')}</ListItemText>

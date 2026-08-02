@@ -11,6 +11,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
+import { useResolvedPeriod } from '@/hooks/useResolvedPeriod'
 import { TransactionsPanel } from './TransactionsPanel'
 import { ExpensesPanel } from './ExpensesPanel'
 import { ExpenseOverviewPanel } from './ExpenseOverviewPanel'
@@ -19,6 +20,7 @@ import { ReportsPlaceholder } from './ReportsPlaceholder'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
+import Alert from '@mui/material/Alert'
 import Paper from '@mui/material/Paper'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
@@ -68,19 +70,13 @@ export function BudgetView({ budgetId }: Props) {
     queryFn: () => client.getBudgetProfile({ id: budgetId }),
   })
 
-  const { data: periodsData, isLoading: periodsLoading } = useQuery({
-    queryKey: ['budget-periods', budgetId],
-    queryFn: () => client.listBudgetPeriods({ budgetProfileId: budgetId }),
-    enabled: !!profileData,
-  })
-
-  // Derive active period early — needed before the review query hook.
-  const periods = periodsData?.periods ?? []
-  const activePeriod = [...periods]
-    .filter((p) => !p.isArchived)
-    .sort((a, b) => Number(b.startDate?.seconds ?? 0n) - Number(a.startDate?.seconds ?? 0n))[0]
-    ?? periods[0]
-
+  // `?period=` lets the budget list navigate straight to a specific (possibly
+  // archived) past period; absent, this resolves to the true active period.
+  const { period: activePeriod, isArchived, isLoading: periodsLoading } = useResolvedPeriod(
+    budgetId,
+    searchParams.get('period'),
+    !!profileData
+  )
   const { data: reviewData } = useQuery({
     queryKey: ['transaction-reviews', budgetId],
     queryFn: () => client.listTransactionReviews({ budgetProfileId: budgetId }),
@@ -112,6 +108,17 @@ export function BudgetView({ budgetId }: Props) {
           </Typography>
         )}
       </Box>
+
+      {/* Archived-period notice — the record itself is frozen: creating,
+          deleting, marking paid, and excluding transactions are all blocked;
+          only a transaction's category can still be changed. Manage panels
+          (Categories, Payment Methods, People, Savings/Income Sources) are
+          unaffected since they're profile-level, not period-level. */}
+      {isArchived && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {t('archivedPeriodNotice')}
+        </Alert>
+      )}
 
       {/* Desktop tab nav */}
       {!isMobile && (
@@ -158,14 +165,16 @@ export function BudgetView({ budgetId }: Props) {
             addOpen={addTransactionOpen}
             onAddClose={() => setAddTransactionOpen(false)}
             isEditable={canEdit}
+            isArchivedPeriod={isArchived}
           />
         ) : (
           <Typography variant="body2" color="text.secondary">{t('noActivePeriod')}</Typography>
         )}
       </Box>
 
-      {/* FAB — switches to transactions view and opens add dialog */}
-      {canEdit && (
+      {/* FAB — switches to transactions view and opens add dialog. Hidden
+          when archived: creating a new transaction is fully blocked there. */}
+      {canEdit && !isArchived && (
         <Fab
           color="primary"
           aria-label={tFab('addTransaction')}

@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useLocale } from 'next-intl'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { BudgetProfile } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
@@ -13,54 +12,20 @@ import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
-import { LoadingButton } from '@/components/ui/LoadingButton'
-import Card from '@mui/material/Card'
-import CardActionArea from '@mui/material/CardActionArea'
-import CardContent from '@mui/material/CardContent'
-import CardActions from '@mui/material/CardActions'
 import IconButton from '@mui/material/IconButton'
 import CircularProgress from '@mui/material/CircularProgress'
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogActions from '@mui/material/DialogActions'
+import FormControl from '@mui/material/FormControl'
+import Select, { type SelectChangeEvent } from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import LogoutIcon from '@mui/icons-material/Logout'
 import Tooltip from '@mui/material/Tooltip'
 import { BudgetSetupFlow } from './BudgetSetupFlow'
+import { PeriodRow } from './budgetList/PeriodRow'
+import { DeleteBudgetDialog } from './budgetList/DeleteBudgetDialog'
+import { groupPeriodsByYear } from './budgetList/periodGrouping'
 import { useRouter } from '@/i18n/navigation'
-
-function DeleteConfirmDialog({
-  budget,
-  onClose,
-  onConfirm,
-  isDeleting,
-}: {
-  budget: BudgetProfile
-  onClose: () => void
-  onConfirm: () => void
-  isDeleting: boolean
-}) {
-  const t = useTranslations('budget.list.deleteDialog')
-  return (
-    <Dialog open onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{t('title')}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          {t('body', { name: budget.name })}
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="inherit" disabled={isDeleting}>{t('cancel')}</Button>
-        <LoadingButton onClick={onConfirm} color="error" variant="contained" loading={isDeleting}>
-          {t('delete')}
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
-  )
-}
 
 export function BudgetList() {
   const t = useTranslations('budget.list')
@@ -76,12 +41,24 @@ export function BudgetList() {
 
   const [setupOpen, setSetupOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<BudgetProfile | null>(null)
+  const [selectedYear, setSelectedYear] = useState<number | null>(null)
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['budgets', 'list'],
     queryFn: () => client.listBudgetProfiles({}),
+  })
+
+  // At most one owned profile per account — see
+  // docs/features/budget-list-view-rework.md.
+  const profiles = data?.profiles ?? []
+  const profile = profiles[0] as BudgetProfile | undefined
+
+  const { data: periodsData, isLoading: periodsLoading } = useQuery({
+    queryKey: ['budget-periods', profile?.id],
+    queryFn: () => client.listBudgetPeriods({ budgetProfileId: profile!.id }),
+    enabled: !!profile,
   })
 
   useEffect(() => {
@@ -122,16 +99,21 @@ export function BudgetList() {
     )
   }
 
-  const profiles = data?.profiles ?? []
+  const yearGroups = groupPeriodsByYear(periodsData?.periods ?? [])
+  const years = yearGroups.map((g) => g.year)
+  const effectiveYear = selectedYear !== null && years.includes(selectedYear) ? selectedYear : years[0]
+  const periodsForYear = yearGroups.find((g) => g.year === effectiveYear)?.periods ?? []
 
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" fontWeight={700}>{t('title')}</Typography>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setSetupOpen(true)}>
-            {t('newBudget')}
-          </Button>
+          {profiles.length === 0 && (
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setSetupOpen(true)}>
+              {t('newBudget')}
+            </Button>
+          )}
           <Tooltip title={tAuth('logout')}>
             <IconButton onClick={handleLogout} aria-label={tAuth('logout')}>
               <LogoutIcon />
@@ -140,40 +122,51 @@ export function BudgetList() {
         </Box>
       </Box>
 
-      {profiles.length === 0 ? (
+      {!profile ? (
         <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary' }}>
           <Typography variant="body1" mb={2}>{t('empty')}</Typography>
           <Button variant="outlined" onClick={() => setSetupOpen(true)}>{t('createBudget')}</Button>
         </Box>
       ) : (
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2 }}>
-          {profiles.map((profile) => (
-            <Card key={profile.id} variant="outlined">
-              <CardActionArea onClick={() => {
-                logger.info('budget.open', { budgetId: profile.id })
-                router.push(`/budgets/${profile.id}`)
-              }}>
-                <CardContent>
-                  <Typography variant="h6">{profile.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">{t('monthly')}</Typography>
-                </CardContent>
-              </CardActionArea>
-              <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setDeleteTarget(profile)
-                  }}
-                  aria-label={`Delete ${profile.name}`}
+        <>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">{profile.name}</Typography>
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => setDeleteTarget(profile)}
+              aria-label={t('deleteDialog.title')}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+
+          {periodsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={24} /></Box>
+          ) : years.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">{t('noPeriods')}</Typography>
+          ) : (
+            <>
+              <FormControl size="small" sx={{ minWidth: 120, mb: 2 }}>
+                <Select
+                  value={effectiveYear}
+                  onChange={(e: SelectChangeEvent<number>) => setSelectedYear(Number(e.target.value))}
+                  aria-label={t('yearPicker')}
                 >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </CardActions>
-            </Card>
-          ))}
-        </Box>
+                  {years.map((year) => (
+                    <MenuItem key={year} value={year}>{year}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Box>
+                {periodsForYear.map((period) => (
+                  <PeriodRow key={period.id} profileId={profile.id} period={period} />
+                ))}
+              </Box>
+            </>
+          )}
+        </>
       )}
 
       <BudgetSetupFlow
@@ -186,7 +179,7 @@ export function BudgetList() {
       />
 
       {deleteTarget && (
-        <DeleteConfirmDialog
+        <DeleteBudgetDialog
           budget={deleteTarget}
           onClose={() => setDeleteTarget(null)}
           onConfirm={handleDelete}

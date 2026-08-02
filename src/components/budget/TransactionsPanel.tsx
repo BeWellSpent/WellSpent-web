@@ -38,11 +38,23 @@ interface Props {
   budgetPeriodId: string
   budgetProfileId: string
   isEditable?: boolean
+  /** True when viewing an archived (past) period — creating, deleting,
+   * marking paid, excluding, and flagging for review are all fully blocked.
+   * Editing a Variable transaction stays reachable, but only its category
+   * can actually be changed (see EditTransactionModal). Fixed-row editing
+   * (which edits the recurring template, not this occurrence) is
+   * deliberately not restricted by this yet — see
+   * docs/features/budget-list-view-rework.md's Web implementation notes. */
+  isArchivedPeriod?: boolean
   addOpen?: boolean
   onAddClose?: () => void
 }
 
-export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable = true, addOpen = false, onAddClose }: Props) {
+export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable = true, isArchivedPeriod = false, addOpen = false, onAddClose }: Props) {
+  // Full mutation (add/delete/mark-paid/exclude/flag-for-review) is blocked
+  // outright on an archived period; editing a Variable row's category stays
+  // available — see TransactionTable/EditTransactionModal.
+  const canMutate = isEditable && !isArchivedPeriod
   const t = useTranslations('budget.transactions')
   const queryClient = useQueryClient()
   const { currency, locale } = useCurrency()
@@ -188,6 +200,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
 
   const sharedTableProps = {
     isEditable,
+    canMutate,
     savingsCategoryId,
     incomeCategoryId,
     budgetPeriodId,
@@ -297,7 +310,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
         </Box>
       )}
 
-      {isEditable && (
+      {canMutate && (
         <AddTransactionModal
           budgetPeriodId={budgetPeriodId}
           budgetProfileId={budgetProfileId}
@@ -325,6 +338,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
         <EditTransactionModal
           budgetProfileId={budgetProfileId}
           transaction={editTarget}
+          isArchivedPeriod={isArchivedPeriod}
           onClose={() => setEditTarget(null)}
           onDone={() => { setEditTarget(null); refresh() }}
         />

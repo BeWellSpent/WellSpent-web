@@ -11,6 +11,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
+import { useResolvedPeriod } from '@/hooks/useResolvedPeriod'
 import { DesktopSidebar } from './sidebar/DesktopSidebar'
 import { MobileTopBar } from './sidebar/MobileTopBar'
 import { MobileManageDrawer } from './sidebar/MobileManageDrawer'
@@ -77,21 +78,15 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     queryFn: () => client.getBudgetProfile({ id: budgetId }),
   })
 
-  const { data: periodsData } = useQuery({
-    queryKey: ['budget-periods', budgetId],
-    queryFn: () => client.listBudgetPeriods({ budgetProfileId: budgetId }),
-    enabled: !!data,
-  })
+  // Always the true active period, never a browsed-to archived one — see
+  // useResolvedPeriod's doc comment for why Manage panels don't follow
+  // BudgetView's `?period=` override.
+  const { period: activePeriod } = useResolvedPeriod(budgetId, undefined, !!data)
 
   const budgetName = data?.profile?.name ?? '…'
   const showBeforeTax = (data?.profile?.countryCode ?? '') === 'US'
   const iconSrc = themeMounted && effective === 'dark' ? '/app-icon-dark.png' : '/app-icon-light.png'
 
-  const periods = periodsData?.periods ?? []
-  const activePeriod = [...periods]
-    .filter((p) => !p.isArchived)
-    .sort((a, b) => Number(b.startDate?.seconds ?? 0n) - Number(a.startDate?.seconds ?? 0n))[0]
-    ?? periods[0]
   const activePeriodStart = activePeriod?.startDate
     ? new Date(Number(activePeriod.startDate.seconds) * 1000)
     : undefined

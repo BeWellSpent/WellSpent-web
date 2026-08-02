@@ -31,6 +31,8 @@ type Flow = 'spent' | 'received'
 interface Props {
   budgetProfileId: string
   transaction: Transaction
+  /** True when viewing an archived (past) period. */
+  isArchivedPeriod?: boolean
   onClose: () => void
   onDone: () => void
 }
@@ -64,11 +66,18 @@ function dayOfMonthToTimestamp(day: number): { seconds: bigint; nanos: number } 
   return { seconds: BigInt(Math.floor(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day) / 1000)), nanos: 0 }
 }
 
-export function EditTransactionModal({ budgetProfileId, transaction, onClose, onDone }: Props) {
+export function EditTransactionModal({ budgetProfileId, transaction, isArchivedPeriod = false, onClose, onDone }: Props) {
   const t = useTranslations('budget.transactions')
   const { showError } = useSnackbar()
   const fullScreen = useIsMobile()
   const client = useClient(BudgetService)
+
+  // Once a period has archived, or for any Plaid-imported transaction, the
+  // financial record itself is frozen server-side — only the category can
+  // still change (see the backend's assertOnlyCategoryChanged). Locked
+  // fields are disabled rather than hidden so it's clear what happened and
+  // why nothing else can be edited here.
+  const isLocked = isArchivedPeriod || transaction.isPlaidImported
 
   const [name, setName] = useState(transaction.name)
   const [amount, setAmount] = useState(() =>
@@ -119,10 +128,36 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
   })
 
   const isDateValid = isFixed ? dayOfMonth >= 1 && dayOfMonth <= 31 : !!date
-  const canSave = !!name.trim() && !!amount && !!paymentMethodId && isDateValid
+  const canSave = isLocked || (!!name.trim() && !!amount && !!paymentMethodId && isDateValid)
 
   async function handleSave() {
     if (!canSave) return
+    // Locked (archived period or Plaid-linked): send every field back
+    // exactly as originally recorded except category — the backend rejects
+    // an update that changes anything else in that case, and reconstructing
+    // from (unchanged, disabled) form state risks a spurious mismatch from
+    // string round-tripping, so this reads directly off `transaction`
+    // instead.
+    if (isLocked) {
+      try {
+        await mutateAsync({
+          name: transaction.name,
+          amount: transaction.amount ?? { units: 0n, nanos: 0 },
+          date: transaction.date ?? { seconds: 0n, nanos: 0 },
+          categoryId,
+          paymentMethodId: transaction.paymentMethodId,
+          transactionTypeId: transaction.transactionTypeId,
+          transactionFrequencyId: transaction.transactionFrequencyId,
+          recurring: transaction.recurring,
+        })
+        logger.info('transaction.update.categoryOnly', { budgetProfileId, id: transaction.id, categoryId })
+        onDone()
+      } catch (err) {
+        showError(err)
+      }
+      return
+    }
+
     const rawAmt = parseFloat(amount)
     // Fixed expenses are always outgoing — no flow sign
     const signedAmt = !isFixed && flow === 'received' ? -rawAmt : rawAmt
@@ -152,11 +187,17 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
       <DialogTitle>Edit Transaction</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
         <Stack spacing={2} sx={{ pt: 1 }}>
+          {isLocked && (
+            <Typography variant="body2" color="text.secondary">
+              {t('lockedNotice')}
+            </Typography>
+          )}
           <TextField
             label="Description"
             value={name}
             onChange={(e) => setName(e.target.value)}
             fullWidth
+            disabled={isLocked}
           />
           <Stack direction="row" spacing={1} alignItems="flex-start">
             {!isFixed && (
@@ -165,6 +206,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
                 size="small"
                 value={flow}
                 onChange={(_, v) => v && setFlow(v as Flow)}
+                disabled={isLocked}
                 sx={{ alignSelf: 'center' }}
               >
                 <ToggleButton value="spent">{t('flow.spent')}</ToggleButton>
@@ -176,6 +218,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
               label="Type"
               value={typeId}
               onChange={(e) => { const v = Number(e.target.value); setTypeId(v); if (v === 1) setFlow('spent') }}
+              disabled={isLocked}
               sx={{ flex: 1 }}
             >
               <MenuItem value={1}>Fixed</MenuItem>
@@ -189,6 +232,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
               value={dayOfMonth}
               onChange={(e) => setDayOfMonth(Math.min(31, Math.max(1, Number(e.target.value))))}
               fullWidth
+              disabled={isLocked}
               inputProps={{ min: 1, max: 31, inputMode: 'decimal' }}
               helperText="Which day of the month this expense falls on"
             />
@@ -200,6 +244,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
               onChange={(e) => setDate(e.target.value)}
               fullWidth
               required
+              disabled={isLocked}
               InputLabelProps={{ shrink: true }}
             />
           )}
@@ -227,6 +272,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
             label="Payment method"
             required
             size="medium"
+            disabled={isLocked}
           />
           <TextField
             label="Amount"
@@ -234,11 +280,12 @@ export function EditTransactionModal({ budgetProfileId, transaction, onClose, on
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             fullWidth
+            disabled={isLocked}
             inputProps={{ min: 0, step: '0.01', inputMode: 'decimal' }}
           />
           {!isFixed && (
             <FormControlLabel
-              control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
+              control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} disabled={isLocked} />}
               label="Recurring"
             />
           )}
