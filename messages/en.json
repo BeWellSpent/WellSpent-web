@@ -104,7 +104,7 @@
       "pro": "Pro",
       "lifetime": "Lifetime",
       "freeDescription": "Upgrade to Pro for unlimited people, income sources, alerts, Plaid sync, and no ads.",
-      "upgradeButton": "Upgrade to Pro — Coming Soon"
+      "upgradeButton": "Upgrade to Pro ï¿½ Coming Soon"
     }
   },
   "budget": {
@@ -115,6 +115,10 @@
       "empty": "No budgets yet. Create your first one to get started.",
       "monthly": "Monthly",
       "retry": "Retry",
+      "active": "Active",
+      "archived": "Archived",
+      "yearPicker": "Year",
+      "noPeriods": "No periods yet.",
       "deleteDialog": {
         "title": "Delete budget?",
         "body": "{name} and all its people, income sources, and transactions will be permanently deleted. This cannot be undone.",
@@ -130,7 +134,8 @@
       "expenseOverview": "Overview",
       "transactions": "Transactions",
       "toReview": "To Review",
-      "reports": "Reports"
+      "reports": "Reports",
+      "archivedPeriodNotice": "You're viewing a past period. Adding, deleting, marking paid, and excluding transactions are disabled â€” you can still change a transaction's category."
     },
     "overview": {
       "title": "Expense Overview",
@@ -174,7 +179,7 @@
       "title": "Income",
       "perMonth": "/ mo",
       "empty": "No income sources yet.",
-      "freeTierNote": "max 2/person · Free"
+      "freeTierNote": "max 2/person ï¿½ Free"
     },
     "savings": {
       "title": "Savings",
@@ -302,6 +307,7 @@
         "received": "Received"
       },
       "markForReview": "Flag for review",
+      "lockedNotice": "Only the category can be changed for this transaction â€” it's either from a past period or was imported from your bank.",
       "filter": {
         "none": "All transactions",
         "spentOnly": "Spent only",
@@ -450,7 +456,7 @@
     "reports": {
       "title": "Reports",
       "description": "Spending analysis and trends across budget periods.",
-      "comingSoon": "Coming soon — this feature is in development"
+      "comingSoon": "Coming soon ï¿½ this feature is in development"
     },
     "people": {
       "freeTierLimit": "Free tier: budget is limited to 2 people. Upgrade to Pro for unlimited members."
@@ -589,7 +595,7 @@
         "budget": "Total budget",
         "category": "Per category"
       },
-      "freeTierNote": "Free: max 2 alert types · new_transaction requires Pro"
+      "freeTierNote": "Free: max 2 alert types ï¿½ new_transaction requires Pro"
     }
   }
 }

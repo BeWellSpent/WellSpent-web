@@ -56,6 +56,11 @@ export interface TransactionTableProps {
   transactions: Transaction[]
   isLoading: boolean
   isEditable: boolean
+  /** False when full mutation is blocked (viewing an archived period) —
+   * gates mark-paid/unmark/exclude/delete, but NOT the Edit trigger itself
+   * (isEditable alone still governs that, so a Variable row stays reachable
+   * for its category-only edit — see EditTransactionModal). */
+  canMutate?: boolean
   isFixed: boolean
   savingsCategoryId?: number
   incomeCategoryId?: number
@@ -81,7 +86,7 @@ export interface TransactionTableProps {
 }
 
 export function TransactionTable({
-  transactions, isLoading, isEditable, isFixed, savingsCategoryId, incomeCategoryId, budgetPeriodId, budgetProfileId, label,
+  transactions, isLoading, isEditable, canMutate = isEditable, isFixed, savingsCategoryId, incomeCategoryId, budgetPeriodId, budgetProfileId, label,
   categoryMap, methodMap, personMap, notDueFixedExpenses = [], fixedExpenseMap, pendingReviewMatchByTxId,
   confirmedReviewVariableTxIds, linkedVariableByFixedTxId,
   searchQuery = '', activeFilter = 'none', overBudgetTxIds,
@@ -182,7 +187,7 @@ export function TransactionTable({
   const isRowEditable = (tx: Transaction) => isEditable && !isSavingsRow(tx)
 
   const canMarkPaid = (tx: Transaction) =>
-    isFixed && isEditable && !tx.isPaid
+    isFixed && canMutate && !tx.isPaid
 
   const filteredTransactions = transactions.filter((tx) => {
     if (!isFixed && confirmedReviewVariableTxIds?.has(tx.id)) return false
@@ -210,12 +215,15 @@ export function TransactionTable({
         <MobileRowActions
           canMarkPaid={canMarkPaid(tx)}
           isAlreadyPaid={isFixed && tx.isPaid}
+          canUnmark={canMutate}
           unmarkPending={unmarkPending}
           canFlagForReview={!isFixed && isEditable}
           isExcluded={tx.isExcluded}
           isIncomeRow={isIncomeRow(tx)}
+          canExclude={canMutate}
           excludePending={setExcludedPending}
           isRowEditable={isRowEditable(tx)}
+          canDelete={canMutate}
           onMarkPaid={() => setMarkPaidTarget(tx)}
           onUnmark={() => handleUnmark(tx)}
           onFlagForReview={() => setMarkReviewTarget(tx)}
@@ -234,7 +242,7 @@ export function TransactionTable({
             </IconButton>
           </Tooltip>
         )}
-        {isFixed && tx.isPaid && (
+        {isFixed && tx.isPaid && canMutate && (
           <Tooltip title={t('markAsPaid.alreadyPaid')}>
             <LoadingIconButton size="small" onClick={() => handleUnmark(tx)} loading={unmarkPending} color="success">
               <CheckCircleIcon fontSize="small" color="success" />
@@ -248,23 +256,25 @@ export function TransactionTable({
             </IconButton>
           </Tooltip>
         )}
-        <Tooltip title={isIncomeRow(tx) ? t('exclude.incomeAlwaysExcluded') : (tx.isExcluded ? t('exclude.unexclude') : t('exclude.exclude'))}>
-          <span>
-            <LoadingIconButton
-              size="small"
-              onClick={() => handleToggleExcluded(tx)}
-              disabled={isIncomeRow(tx)}
-              loading={setExcludedPending}
-              color={tx.isExcluded || isIncomeRow(tx) ? 'warning' : 'default'}
-            >
-              {tx.isExcluded || isIncomeRow(tx) ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
-            </LoadingIconButton>
-          </span>
-        </Tooltip>
+        {canMutate && (
+          <Tooltip title={isIncomeRow(tx) ? t('exclude.incomeAlwaysExcluded') : (tx.isExcluded ? t('exclude.unexclude') : t('exclude.exclude'))}>
+            <span>
+              <LoadingIconButton
+                size="small"
+                onClick={() => handleToggleExcluded(tx)}
+                disabled={isIncomeRow(tx)}
+                loading={setExcludedPending}
+                color={tx.isExcluded || isIncomeRow(tx) ? 'warning' : 'default'}
+              >
+                {tx.isExcluded || isIncomeRow(tx) ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+              </LoadingIconButton>
+            </span>
+          </Tooltip>
+        )}
         {isRowEditable(tx) && (
           <>
             <IconButton size="small" onClick={() => onEdit(tx)}><EditIcon fontSize="small" /></IconButton>
-            <IconButton size="small" onClick={() => handleDelete(tx)}><DeleteIcon fontSize="small" /></IconButton>
+            {canMutate && <IconButton size="small" onClick={() => handleDelete(tx)}><DeleteIcon fontSize="small" /></IconButton>}
           </>
         )}
       </Box>

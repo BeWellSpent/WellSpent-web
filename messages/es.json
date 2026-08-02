@@ -98,13 +98,13 @@
       }
     },
     "subscription": {
-      "title": "Suscripción",
+      "title": "Suscripciï¿½n",
       "planLabel": "Plan actual",
       "free": "Gratuito",
       "pro": "Pro",
       "lifetime": "Vitalicio",
-      "freeDescription": "Mejora a Pro para personas, fuentes de ingresos, alertas, sincronización Plaid y sin anuncios ilimitados.",
-      "upgradeButton": "Mejorar a Pro — Próximamente"
+      "freeDescription": "Mejora a Pro para personas, fuentes de ingresos, alertas, sincronizaciï¿½n Plaid y sin anuncios ilimitados.",
+      "upgradeButton": "Mejorar a Pro ï¿½ Prï¿½ximamente"
     }
   },
   "budget": {
@@ -115,6 +115,10 @@
       "empty": "No tienes presupuestos aÃºn. Crea el primero para comenzar.",
       "monthly": "Mensual",
       "retry": "Reintentar",
+      "active": "Activo",
+      "archived": "Archivado",
+      "yearPicker": "AÃ±o",
+      "noPeriods": "AÃºn no hay perÃ­odos.",
       "deleteDialog": {
         "title": "Â¿Eliminar presupuesto?",
         "body": "{name} y todas sus personas, fuentes de ingresos y transacciones serÃ¡n eliminados permanentemente. Esta acciÃ³n no se puede deshacer.",
@@ -130,7 +134,8 @@
       "expenseOverview": "Resumen",
       "transactions": "Transacciones",
       "toReview": "Por Revisar",
-      "reports": "Informes"
+      "reports": "Informes",
+      "archivedPeriodNotice": "EstÃ¡s viendo un perÃ­odo pasado. Agregar, eliminar, marcar como pagado y excluir transacciones estÃ¡n deshabilitados â€” aÃºn puedes cambiar la categorÃ­a de una transacciÃ³n."
     },
     "overview": {
       "title": "Resumen de Gastos",
@@ -174,7 +179,7 @@
       "title": "Ingresos",
       "perMonth": "/ mes",
       "empty": "No hay fuentes de ingresos aÃºn.",
-      "freeTierNote": "máx 2/persona · Plan gratuito"
+      "freeTierNote": "mï¿½x 2/persona ï¿½ Plan gratuito"
     },
     "savings": {
       "title": "Ahorros",
@@ -302,6 +307,7 @@
         "received": "Ingreso"
       },
       "markForReview": "Marcar para revisiÃ³n",
+      "lockedNotice": "Solo se puede cambiar la categorÃ­a de esta transacciÃ³n â€” es de un perÃ­odo pasado o fue importada de tu banco.",
       "filter": {
         "none": "Todas las transacciones",
         "spentOnly": "Solo gastos",
@@ -449,11 +455,11 @@
     },
     "reports": {
       "title": "Informes",
-      "description": "Análisis de gastos y tendencias entre períodos presupuestarios.",
-      "comingSoon": "Próximamente — esta función está en desarrollo"
+      "description": "Anï¿½lisis de gastos y tendencias entre perï¿½odos presupuestarios.",
+      "comingSoon": "Prï¿½ximamente ï¿½ esta funciï¿½n estï¿½ en desarrollo"
     },
     "people": {
-      "freeTierLimit": "Plan gratuito: máximo 2 personas por presupuesto. Mejora a Pro para miembros ilimitados."
+      "freeTierLimit": "Plan gratuito: mï¿½ximo 2 personas por presupuesto. Mejora a Pro para miembros ilimitados."
     }
   },
   "landing": {
@@ -589,7 +595,7 @@
         "budget": "Presupuesto total",
         "category": "Por categorÃ­a"
       },
-      "freeTierNote": "Gratuito: máx 2 tipos de alerta · new_transaction requiere Pro"
+      "freeTierNote": "Gratuito: mï¿½x 2 tipos de alerta ï¿½ new_transaction requiere Pro"
     }
   }
 }

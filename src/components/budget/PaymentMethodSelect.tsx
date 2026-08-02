@@ -20,6 +20,7 @@ interface Props {
   includeNone?: boolean
   noneLabel?: string
   size?: 'small' | 'medium'
+  disabled?: boolean
 }
 
 export function PaymentMethodSelect({
@@ -31,6 +32,7 @@ export function PaymentMethodSelect({
   includeNone,
   noneLabel = '— None —',
   size = 'small',
+  disabled,
 }: Props) {
   const client = useClient(BudgetService)
 
@@ -62,7 +64,7 @@ export function PaymentMethodSelect({
   }
 
   return (
-    <FormControl fullWidth size={size} required={required}>
+    <FormControl fullWidth size={size} required={required} disabled={disabled}>
       <InputLabel>{label}</InputLabel>
       <Select
         label={label}

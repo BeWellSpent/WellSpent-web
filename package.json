@@ -1,6 +1,6 @@
 {
   "name": "wellspent-web",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -H 0.0.0.0",
