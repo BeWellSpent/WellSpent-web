@@ -47,12 +47,7 @@ export function AlertTypeRow({ alertType, subscription, categories, isPending, o
   const thresholdScope = subscription?.thresholdScope ?? 'budget'
   const categoryId = subscription?.categoryId ?? 0
 
-  // MUI's Slider onChange fires continuously during drag (many times per
-  // second), not just on release — wiring the mutation straight to it
-  // flooded the backend's rate limiter and disabled the slider mid-drag on
-  // every one of those in-flight requests. Local draft state tracks the
-  // thumb during drag; the mutation only fires once, on release
-  // (onChangeCommitted).
+  // Slider onChange fires continuously during drag; only commit on release.
   const [draftThreshold, setDraftThreshold] = useState(thresholdPct)
   useEffect(() => setDraftThreshold(thresholdPct), [thresholdPct])
 
@@ -75,11 +70,7 @@ export function AlertTypeRow({ alertType, subscription, categories, isPending, o
 
   function handleScopeChange(scope: string) {
     if (!enabled) return
-    // Switching to "category" with nothing picked yet defaults to the first
-    // available category rather than leaving it unset — an unset category_id
-    // is silently skipped server-side (checkSpendingThreshold treats
-    // category_id=0 as "no category" and never fires), so the scope switch
-    // itself must not leave the subscription in that state.
+    // A category scope with no category picked never fires server-side, so default to the first one.
     const nextCategoryId = scope === 'category' ? categoryId || categories[0]?.id || undefined : undefined
     onUpdate(channel, thresholdPct || undefined, scope, nextCategoryId)
   }
