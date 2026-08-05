@@ -34,6 +34,8 @@ export interface MobileRowActionsProps {
    * reachable via isRowEditable regardless, since a Variable transaction's
    * category can still change even then; only Delete is gated by this. */
   canDelete: boolean
+  /** Plaid-imported transactions can never be deleted, regardless of canDelete. */
+  isPlaidImported: boolean
   onMarkPaid: () => void
   onUnmark: () => void
   onFlagForReview: () => void
@@ -48,7 +50,7 @@ export interface MobileRowActionsProps {
 // within the viewport.
 export function MobileRowActions({
   canMarkPaid, isAlreadyPaid, canUnmark, unmarkPending, canFlagForReview, isExcluded, isIncomeRow, canExclude, excludePending,
-  isRowEditable, canDelete, onMarkPaid, onUnmark, onFlagForReview, onToggleExcluded, onEdit, onDelete,
+  isRowEditable, canDelete, isPlaidImported, onMarkPaid, onUnmark, onFlagForReview, onToggleExcluded, onEdit, onDelete,
 }: MobileRowActionsProps) {
   const t = useTranslations('budget.transactions')
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
@@ -103,10 +105,17 @@ export function MobileRowActions({
           </MenuItem>
         )}
         {isRowEditable && canDelete && (
-          <MenuItem onClick={() => run(onDelete)}>
-            <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
-            <ListItemText>{t('delete')}</ListItemText>
-          </MenuItem>
+          isPlaidImported ? (
+            <MenuItem disabled>
+              <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
+              <ListItemText>{t('deletePlaidLocked')}</ListItemText>
+            </MenuItem>
+          ) : (
+            <MenuItem onClick={() => run(onDelete)}>
+              <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
+              <ListItemText>{t('delete')}</ListItemText>
+            </MenuItem>
+          )
         )}
       </Menu>
     </>

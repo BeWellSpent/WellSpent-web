@@ -224,6 +224,7 @@ export function TransactionTable({
           excludePending={setExcludedPending}
           isRowEditable={isRowEditable(tx)}
           canDelete={canMutate}
+          isPlaidImported={tx.isPlaidImported}
           onMarkPaid={() => setMarkPaidTarget(tx)}
           onUnmark={() => handleUnmark(tx)}
           onFlagForReview={() => setMarkReviewTarget(tx)}
@@ -274,7 +275,15 @@ export function TransactionTable({
         {isRowEditable(tx) && (
           <>
             <IconButton size="small" onClick={() => onEdit(tx)}><EditIcon fontSize="small" /></IconButton>
-            {canMutate && <IconButton size="small" onClick={() => handleDelete(tx)}><DeleteIcon fontSize="small" /></IconButton>}
+            {canMutate && (
+              tx.isPlaidImported ? (
+                <Tooltip title={t('deletePlaidLocked')}>
+                  <span><IconButton size="small" disabled><DeleteIcon fontSize="small" /></IconButton></span>
+                </Tooltip>
+              ) : (
+                <IconButton size="small" onClick={() => handleDelete(tx)}><DeleteIcon fontSize="small" /></IconButton>
+              )
+            )}
           </>
         )}
       </Box>

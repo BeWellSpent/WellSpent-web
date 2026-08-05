@@ -323,6 +323,7 @@
       "rowActions": "Más acciones",
       "edit": "Editar",
       "delete": "Eliminar",
+      "deletePlaidLocked": "Las transacciones importadas del banco no se pueden eliminar",
       "linkedToFixed": "fijo",
       "linkedToFixedTooltip": "Pendiente de revisión — vinculado a \"{name}\""
     },
