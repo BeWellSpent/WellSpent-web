@@ -19,6 +19,7 @@ export function ConnectionRow({
   budgetName,
   onManageAccounts,
   managingAccounts,
+  manageAccountsDisabled,
   onDisconnect,
   disconnecting,
 }: {
@@ -26,6 +27,7 @@ export function ConnectionRow({
   budgetName: string
   onManageAccounts: () => void
   managingAccounts: boolean
+  manageAccountsDisabled?: boolean
   onDisconnect: () => void
   disconnecting: boolean
 }) {
@@ -75,7 +77,7 @@ export function ConnectionRow({
               <IconButton
                 size="small"
                 onClick={onManageAccounts}
-                disabled={managingAccounts || disconnecting}
+                disabled={managingAccounts || disconnecting || manageAccountsDisabled}
               >
                 {managingAccounts ? <CircularProgress size={16} /> : <ManageAccountsIcon fontSize="small" />}
               </IconButton>

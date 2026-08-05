@@ -7,6 +7,7 @@ import { PlaidService } from '@/gen/wellspent/v1/plaid_connect'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { PlaidConnection } from '@/gen/wellspent/v1/plaid_pb'
 import { useClient } from '@/hooks/useClient'
+import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { PlaidLinkLauncher } from './plaidSection/PlaidLinkLauncher'
@@ -17,6 +18,7 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 
@@ -32,6 +34,7 @@ export function PlaidSection() {
   const t = useTranslations('settings.plaid')
   const { showError } = useSnackbar()
   const queryClient = useQueryClient()
+  const isFree = useIsFreeTier()
 
   const plaidClient = useClient(PlaidService)
   const budgetClient = useClient(BudgetService)
@@ -170,6 +173,10 @@ export function PlaidSection() {
       )}
 
       <Stack spacing={1.5}>
+        {isFree && (
+          <Chip label={t('freeTierNote')} size="small" color="warning" variant="outlined" sx={{ alignSelf: 'flex-start' }} />
+        )}
+
         {loadingConnections ? (
           <CircularProgress size={20} />
         ) : connections.length === 0 ? (
@@ -184,6 +191,7 @@ export function PlaidSection() {
               budgetName={budgetNameMap[conn.budgetProfileId] ?? t('unknownBudget')}
               onManageAccounts={() => handleManageAccounts(conn)}
               managingAccounts={managingAccountsId === conn.id}
+              manageAccountsDisabled={isFree}
               onDisconnect={() => setConfirmDisconnect(conn)}
               disconnecting={disconnectingId === conn.id}
             />
@@ -193,7 +201,7 @@ export function PlaidSection() {
         <Button
           variant="outlined"
           startIcon={isFetchingToken ? <CircularProgress size={16} /> : <AccountBalanceIcon />}
-          disabled={isFetchingToken}
+          disabled={isFetchingToken || isFree}
           onClick={() => setPickingBudget(true)}
           sx={{ alignSelf: 'flex-start' }}
           size="small"
