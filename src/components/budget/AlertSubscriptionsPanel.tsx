@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { NotificationService } from '@/gen/wellspent/v1/notification_connect'
+import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { AlertTypeRow } from './alertSubscriptionsPanel/AlertTypeRow'
@@ -26,6 +27,7 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
   const t = useTranslations('notifications.alerts')
   const isFree = useIsFreeTier()
   const client = useClient(NotificationService)
+  const budgetClient = useClient(BudgetService)
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -33,12 +35,19 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
     queryFn: () => client.listAlertSubscriptions({ budgetProfileId }),
   })
 
+  const { data: categoriesData } = useQuery({
+    queryKey: ['categories', budgetProfileId],
+    queryFn: () => budgetClient.listCategories({ budgetProfileId }),
+  })
+  const categories = categoriesData?.categories ?? []
+
   const upsertMutation = useMutation({
     mutationFn: (vars: {
       alertType: string
       channel: string
       thresholdPct?: number
       thresholdScope?: string
+      categoryId?: number
     }) =>
       client.upsertAlertSubscription({
         budgetProfileId,
@@ -46,6 +55,7 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
         channel: vars.channel,
         thresholdPct: vars.thresholdPct ?? 0,
         thresholdScope: vars.thresholdScope ?? '',
+        categoryId: vars.categoryId ?? 0,
         notifyAllMembers: false,
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['alert-subscriptions', budgetProfileId] }),
@@ -99,16 +109,17 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
             key={alertType}
             alertType={alertType}
             subscription={subsByType.get(alertType)}
+            categories={categories}
             isPending={isPending || isLocked}
-            onEnable={(channel, thresholdPct, thresholdScope) =>
-              upsertMutation.mutate({ alertType, channel, thresholdPct, thresholdScope })
+            onEnable={(channel, thresholdPct, thresholdScope, categoryId) =>
+              upsertMutation.mutate({ alertType, channel, thresholdPct, thresholdScope, categoryId })
             }
             onDisable={() => {
               const sub = subsByType.get(alertType)
               if (sub) deleteMutation.mutate(sub.id)
             }}
-            onUpdate={(channel, thresholdPct, thresholdScope) =>
-              upsertMutation.mutate({ alertType, channel, thresholdPct, thresholdScope })
+            onUpdate={(channel, thresholdPct, thresholdScope, categoryId) =>
+              upsertMutation.mutate({ alertType, channel, thresholdPct, thresholdScope, categoryId })
             }
           />
         )

@@ -569,6 +569,7 @@
       "channel": "Entrega",
       "threshold": "Umbral de alerta",
       "scope": "Alcance de la alerta",
+      "category": "Categoría",
       "types": {
         "new_transaction": {
           "label": "Nueva transacción",

@@ -569,6 +569,7 @@
       "channel": "Delivery",
       "threshold": "Alert threshold",
       "scope": "Alert scope",
+      "category": "Category",
       "types": {
         "new_transaction": {
           "label": "New Transaction",

@@ -15,13 +15,19 @@ import type { AlertSubscription } from '@/gen/wellspent/v1/notification_pb'
 type AlertType = 'new_transaction' | 'spending_threshold' | 'period_created' | 'review_pending'
 type Channel = 'in_app' | 'email' | 'both'
 
+interface CategoryOption {
+  id: number
+  name: string
+}
+
 interface Props {
   alertType: AlertType
   subscription: AlertSubscription | undefined
+  categories: CategoryOption[]
   isPending: boolean
-  onEnable: (channel: Channel, thresholdPct?: number, thresholdScope?: string) => void
+  onEnable: (channel: Channel, thresholdPct?: number, thresholdScope?: string, categoryId?: number) => void
   onDisable: () => void
-  onUpdate: (channel: Channel, thresholdPct?: number, thresholdScope?: string) => void
+  onUpdate: (channel: Channel, thresholdPct?: number, thresholdScope?: string, categoryId?: number) => void
 }
 
 const THRESHOLD_MARKS = [
@@ -31,33 +37,45 @@ const THRESHOLD_MARKS = [
   { value: 100, label: '100%' },
 ]
 
-export function AlertTypeRow({ alertType, subscription, isPending, onEnable, onDisable, onUpdate }: Props) {
+export function AlertTypeRow({ alertType, subscription, categories, isPending, onEnable, onDisable, onUpdate }: Props) {
   const t = useTranslations('notifications.alerts')
   const enabled = !!subscription
 
   const channel = (subscription?.channel ?? 'in_app') as Channel
   const thresholdPct = subscription?.thresholdPct ?? 80
   const thresholdScope = subscription?.thresholdScope ?? 'budget'
+  const categoryId = subscription?.categoryId ?? 0
 
   function handleToggle(checked: boolean) {
     if (checked) {
       const defaultThreshold = alertType === 'spending_threshold' ? 80 : 0
-      onEnable(channel, defaultThreshold || undefined, thresholdScope)
+      onEnable(channel, defaultThreshold || undefined, thresholdScope, categoryId || undefined)
     } else {
       onDisable()
     }
   }
 
   function handleChannelChange(newChannel: Channel) {
-    if (enabled) onUpdate(newChannel, thresholdPct || undefined, thresholdScope)
+    if (enabled) onUpdate(newChannel, thresholdPct || undefined, thresholdScope, categoryId || undefined)
   }
 
   function handleThresholdChange(value: number) {
-    if (enabled) onUpdate(channel, value, thresholdScope)
+    if (enabled) onUpdate(channel, value, thresholdScope, categoryId || undefined)
   }
 
   function handleScopeChange(scope: string) {
-    if (enabled) onUpdate(channel, thresholdPct || undefined, scope)
+    if (!enabled) return
+    // Switching to "category" with nothing picked yet defaults to the first
+    // available category rather than leaving it unset — an unset category_id
+    // is silently skipped server-side (checkSpendingThreshold treats
+    // category_id=0 as "no category" and never fires), so the scope switch
+    // itself must not leave the subscription in that state.
+    const nextCategoryId = scope === 'category' ? categoryId || categories[0]?.id || undefined : undefined
+    onUpdate(channel, thresholdPct || undefined, scope, nextCategoryId)
+  }
+
+  function handleCategoryChange(newCategoryId: number) {
+    if (enabled) onUpdate(channel, thresholdPct || undefined, thresholdScope, newCategoryId)
   }
 
   return (
@@ -125,6 +143,22 @@ export function AlertTypeRow({ alertType, subscription, isPending, onEnable, onD
                   <MenuItem value="category">{t('scopes.category')}</MenuItem>
                 </Select>
               </FormControl>
+
+              {thresholdScope === 'category' && (
+                <FormControl size="small" sx={{ minWidth: 160, mt: 1 }} error={!categoryId}>
+                  <InputLabel>{t('category')}</InputLabel>
+                  <Select
+                    value={categoryId || ''}
+                    label={t('category')}
+                    onChange={(e) => handleCategoryChange(Number(e.target.value))}
+                    disabled={isPending}
+                  >
+                    {categories.map((c) => (
+                      <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
             </Box>
           )}
         </Box>
