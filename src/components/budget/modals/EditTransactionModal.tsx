@@ -135,22 +135,28 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
     if (!canSave) return
     // Locked (archived period or Plaid-linked): send every field back
     // exactly as originally recorded except category — the backend rejects
-    // an update that changes anything else in that case, and reconstructing
-    // from (unchanged, disabled) form state risks a spurious mismatch from
-    // string round-tripping, so this reads directly off `transaction`
-    // instead.
+    // an update that changes anything else in that case. Reconstructing from
+    // (unchanged, disabled) form state risks a spurious mismatch from string
+    // round-tripping, so this reads off the transaction record directly
+    // instead — but the `transaction` prop can itself be stale (e.g. a
+    // background Plaid sync updated `amount` after this list was fetched but
+    // before the user opened this modal), which would fail the same
+    // category-only check for a field the user never touched. Refetching
+    // immediately before submit closes that race.
     if (isLocked) {
       try {
+        const fresh = await client.listTransactions({ budgetPeriodId: transaction.budgetPeriodId })
+        const current = fresh.transactions.find((t) => t.id === transaction.id) ?? transaction
         await mutateAsync({
-          name: transaction.name,
-          amount: transaction.amount ?? { units: 0n, nanos: 0 },
-          plannedAmount: transaction.plannedAmount ?? { units: 0n, nanos: 0 },
-          date: transaction.date ?? { seconds: 0n, nanos: 0 },
+          name: current.name,
+          amount: current.amount ?? { units: 0n, nanos: 0 },
+          plannedAmount: current.plannedAmount ?? { units: 0n, nanos: 0 },
+          date: current.date ?? { seconds: 0n, nanos: 0 },
           categoryId,
-          paymentMethodId: transaction.paymentMethodId,
-          transactionTypeId: transaction.transactionTypeId,
-          transactionFrequencyId: transaction.transactionFrequencyId,
-          recurring: transaction.recurring,
+          paymentMethodId: current.paymentMethodId,
+          transactionTypeId: current.transactionTypeId,
+          transactionFrequencyId: current.transactionFrequencyId,
+          recurring: current.recurring,
         })
         logger.info('transaction.update.categoryOnly', { budgetProfileId, id: transaction.id, categoryId })
         onDone()
