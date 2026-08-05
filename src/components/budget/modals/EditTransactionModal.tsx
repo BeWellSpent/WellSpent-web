@@ -118,13 +118,14 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
     mutationFn: (vars: {
       name: string
       amount: { units: bigint; nanos: number }
+      plannedAmount: { units: bigint; nanos: number }
       date: { seconds: bigint; nanos: number }
       categoryId: number
       paymentMethodId: string
       transactionTypeId: number
       transactionFrequencyId: number
       recurring: boolean
-    }) => client.updateTransaction({ id: transaction.id, plannedAmount: vars.amount, ...vars }),
+    }) => client.updateTransaction({ id: transaction.id, ...vars }),
   })
 
   const isDateValid = isFixed ? dayOfMonth >= 1 && dayOfMonth <= 31 : !!date
@@ -143,6 +144,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
         await mutateAsync({
           name: transaction.name,
           amount: transaction.amount ?? { units: 0n, nanos: 0 },
+          plannedAmount: transaction.plannedAmount ?? { units: 0n, nanos: 0 },
           date: transaction.date ?? { seconds: 0n, nanos: 0 },
           categoryId,
           paymentMethodId: transaction.paymentMethodId,
@@ -168,6 +170,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
       await mutateAsync({
         name,
         amount: { units, nanos },
+        plannedAmount: { units, nanos },
         date: txDate,
         categoryId,
         paymentMethodId,
