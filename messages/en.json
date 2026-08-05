@@ -323,6 +323,7 @@
       "rowActions": "More actions",
       "edit": "Edit",
       "delete": "Delete",
+      "deletePlaidLocked": "Bank-imported transactions can't be deleted",
       "linkedToFixed": "fixed",
       "linkedToFixedTooltip": "Pending review — matched to \"{name}\""
     },
