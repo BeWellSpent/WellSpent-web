@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Box from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
@@ -45,6 +46,15 @@ export function AlertTypeRow({ alertType, subscription, categories, isPending, o
   const thresholdPct = subscription?.thresholdPct ?? 80
   const thresholdScope = subscription?.thresholdScope ?? 'budget'
   const categoryId = subscription?.categoryId ?? 0
+
+  // MUI's Slider onChange fires continuously during drag (many times per
+  // second), not just on release — wiring the mutation straight to it
+  // flooded the backend's rate limiter and disabled the slider mid-drag on
+  // every one of those in-flight requests. Local draft state tracks the
+  // thumb during drag; the mutation only fires once, on release
+  // (onChangeCommitted).
+  const [draftThreshold, setDraftThreshold] = useState(thresholdPct)
+  useEffect(() => setDraftThreshold(thresholdPct), [thresholdPct])
 
   function handleToggle(checked: boolean) {
     if (checked) {
@@ -117,17 +127,18 @@ export function AlertTypeRow({ alertType, subscription, categories, isPending, o
           {alertType === 'spending_threshold' && (
             <Box>
               <Typography variant="caption" color="text.secondary" gutterBottom>
-                {t('threshold')}: {thresholdPct}%
+                {t('threshold')}: {draftThreshold}%
               </Typography>
               <Slider
-                value={thresholdPct}
+                value={draftThreshold}
                 min={10}
                 max={100}
                 step={null}
                 marks={THRESHOLD_MARKS}
                 valueLabelDisplay="auto"
                 valueLabelFormat={(v) => `${v}%`}
-                onChange={(_, v) => handleThresholdChange(v as number)}
+                onChange={(_, v) => setDraftThreshold(v as number)}
+                onChangeCommitted={(_, v) => handleThresholdChange(v as number)}
                 disabled={isPending}
                 sx={{ mt: 1, width: 200 }}
               />
