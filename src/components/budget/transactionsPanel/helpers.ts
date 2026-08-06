@@ -235,6 +235,13 @@ export function compareTransactions(
   return primary !== 0 ? primary : a.id.localeCompare(b.id)
 }
 
+export function splitByPaidStatus(transactions: Transaction[]): { unpaid: Transaction[]; paid: Transaction[] } {
+  const unpaid: Transaction[] = []
+  const paid: Transaction[] = []
+  transactions.forEach((tx) => (tx.isPaid ? paid : unpaid).push(tx))
+  return { unpaid, paid }
+}
+
 export function groupTransactionsByDay(
   transactions: Transaction[],
   sortKey: SortKey,

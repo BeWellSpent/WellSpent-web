@@ -277,6 +277,8 @@
       "fixed": "Fijos",
       "variable": "Variables",
       "paid": "Pagado",
+      "unpaidSection": "Sin pagar ({count})",
+      "paidSection": "Pagado ({count})",
       "columns": {
         "item": "Concepto",
         "day": "Día",
@@ -329,6 +331,7 @@
     },
     "markForReview": {
       "title": "Marcar para revisión",
+      "amount": "Monto",
       "date": "Fecha",
       "category": "Categoría",
       "paymentMethod": "Método de pago",

@@ -9,6 +9,7 @@ import {
   resolveSwipeDirection,
   buildPendingReviewMatchMap,
   computeOverBudgetTxIds,
+  splitByPaidStatus,
 } from '../helpers'
 import type { Transaction, Category, PaymentMethod, BudgetPerson, TransactionReview, FixedExpense, ExpenseAllocation } from '@/gen/wellspent/v1/budget_pb'
 
@@ -309,6 +310,28 @@ describe('groupTransactionsByDay', () => {
 
   it('returns no groups for an empty transaction list', () => {
     expect(groupTransactionsByDay([], 'day', 'asc', categoryMap, methodMap, personMap)).toEqual([])
+  })
+})
+
+describe('splitByPaidStatus', () => {
+  it('separates paid and unpaid transactions', () => {
+    const a = makeTransaction({ id: 'a', isPaid: false })
+    const b = makeTransaction({ id: 'b', isPaid: true })
+    const c = makeTransaction({ id: 'c', isPaid: false })
+    const { unpaid, paid } = splitByPaidStatus([a, b, c])
+    expect(unpaid.map((t) => t.id)).toEqual(['a', 'c'])
+    expect(paid.map((t) => t.id)).toEqual(['b'])
+  })
+
+  it('preserves relative order within each group', () => {
+    const a = makeTransaction({ id: 'a', isPaid: true })
+    const b = makeTransaction({ id: 'b', isPaid: true })
+    const { paid } = splitByPaidStatus([a, b])
+    expect(paid.map((t) => t.id)).toEqual(['a', 'b'])
+  })
+
+  it('returns empty arrays for an empty input', () => {
+    expect(splitByPaidStatus([])).toEqual({ unpaid: [], paid: [] })
   })
 })
 

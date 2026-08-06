@@ -126,6 +126,9 @@ export function TxRow({
               {category && (
                 <Typography variant="caption" sx={{ color: category.color || 'text.secondary' }}>{category.name}</Typography>
               )}
+              {isFixed && formatDate(tx.date) && (
+                <Typography variant="caption" color="text.secondary">{formatDate(tx.date)}</Typography>
+              )}
             </Box>
           </TableCell>
           <TableCell align="right" sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 1.5 }}>
@@ -173,6 +176,9 @@ export function TxRow({
                   ({t('linkedToFixed')})
                 </Typography>
               </Tooltip>
+            )}
+            {isFixed && formatDate(tx.date) && (
+              <Typography variant="caption" color="text.secondary">{formatDate(tx.date)}</Typography>
             )}
           </Box>
         </TableCell>

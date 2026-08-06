@@ -277,6 +277,8 @@
       "fixed": "Fixed",
       "variable": "Variable",
       "paid": "Paid",
+      "unpaidSection": "Unpaid ({count})",
+      "paidSection": "Paid ({count})",
       "columns": {
         "item": "Item",
         "day": "Day",
@@ -329,6 +331,7 @@
     },
     "markForReview": {
       "title": "Flag for Review",
+      "amount": "Amount",
       "date": "Date",
       "category": "Category",
       "paymentMethod": "Payment method",

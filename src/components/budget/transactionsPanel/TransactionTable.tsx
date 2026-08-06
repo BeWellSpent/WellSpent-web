@@ -16,6 +16,7 @@ import { MarkForReviewDialog } from '../modals/MarkForReviewDialog'
 import { SortHeader } from './SortHeader'
 import { MobileRowActions } from './MobileRowActions'
 import { TxRow } from './TxRow'
+import { FixedExpenseSections } from './FixedExpenseSections'
 import {
   type SortKey,
   type FilterOption,
@@ -199,7 +200,7 @@ export function TransactionTable({
   const filteredNotDue = notDueFixedExpenses.filter((fe) =>
     matchesSearch(fe.name, fe.categoryId, fe.paymentMethodId, searchQuery, categoryMap, methodMap, personMap))
 
-  const dayGroups = groupTransactionsByDay(filteredTransactions, sortKey, sortDir, categoryMap, methodMap, personMap)
+  const dayGroups = isFixed ? [] : groupTransactionsByDay(filteredTransactions, sortKey, sortDir, categoryMap, methodMap, personMap)
 
   // Desktop: Item | Category | PaymentMethod | Owner | Planned | Actual | (actions) for fixed
   //          Item | Category | PaymentMethod | Owner | Amount | (actions) for variable
@@ -486,41 +487,56 @@ export function TransactionTable({
             )}
           </TableHead>
           <TableBody>
-            {dayGroups.length === 0 && filteredNotDue.length === 0 ? (
+            {isFixed ? (
+              <FixedExpenseSections
+                transactions={filteredTransactions}
+                notDueFixedExpenses={filteredNotDue}
+                sortKey={sortKey}
+                sortDir={sortDir}
+                categoryMap={categoryMap}
+                methodMap={methodMap}
+                personMap={personMap}
+                isMobile={isMobile}
+                colSpan={colSpan}
+                linkedVariableByFixedTxId={linkedVariableByFixedTxId}
+                fixedExpenseMap={fixedExpenseMap}
+                pendingReviewMatchByTxId={pendingReviewMatchByTxId}
+                buildActions={buildActions}
+                renderNotDueRow={renderNotDueRow}
+                emptyLabel={t('empty', { label })}
+              />
+            ) : dayGroups.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={colSpan} align="center" sx={{ py: 3, color: 'text.secondary' }}>
                   {t('empty', { label })}
                 </TableCell>
               </TableRow>
             ) : (
-              <>
-                {dayGroups.map((group) => (
-                  <Fragment key={group.day}>
-                    <TableRow>
-                      <TableCell colSpan={colSpan} sx={{ bgcolor: 'action.hover', py: 0.5 }}>
-                        <Typography variant="caption" fontWeight={600} color="text.secondary">{group.label}</Typography>
-                      </TableCell>
-                    </TableRow>
-                    {group.transactions.map((tx) => (
-                      <TxRow
-                        key={tx.id}
-                        tx={tx}
-                        isFixed={isFixed}
-                        isMobile={isMobile}
-                        linkedVariableTxs={linkedVariableByFixedTxId?.get(tx.id) ?? []}
-                        categoryMap={categoryMap}
-                        methodMap={methodMap}
-                        personMap={personMap}
-                        fixedExpenseMap={fixedExpenseMap}
-                        pendingReviewName={pendingReviewMatchByTxId?.get(tx.id)}
-                        colSpan={colSpan}
-                        actions={buildActions(tx)}
-                      />
-                    ))}
-                  </Fragment>
-                ))}
-                {isFixed && filteredNotDue.map((fe) => renderNotDueRow(fe))}
-              </>
+              dayGroups.map((group) => (
+                <Fragment key={group.day}>
+                  <TableRow>
+                    <TableCell colSpan={colSpan} sx={{ bgcolor: 'action.hover', py: 0.5 }}>
+                      <Typography variant="caption" fontWeight={600} color="text.secondary">{group.label}</Typography>
+                    </TableCell>
+                  </TableRow>
+                  {group.transactions.map((tx) => (
+                    <TxRow
+                      key={tx.id}
+                      tx={tx}
+                      isFixed={isFixed}
+                      isMobile={isMobile}
+                      linkedVariableTxs={linkedVariableByFixedTxId?.get(tx.id) ?? []}
+                      categoryMap={categoryMap}
+                      methodMap={methodMap}
+                      personMap={personMap}
+                      fixedExpenseMap={fixedExpenseMap}
+                      pendingReviewName={pendingReviewMatchByTxId?.get(tx.id)}
+                      colSpan={colSpan}
+                      actions={buildActions(tx)}
+                    />
+                  ))}
+                </Fragment>
+              ))
             )}
           </TableBody>
         </Table>
