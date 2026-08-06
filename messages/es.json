@@ -339,7 +339,8 @@
       "filterPlaceholder": "Filtrar transacciones…",
       "noFixed": "No hay transacciones fijas este período para comparar.",
       "noResults": "Ninguna transacción coincide con tu búsqueda.",
-      "paidBadge": "Pagado",
+      "unpaidSection": "Sin pagar ({count})",
+      "paidSection": "Pagado ({count})",
       "confirm": "Marcar",
       "cancel": "Cancelar"
     },

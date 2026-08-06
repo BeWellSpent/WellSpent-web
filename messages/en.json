@@ -339,7 +339,8 @@
       "filterPlaceholder": "Filter transactions…",
       "noFixed": "No fixed transactions this period to match against.",
       "noResults": "No transactions match your search.",
-      "paidBadge": "Paid",
+      "unpaidSection": "Unpaid ({count})",
+      "paidSection": "Paid ({count})",
       "confirm": "Flag",
       "cancel": "Cancel"
     },
