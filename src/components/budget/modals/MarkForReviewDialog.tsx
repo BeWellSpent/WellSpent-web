@@ -7,6 +7,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction, Category, PaymentMethod, BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useCurrency } from '@/hooks/useCurrency'
+import { formatMoney } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -59,6 +61,7 @@ export function MarkForReviewDialog({
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
+  const { currency, locale } = useCurrency()
   const isMobile = useIsMobile()
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -121,6 +124,12 @@ export function MarkForReviewDialog({
           <Box sx={{ px: 2, py: 1.5 }}>
             <Typography variant="subtitle2" gutterBottom>{transaction.name}</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">{t('amount')}</Typography>
+                <Typography variant="body2">
+                  {formatMoney(transaction.amount?.units ?? 0n, transaction.amount?.nanos ?? 0, currency, locale)}
+                </Typography>
+              </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary" display="block">{t('date')}</Typography>
                 <Typography variant="body2">{fmtDate(transaction.date)}</Typography>
