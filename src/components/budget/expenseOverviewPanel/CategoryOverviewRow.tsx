@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import type { Category, BudgetPerson, ExpenseAllocation, Transaction, PaymentMethod } from '@/gen/wellspent/v1/budget_pb'
+import type { Category, BudgetPerson, Transaction, PaymentMethod, CategoryExpenseSummary } from '@/gen/wellspent/v1/budget_pb'
 import { parseMoney } from '../expensesPanel/helpers'
 import { CategoryTransactionList } from './CategoryTransactionList'
 import Box from '@mui/material/Box'
@@ -16,13 +16,8 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 interface Props {
   cat: Category
   people: BudgetPerson[]
-  actual: number
-  planned: number
+  summary: CategoryExpenseSummary
   totalActual: number
-  txnActualByPersonCat: Map<string, number>
-  allocMap: Map<string, ExpenseAllocation>
-  savingsByPerson: Map<string, number>
-  isSavings: boolean
   isExpanded: boolean
   onToggle: () => void
   formatMoney: (v: number) => string
@@ -33,12 +28,14 @@ interface Props {
 }
 
 export function CategoryOverviewRow({
-  cat, people, actual, planned, totalActual, txnActualByPersonCat, allocMap, savingsByPerson,
-  isSavings, isExpanded, onToggle, formatMoney,
+  cat, people, summary, totalActual,
+  isExpanded, onToggle, formatMoney,
   catTransactions, categoryMap, methodMap, personMap,
 }: Props) {
   const t = useTranslations('budget.overview')
-  const isOver = planned > 0 && actual > planned
+  const actual = parseMoney(summary.actualTotal?.units ?? 0n, summary.actualTotal?.nanos ?? 0)
+  const planned = parseMoney(summary.plannedTotal?.units ?? 0n, summary.plannedTotal?.nanos ?? 0)
+  const isOver = summary.isOver
   const actualColor = actual > 0 ? (isOver ? 'error.main' : 'success.main') : 'text.disabled'
   const hasPeople = people.length > 1
   const isExpandable = hasPeople || catTransactions.length > 0
@@ -95,21 +92,14 @@ export function CategoryOverviewRow({
         </TableCell>
       </TableRow>
 
-      {hasPeople && isExpanded && people.map((p) => {
-        const personActual = txnActualByPersonCat.get(`${cat.id}:${p.id}`) ?? 0
-        let personPlanned = 0
-        if (isSavings) {
-          personPlanned = savingsByPerson.get(p.id.toString()) ?? 0
-        } else {
-          const alloc = allocMap.get(`${cat.id}:${p.id}`)
-          personPlanned = alloc
-            ? parseMoney(alloc.plannedAmount?.units ?? 0n, alloc.plannedAmount?.nanos ?? 0)
-            : 0
-        }
-        if (personActual === 0 && personPlanned === 0) return null
+      {hasPeople && isExpanded && summary.personBreakdowns.map((pb) => {
+        const p = personMap.get(pb.budgetPersonId.toString())
+        if (!p) return null
+        const personActual = parseMoney(pb.actualTotal?.units ?? 0n, pb.actualTotal?.nanos ?? 0)
+        const personPlanned = parseMoney(pb.plannedTotal?.units ?? 0n, pb.plannedTotal?.nanos ?? 0)
         const isPersonOver = personPlanned > 0 && personActual > personPlanned
         return (
-          <TableRow key={p.id.toString()} sx={{ bgcolor: 'action.hover' }}>
+          <TableRow key={pb.budgetPersonId.toString()} sx={{ bgcolor: 'action.hover' }}>
             <TableCell sx={{ py: 0.5, pr: 0 }} />
             <TableCell sx={{ py: 0.5, pl: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

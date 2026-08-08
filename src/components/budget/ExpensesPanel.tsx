@@ -101,14 +101,22 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     queryFn: () => client.listSavingsSources({ budgetProfileId }),
   })
 
-  const { data: incomeData, isLoading: incomeLoading } = useQuery({
-    queryKey: ['income-sources', budgetProfileId],
-    queryFn: () => client.listIncomeSources({ budgetProfileId }),
-  })
-
   const { data: fixedExpensesData, isLoading: fixedExpensesLoading, refetch: refetchFixedExpenses } = useQuery({
     queryKey: ['fixed-expenses', budgetProfileId],
     queryFn: () => client.listFixedExpenses({ budgetProfileId }),
+  })
+
+  // Server-computed committed/remainder totals and category visibility —
+  // the single source of truth both web and iOS consume for these numbers,
+  // replacing local re-derivation that previously drifted between the two
+  // clients (see docs/features/expense-summary.md, issue #35). Per-row
+  // editable values (allocMap, fixedPlannedByCat, notDueFixedByCat below)
+  // stay client-side since editing needs the raw, mutable allocation
+  // entities, not a read-only computed summary.
+  const { data: summaryData, isLoading: summaryLoading } = useQuery({
+    queryKey: ['expense-summary', budgetPeriodId],
+    queryFn: () => client.getExpenseSummary({ budgetPeriodId: budgetPeriodId! }),
+    enabled: !!budgetPeriodId,
   })
 
   const { mutateAsync: upsertAlloc } = useMutation({
@@ -176,10 +184,11 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     setEditDialog((prev) => ({ ...prev, open: false }))
   }
 
-  const isLoading = catsLoading || peopleLoading || allocsLoading || txnsLoading || pmLoading || savingsLoading || incomeLoading || fixedExpensesLoading
-  if (isLoading) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
+  const isLoading = catsLoading || peopleLoading || allocsLoading || txnsLoading || pmLoading || savingsLoading || fixedExpensesLoading || summaryLoading
+  if (isLoading || !summaryData) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
 
   const categories = categoriesData?.categories ?? []
+  const categoryMap = new Map<number, Category>(categories.map((c) => [c.id, c]))
   const people = peopleData?.people ?? []
   const allocations = allocationsData?.allocations ?? []
   // Income-category (e.g. payroll) and manually-excluded transactions never
@@ -190,7 +199,6 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
   const paymentMethods = paymentMethodsData?.methods ?? []
   const savingsSources = savingsData?.sources ?? []
-  const incomeSources = incomeData?.sources ?? []
   const fixedExpenses = (fixedExpensesData?.expenses ?? []).filter((fe) => fe.isActive)
 
   // allocation lookup: "catId:personId" → allocation
@@ -229,11 +237,9 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   // — shown as a muted "not due" row so the category never simply vanishes
   // between due periods (see docs/features/fixed-transactions-frequency.md).
   const notDueFixedByCat = new Map<number, NotDueInfo>()
-  const fixedExpenseCatIds = new Set<number>()
   for (const fe of fixedExpenses) {
     if (!fe.categoryId) continue
     if (savingsCat && fe.categoryId === savingsCat.id) continue
-    fixedExpenseCatIds.add(fe.categoryId)
     if (fixedPlannedByCat.has(fe.categoryId)) continue // already has a due transaction this period
     const amt = parseMoney(fe.plannedAmount?.units ?? 0n, fe.plannedAmount?.nanos ?? 0)
     const nextDue = fe.nextDueDate ? new Date(Number(fe.nextDueDate.seconds) * 1000) : undefined
@@ -255,24 +261,19 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   }
   const savingsTotal = [...savingsByPerson.values()].reduce((a, b) => a + b, 0)
 
-  // Sort by planned amount descending so highest-budget categories appear first.
-  const getCatPlanned = (catId: number): number => {
-    if (savingsCat?.id === catId) return savingsTotal
-    let total = 0
-    for (const p of people) {
-      const alloc = allocMap.get(`${catId}:${p.id}`)
-      if (alloc) total += parseMoney(alloc.plannedAmount?.units ?? 0n, alloc.plannedAmount?.nanos ?? 0)
-    }
-    return total || (fixedPlannedByCat.get(catId) ?? (notDueFixedByCat.get(catId)?.amount ?? 0))
-  }
-
-  const visibleCats = categories
-    .filter(
-      (c) => catIdsWithAllocs.has(c.id) || pinnedCategoryIds.has(c.id) ||
-             (savingsCat?.id === c.id && savingsSources.length > 0) ||
-             fixedPlannedByCat.has(c.id) || fixedExpenseCatIds.has(c.id),
-    )
-    .sort((a, b) => getCatPlanned(b.id) - getCatPlanned(a.id))
+  // Visibility + sort order (by planned amount descending) come straight
+  // from the server, already correct. pinnedCategoryIds is purely local,
+  // ephemeral UI state (a category the user just picked from the "add"
+  // autocomplete, before saving a real allocation) with no server-side
+  // equivalent — appended after the server-sorted list, which is safe
+  // since a freshly-pinned category has $0 planned and belongs at the end
+  // of a descending sort anyway.
+  const planCategoryIds = new Set(summaryData.planCategories.map((pc) => pc.categoryId))
+  const sortedPlanCats = summaryData.planCategories
+    .map((pc) => categoryMap.get(pc.categoryId))
+    .filter((c): c is Category => !!c)
+  const pinnedOnlyCats = categories.filter((c) => pinnedCategoryIds.has(c.id) && !planCategoryIds.has(c.id))
+  const visibleCats = [...sortedPlanCats, ...pinnedOnlyCats]
   const visibleCatIds = new Set(visibleCats.map((c) => c.id))
   // Savings category is system-managed — exclude from the manual picker
   const addableCategories = categories.filter(
@@ -319,35 +320,8 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     }).filter((d) => d.value > 0)
   })()
 
-  const plannedExpenseTotal = visibleCats.reduce((sum, cat) => {
-    let catTotal = 0
-    if (savingsCat && cat.id === savingsCat.id) {
-      catTotal = savingsTotal
-    } else {
-      for (const p of people) {
-        const alloc = allocMap.get(`${cat.id}:${p.id}`)
-        if (alloc) catTotal += parseMoney(alloc.plannedAmount?.units ?? 0n, alloc.plannedAmount?.nanos ?? 0)
-      }
-    }
-    return sum + catTotal
-  }, 0)
-
-  const fixedExpenseTotal = transactions
-    .filter((tx) =>
-      tx.transactionTypeId === 1 &&
-      (!tx.categoryId || !catIdsWithAllocs.has(tx.categoryId)) &&
-      (!savingsCat || tx.categoryId !== savingsCat.id),
-    )
-    .reduce((sum, tx) => sum + parseMoney(tx.plannedAmount?.units ?? 0n, tx.plannedAmount?.nanos ?? 0), 0)
-
-  const incomeTotal = incomeSources.reduce(
-    (sum, s) => sum + parseMoney(s.defaultAmount?.units ?? 0n, s.defaultAmount?.nanos ?? 0),
-    0,
-  )
-
-  // savings are now part of plannedExpenseTotal (shown as the Savings category row)
-  const totalCommitted = plannedExpenseTotal + fixedExpenseTotal
-  const remainder = incomeTotal - totalCommitted
+  const totalCommitted = parseMoney(summaryData.totalCommitted?.units ?? 0n, summaryData.totalCommitted?.nanos ?? 0)
+  const remainder = parseMoney(summaryData.remainderPlan?.units ?? 0n, summaryData.remainderPlan?.nanos ?? 0)
 
   const footerCellSx = { borderTop: '2px solid', borderColor: 'divider', fontSize: '0.95rem', fontWeight: 700 }
 
