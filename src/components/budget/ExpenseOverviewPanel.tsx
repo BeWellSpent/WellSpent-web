@@ -5,11 +5,11 @@ import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
-import type { ExpenseAllocation, Category, PaymentMethod, BudgetPerson, Transaction } from '@/gen/wellspent/v1/budget_pb'
+import type { Category, PaymentMethod, BudgetPerson, Transaction, CategoryExpenseSummary } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoneyFromNumber } from '@/lib/format'
-import { parseMoney, computeActualTotals } from './expensesPanel/helpers'
+import { parseMoney } from './expensesPanel/helpers'
 import { isTransactionExcluded } from './transactionsPanel/helpers'
 import { ExpenseChart, type ExpenseChartDatum } from './expensesPanel/ExpenseChart'
 import { CategoryOverviewRow } from './expenseOverviewPanel/CategoryOverviewRow'
@@ -30,6 +30,10 @@ const CHART_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#a
 interface Props {
   budgetProfileId: string
   budgetPeriodId: string | undefined
+}
+
+function money(m: { units: bigint; nanos: number } | undefined): number {
+  return parseMoney(m?.units ?? 0n, m?.nanos ?? 0)
 }
 
 export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props) {
@@ -54,10 +58,6 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
     queryKey: ['budget-people', budgetProfileId],
     queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
-  const { data: allocationsData, isLoading: allocsLoading } = useQuery({
-    queryKey: ['expense-allocations', budgetProfileId],
-    queryFn: () => client.listExpenseAllocations({ budgetProfileId }),
-  })
   const { data: transactionsData, isLoading: txnsLoading } = useQuery({
     queryKey: ['transactions', budgetPeriodId],
     queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId! }),
@@ -67,117 +67,53 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
     queryKey: ['payment-methods', budgetProfileId],
     queryFn: () => client.listPaymentMethods({ budgetProfileId }),
   })
-  const { data: savingsData, isLoading: savingsLoading } = useQuery({
-    queryKey: ['savings-sources', budgetProfileId],
-    queryFn: () => client.listSavingsSources({ budgetProfileId }),
-  })
-  const { data: fixedExpensesData, isLoading: fixedExpensesLoading } = useQuery({
-    queryKey: ['fixed-expenses', budgetProfileId],
-    queryFn: () => client.listFixedExpenses({ budgetProfileId }),
-  })
-  const { data: incomeData, isLoading: incomeLoading } = useQuery({
-    queryKey: ['income-entries', budgetPeriodId],
-    queryFn: () => client.listIncomeEntries({ budgetPeriodId: budgetPeriodId! }),
+  // Server-computed planned/actual/remainder/over-budget/unplanned totals —
+  // the single source of truth both web and iOS consume, replacing the
+  // local re-derivation that previously drifted between the two clients
+  // (see docs/features/expense-summary.md, issue #35).
+  const { data: summaryData, isLoading: summaryLoading } = useQuery({
+    queryKey: ['expense-summary', budgetPeriodId],
+    queryFn: () => client.getExpenseSummary({ budgetPeriodId: budgetPeriodId! }),
     enabled: !!budgetPeriodId,
   })
 
-  const isLoading = catsLoading || peopleLoading || allocsLoading || txnsLoading || pmLoading || savingsLoading || fixedExpensesLoading || incomeLoading
-  if (isLoading) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
+  const isLoading = catsLoading || peopleLoading || txnsLoading || pmLoading || summaryLoading
+  if (isLoading || !summaryData) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
 
   const categories = categoriesData?.categories ?? []
   const people = peopleData?.people ?? []
-  const allocations = allocationsData?.allocations ?? []
   const incomeCategoryId = categories.find((c) => c.name === 'Income' && c.isSystem)?.id
   const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
   const paymentMethods = paymentMethodsData?.methods ?? []
-  const savingsSources = savingsData?.sources ?? []
-  const fixedExpenses = (fixedExpensesData?.expenses ?? []).filter((fe) => fe.isActive)
 
   const categoryMap = new Map<number, Category>(categories.map((c) => [c.id, c]))
   const methodMap = new Map<string, PaymentMethod>(paymentMethods.map((pm) => [pm.id, pm]))
   const personMap = new Map<string, BudgetPerson>(people.map((p) => [p.id.toString(), p]))
 
+  // Raw per-category transaction list for the expandable drill-down — this
+  // is display data, not a calculation, so it still comes from the period's
+  // transaction list rather than the summary RPC.
   const transactionsByCatId = new Map<number, Transaction[]>()
   for (const tx of transactions) {
     if (!tx.categoryId) continue
-    if (tx.transactionTypeId === 1 && !tx.isPaid) continue  // unpaid fixed: not yet spent
+    if (tx.transactionTypeId === 1 && !tx.isPaid) continue // unpaid fixed: not yet spent
     if (!transactionsByCatId.has(tx.categoryId)) transactionsByCatId.set(tx.categoryId, [])
     transactionsByCatId.get(tx.categoryId)!.push(tx)
   }
 
-  const pmPersonMap = new Map<string, bigint>()
-  for (const pm of paymentMethods) {
-    pmPersonMap.set(pm.id, pm.budgetPersonId)
-  }
+  // Already visible-filtered and sorted by actual descending, server-side.
+  const visibleCats = summaryData.overviewCategories
+    .map((summary) => ({ cat: categoryMap.get(summary.categoryId), summary }))
+    .filter((x): x is { cat: Category; summary: CategoryExpenseSummary } => !!x.cat)
 
-  const { byCat: txnActualByCat, byPersonCat: txnActualByPersonCat, uncategorized: uncategorizedActual } = computeActualTotals(transactions, pmPersonMap)
-
-  const allocMap = new Map<string, ExpenseAllocation>()
-  for (const a of allocations) {
-    allocMap.set(`${a.categoryId}:${a.budgetPersonId}`, a)
-  }
-  const catIdsWithAllocs = new Set(allocations.map((a) => a.categoryId))
-
-  // Fixed planned per category (for plan comparison)
-  const fixedPlannedByCat = new Map<number, number>()
-  for (const tx of transactions) {
-    if (tx.transactionTypeId !== 1 || !tx.categoryId) continue
-    const amt = parseMoney(tx.plannedAmount?.units ?? 0n, tx.plannedAmount?.nanos ?? 0)
-    fixedPlannedByCat.set(tx.categoryId, (fixedPlannedByCat.get(tx.categoryId) ?? 0) + amt)
-  }
-  // Also include planned amounts from active fixed expense templates (not yet due this period)
-  for (const fe of fixedExpenses) {
-    if (!fe.categoryId || fixedPlannedByCat.has(fe.categoryId)) continue
-    const amt = parseMoney(fe.plannedAmount?.units ?? 0n, fe.plannedAmount?.nanos ?? 0)
-    fixedPlannedByCat.set(fe.categoryId, (fixedPlannedByCat.get(fe.categoryId) ?? 0) + amt)
-  }
-
-  const savingsCat = categories.find((c) => c.name === 'Savings' && c.isSystem)
-  const savingsByPerson = new Map<string, number>()
-  for (const s of savingsSources) {
-    const personKey = s.budgetPersonId.toString()
-    const amt = parseMoney(s.amount?.units ?? 0n, s.amount?.nanos ?? 0)
-    savingsByPerson.set(personKey, (savingsByPerson.get(personKey) ?? 0) + amt)
-  }
-  const savingsTotal = [...savingsByPerson.values()].reduce((a, b) => a + b, 0)
-
-  function getCategoryPlanned(catId: number): number {
-    if (savingsCat?.id === catId) return savingsTotal
-    let planned = 0
-    for (const p of people) {
-      const alloc = allocMap.get(`${catId}:${p.id}`)
-      if (alloc) planned += parseMoney(alloc.plannedAmount?.units ?? 0n, alloc.plannedAmount?.nanos ?? 0)
-    }
-    return planned > 0 ? planned : (fixedPlannedByCat.get(catId) ?? 0)
-  }
-
-  // Show categories with actual spending OR a plan (so unspent budget is visible too),
-  // sorted by actual amount descending so highest-spend categories appear first.
-  const visibleCats = categories
-    .filter((c) =>
-      txnActualByCat.has(c.id) ||
-      catIdsWithAllocs.has(c.id) ||
-      (savingsCat?.id === c.id && savingsSources.length > 0) ||
-      fixedPlannedByCat.has(c.id),
-    )
-    .sort((a, b) => (txnActualByCat.get(b.id) ?? 0) - (txnActualByCat.get(a.id) ?? 0))
-
-  const incomeEntries = incomeData?.entries ?? []
-  const totalIncome = incomeEntries.reduce((sum, e) => sum + parseMoney(e.amount?.units ?? 0n, e.amount?.nanos ?? 0), 0)
-
-  const totalActual = [...txnActualByCat.values()].reduce((a, b) => a + b, 0) + uncategorizedActual
-  const totalPlanned = visibleCats.reduce((sum, cat) => sum + getCategoryPlanned(cat.id), 0)
-  const actualRemainder = totalIncome - totalActual
-  const plannedRemainder = totalIncome - totalPlanned
-
-  let totalOverBudget = 0
-  let totalUnplanned = uncategorizedActual
-  for (const cat of visibleCats) {
-    const actual = txnActualByCat.get(cat.id) ?? 0
-    const planned = getCategoryPlanned(cat.id)
-    if (planned <= 0) totalUnplanned += actual
-    else if (actual > planned) totalOverBudget += actual - planned
-  }
+  const uncategorizedActual = money(summaryData.uncategorizedActual)
+  const totalActual = money(summaryData.totalActual)
+  const totalPlanned = money(summaryData.totalPlanned)
+  const totalIncome = money(summaryData.incomeFromEntries)
+  const actualRemainder = money(summaryData.remainderActual)
+  const plannedRemainder = money(summaryData.remainderPlanned)
+  const totalOverBudget = money(summaryData.totalOverBudget)
+  const totalUnplanned = money(summaryData.totalUnplanned)
 
   const footerCellSx = { borderTop: '2px solid', borderColor: 'divider', fontSize: '0.95rem', fontWeight: 700 }
 
@@ -193,21 +129,20 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   // Chart: actual amounts per category (red when overspent), or by person
   const chartData: ExpenseChartDatum[] = (() => {
     if (chartGrouping === 'category') {
-      return visibleCats.map((cat, i) => {
-        const actual = txnActualByCat.get(cat.id) ?? 0
-        const planned = getCategoryPlanned(cat.id)
-        const isOver = planned > 0 && actual > planned
+      return visibleCats.map(({ cat, summary }, i) => {
+        const actual = money(summary.actualTotal)
         return {
           name: cat.name,
           value: actual,
-          color: isOver ? '#ef4444' : (cat.color || CHART_COLORS[i % CHART_COLORS.length]),
+          color: summary.isOver ? '#ef4444' : (cat.color || CHART_COLORS[i % CHART_COLORS.length]),
         }
       }).filter((d) => d.value > 0)
     }
     return people.map((p, i) => {
       let value = 0
-      for (const cat of visibleCats) {
-        value += txnActualByPersonCat.get(`${cat.id}:${p.id}`) ?? 0
+      for (const { summary } of visibleCats) {
+        const pb = summary.personBreakdowns.find((x) => x.budgetPersonId === p.id)
+        if (pb) value += money(pb.actualTotal)
       }
       return { name: p.userName, value, color: p.color || CHART_COLORS[i % CHART_COLORS.length] }
     }).filter((d) => d.value > 0)
@@ -239,18 +174,13 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
         </Typography>
       ) : isMobile ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {visibleCats.map((cat) => (
+          {visibleCats.map(({ cat, summary }) => (
             <CategoryOverviewCard
               key={cat.id}
               cat={cat}
               people={people}
-              actual={txnActualByCat.get(cat.id) ?? 0}
-              planned={getCategoryPlanned(cat.id)}
+              summary={summary}
               totalActual={totalActual}
-              txnActualByPersonCat={txnActualByPersonCat}
-              allocMap={allocMap}
-              savingsByPerson={savingsByPerson}
-              isSavings={savingsCat?.id === cat.id}
               isExpanded={expandedCats.has(cat.id)}
               onToggle={() => toggleCategory(cat.id)}
               formatMoney={formatMoney}
@@ -314,18 +244,13 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
               </TableRow>
             </TableHead>
             <TableBody>
-              {visibleCats.map((cat) => (
+              {visibleCats.map(({ cat, summary }) => (
                 <CategoryOverviewRow
                   key={cat.id}
                   cat={cat}
                   people={people}
-                  actual={txnActualByCat.get(cat.id) ?? 0}
-                  planned={getCategoryPlanned(cat.id)}
+                  summary={summary}
                   totalActual={totalActual}
-                  txnActualByPersonCat={txnActualByPersonCat}
-                  allocMap={allocMap}
-                  savingsByPerson={savingsByPerson}
-                  isSavings={savingsCat?.id === cat.id}
                   isExpanded={expandedCats.has(cat.id)}
                   onToggle={() => toggleCategory(cat.id)}
                   formatMoney={formatMoney}

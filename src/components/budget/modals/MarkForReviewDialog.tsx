@@ -10,6 +10,7 @@ import { useClient } from '@/hooks/useClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoney } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { splitByPaidStatus } from '../transactionsPanel/helpers'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -20,14 +21,17 @@ import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
+import ListSubheader from '@mui/material/ListSubheader'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
 import InputAdornment from '@mui/material/InputAdornment'
-import Chip from '@mui/material/Chip'
+import IconButton from '@mui/material/IconButton'
 import SearchIcon from '@mui/icons-material/Search'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { logger } from '@/lib/logger'
 
 function fmtMoney(tx: Transaction): string {
@@ -66,6 +70,7 @@ export function MarkForReviewDialog({
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
+  const [paidExpanded, setPaidExpanded] = useState(false)
 
   // Candidates are the period's own Fixed-type transactions — the exact same
   // query the Fixed tab uses. Savings-derived transactions are transaction_type_id
@@ -101,6 +106,7 @@ export function MarkForReviewDialog({
   function handleClose() {
     setSelectedId(null)
     setFilter('')
+    setPaidExpanded(false)
     onClose()
   }
 
@@ -114,6 +120,28 @@ export function MarkForReviewDialog({
   const candidates = (fixedTxData?.transactions ?? []).filter(
     (tx) => !filterLower || tx.name.toLowerCase().includes(filterLower),
   )
+  // Unpaid candidates are far more likely to be the intended match (a
+  // just-imported charge is rarely being matched against something already
+  // settled) — surfacing them uncollapsed, with paid ones tucked behind a
+  // collapsed section, makes the list easier to scan (same split as the
+  // Fixed tab itself, see transactionsPanel/FixedExpenseSections.tsx).
+  const { unpaid: unpaidCandidates, paid: paidCandidates } = splitByPaidStatus(candidates)
+
+  function renderCandidate(tx: Transaction) {
+    return (
+      <ListItem key={tx.id} disablePadding>
+        <ListItemButton
+          selected={selectedId === tx.id}
+          onClick={() => setSelectedId(tx.id)}
+        >
+          <ListItemText
+            primary={tx.name}
+            secondary={fmtMoney(tx)}
+          />
+        </ListItemButton>
+      </ListItem>
+    )
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullScreen={isMobile} maxWidth="sm" fullWidth>
@@ -190,20 +218,25 @@ export function MarkForReviewDialog({
           </Box>
         ) : (
           <List disablePadding>
-            {candidates.map((tx) => (
-              <ListItem key={tx.id} disablePadding>
-                <ListItemButton
-                  selected={selectedId === tx.id}
-                  onClick={() => setSelectedId(tx.id)}
-                >
-                  <ListItemText
-                    primary={tx.name}
-                    secondary={fmtMoney(tx)}
-                  />
-                  {tx.isPaid && <Chip label={t('paidBadge')} size="small" variant="outlined" sx={{ ml: 1 }} />}
-                </ListItemButton>
-              </ListItem>
-            ))}
+            {unpaidCandidates.length > 0 && paidCandidates.length > 0 && (
+              <ListSubheader disableGutters sx={{ px: 2, lineHeight: '32px' }}>
+                {t('unpaidSection', { count: unpaidCandidates.length })}
+              </ListSubheader>
+            )}
+            {unpaidCandidates.map(renderCandidate)}
+            {paidCandidates.length > 0 && (
+              <ListSubheader
+                disableGutters
+                onClick={() => setPaidExpanded((v) => !v)}
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 2, cursor: 'pointer', lineHeight: '36px' }}
+              >
+                <IconButton size="small" sx={{ p: 0 }} aria-label={t('paidSection', { count: paidCandidates.length })}>
+                  {paidExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+                </IconButton>
+                {t('paidSection', { count: paidCandidates.length })}
+              </ListSubheader>
+            )}
+            {paidExpanded && paidCandidates.map(renderCandidate)}
           </List>
         )}
       </DialogContent>
