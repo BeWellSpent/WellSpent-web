@@ -13,6 +13,7 @@ export const NAV_SECTIONS = [
   { key: 'useCases', id: 'use-cases' },
   { key: 'pricing', id: 'pricing' },
   { key: 'download', id: 'download' },
+  { key: 'about', id: 'about' },
 ] as const
 
 export const SECTION_SX = {

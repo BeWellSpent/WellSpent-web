@@ -10,7 +10,7 @@ export function AboutSection() {
   const t = useTranslations('landing')
 
   return (
-    <Box sx={{ ...SECTION_SX, bgcolor: 'background.paper' }}>
+    <Box id="about" sx={{ ...SECTION_SX, bgcolor: 'background.paper' }}>
       <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
         <Typography variant="h4" fontWeight={700} gutterBottom>
           {t('about.title')}
