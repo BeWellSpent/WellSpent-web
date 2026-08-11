@@ -34,18 +34,28 @@
     },
     "language": "Language",
     "currency": "Currency",
-    "banner": {
-      "message": "Please verify your email address to secure your account.",
-      "resend": "Resend email",
-      "sending": "Sending…",
-      "sent": "Verification email sent"
-    },
     "verifyEmail": {
       "verifying": "Verifying your email…",
       "success": "Your email address has been verified.",
       "error": "This verification link is invalid or has expired.",
       "goToBudgets": "Go to your budgets",
       "signIn": "Go to sign in"
+    },
+    "verifyGate": {
+      "title": "Verify your email address",
+      "message": "We sent a verification link to {email}. Confirm your address to start using WellSpent. The link expires in 10 minutes.",
+      "resend": "Resend verification email",
+      "sending": "Sending…",
+      "sent": "Verification email sent. Check your inbox.",
+      "resendFailed": "Couldn't resend the verification email. Please try again.",
+      "logout": "Log out",
+      "wrongEmail": "Wrong email address? Change it",
+      "newEmail": "New email address",
+      "newEmailHint": "We'll send a new verification link to this address.",
+      "changeSubmit": "Save and resend",
+      "changing": "Saving…",
+      "changeFailed": "Couldn't change your email address. Please try again.",
+      "cancel": "Cancel"
     }
   },
   "settings": {
