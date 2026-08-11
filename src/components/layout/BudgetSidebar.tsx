@@ -17,7 +17,6 @@ import { MobileTopBar } from './sidebar/MobileTopBar'
 import { MobileManageDrawer } from './sidebar/MobileManageDrawer'
 import { ManagementDrawers } from './sidebar/ManagementDrawers'
 import type { NavItem } from './sidebar/types'
-import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
@@ -147,7 +146,6 @@ export function BudgetSidebar({ budgetId, children }: Props) {
 
       {/* Main content */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <EmailVerificationBanner />
         {isMobile && (
           <MobileTopBar
             iconSrc={iconSrc}

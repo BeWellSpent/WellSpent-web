@@ -34,18 +34,28 @@
     },
     "language": "Idioma",
     "currency": "Moneda",
-    "banner": {
-      "message": "Verifica tu dirección de correo electrónico para proteger tu cuenta.",
-      "resend": "Reenviar correo",
-      "sending": "Enviando…",
-      "sent": "Correo de verificación enviado"
-    },
     "verifyEmail": {
       "verifying": "Verificando tu correo electrónico…",
       "success": "Tu dirección de correo electrónico ha sido verificada.",
       "error": "Este enlace de verificación no es válido o ha expirado.",
       "goToBudgets": "Ir a tus presupuestos",
       "signIn": "Ir a iniciar sesión"
+    },
+    "verifyGate": {
+      "title": "Verifica tu dirección de correo",
+      "message": "Enviamos un enlace de verificación a {email}. Confirma tu dirección para empezar a usar WellSpent. El enlace vence en 10 minutos.",
+      "resend": "Reenviar correo de verificación",
+      "sending": "Enviando…",
+      "sent": "Correo de verificación enviado. Revisa tu bandeja de entrada.",
+      "resendFailed": "No pudimos reenviar el correo de verificación. Inténtalo de nuevo.",
+      "logout": "Cerrar sesión",
+      "wrongEmail": "¿Dirección incorrecta? Cámbiala",
+      "newEmail": "Nueva dirección de correo",
+      "newEmailHint": "Enviaremos un nuevo enlace de verificación a esta dirección.",
+      "changeSubmit": "Guardar y reenviar",
+      "changing": "Guardando…",
+      "changeFailed": "No pudimos cambiar tu dirección de correo. Inténtalo de nuevo.",
+      "cancel": "Cancelar"
     }
   },
   "settings": {
