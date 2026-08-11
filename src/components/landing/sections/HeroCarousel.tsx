@@ -11,7 +11,12 @@ import Fade from '@mui/material/Fade'
 import { useLocale, useTranslations } from 'next-intl'
 import { HERO_SLIDES, SLIDE_INTERVAL_MS, scrollToSection } from '../constants'
 
-export function HeroCarousel() {
+type Props = {
+  /** Signed-in visitors are sent into the app rather than to registration. */
+  isAuthenticated: boolean
+}
+
+export function HeroCarousel({ isAuthenticated }: Props) {
   const t = useTranslations('landing')
   const locale = useLocale()
   const isMobile = useIsMobile()
@@ -80,7 +85,7 @@ export function HeroCarousel() {
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Button
                 component={NextLink}
-                href={`/${locale}/register`}
+                href={isAuthenticated ? `/${locale}/budgets` : `/${locale}/register`}
                 variant="contained"
                 size="large"
                 sx={{
@@ -92,7 +97,7 @@ export function HeroCarousel() {
                   '&:hover': { bgcolor: 'grey.100' },
                 }}
               >
-                {t('hero.cta')}
+                {isAuthenticated ? t('nav.openApp') : t('hero.cta')}
               </Button>
               <Button
                 variant="outlined"

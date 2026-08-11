@@ -136,7 +136,8 @@
         "cancel": "Cancel",
         "delete": "Delete",
         "deleting": "Deleting…"
-      }
+      },
+      "aboutSite": "About WellSpent"
     },
     "view": {
       "failedToLoad": "Failed to load budget.",
@@ -486,7 +487,10 @@
       "download": "Download",
       "signIn": "Sign In",
       "getStarted": "Get Started",
-      "menu": "Open menu"
+      "menu": "Open menu",
+      "about": "About Us",
+      "allFeatures": "All features",
+      "openApp": "Open app"
     },
     "hero": {
       "slide1Title": "Plan Before You Spend",
@@ -502,21 +506,116 @@
       "title": "What is WellSpent?",
       "body": "WellSpent is an income-first budgeting app. Declare your income, plan your fixed expenses and savings, then track your variable spending as the month unfolds. The running total always shows what you have left — no surprises at month end."
     },
+    "showcase": {
+      "title": "See it before you sign up",
+      "subtitle": "A budget you can actually read, from the plan down to the last coffee.",
+      "items": {
+        "overview": {
+          "title": "Know where the money actually went",
+          "desc": "Every category with its real spend next to what you planned, biggest first. Anything over plan is marked in red with the amount you went over by — no hunting through rows to find the problem."
+        },
+        "plan": {
+          "title": "Decide the numbers before the month does",
+          "desc": "Set a planned amount per category and per person. That plan becomes the line everything else is measured against, so overspending is obvious the day it happens rather than at the end of the month."
+        },
+        "fixed": {
+          "title": "Rent, subscriptions, and every other bill",
+          "desc": "Recurring bills are templates: one transaction appears each period automatically, split into unpaid and paid so what's still outstanding is always at the top. Loans and instalment plans can carry an end date and stop on their own."
+        },
+        "variable": {
+          "title": "Day-to-day spending, in seconds",
+          "desc": "Add a spend with its category, payment method and who it belongs to. Search, sort, or filter down to just the categories that have gone over plan — and exclude a one-off like a reimbursement without deleting it."
+        }
+      }
+    },
+    "highlights": {
+      "title": "Two things a spreadsheet won't do",
+      "subtitle": "The parts of WellSpent people tell us they didn't expect.",
+      "items": {
+        "shared": {
+          "tag": "Shared budgets",
+          "title": "A budget isn't a one-person job",
+          "desc": "Invite your partner or housemates by email and give each person a role — admin, collaborator, or view-only. Income, payment methods and spending are attributed per person, so everyone works from the same numbers instead of comparing notes at the end of the month."
+        },
+        "matching": {
+          "tag": "Auto-matching",
+          "title": "Your bank feed, already reconciled",
+          "desc": "Connect a bank and imported transactions are scored against the fixed expenses you already planned — amount, merchant name, payment method, category. A confident match waits in a To Review tab for one tap. Confirm a merchant once and identical charges match themselves from then on."
+        }
+      }
+    },
     "features": {
       "title": "Features",
-      "subtitle": "Everything you need to take control of your finances.",
-      "item1Title": "Income-First Planning",
-      "item1Desc": "Start with what you earn, not what you spend. See how much you have to allocate before adding a single expense.",
-      "item2Title": "Shared Budgets",
-      "item2Desc": "Invite your partner or family members. Assign income and expenses to each person for complete visibility.",
-      "item3Title": "Fixed & Variable Expenses",
-      "item3Desc": "Track recurring bills separately from day-to-day spending. Know exactly which fixed costs are paid each period.",
-      "item4Title": "Savings Goals",
-      "item4Desc": "Set aside money for emergency funds, investments, or tax reserves before you allocate the rest.",
-      "item5Title": "Smart Categories",
-      "item5Desc": "System categories out of the box, plus custom ones for anything that doesn't fit.",
-      "item6Title": "Expense Plan",
-      "item6Desc": "Plan per-category spending amounts and see planned vs. actual side by side at a glance."
+      "subtitle": "Grouped the way the app is — so you know what you're getting."
+    },
+    "featureGroups": {
+      "comingSoon": "Coming soon",
+      "plan": {
+        "title": "Plan",
+        "summary": "Set the numbers, then watch them play out.",
+        "items": {
+          "overview": {
+            "title": "Expense Overview",
+            "desc": "Actual spending per category with a chart, a collapsible per-person breakdown, and a clear marker on anything that went over plan."
+          },
+          "plan": {
+            "title": "Expense Plan",
+            "desc": "Planned amounts per category and per person, sorted so your biggest commitments are always at the top."
+          }
+        }
+      },
+      "transactions": {
+        "title": "Transactions",
+        "summary": "Everything you spend, fixed or variable.",
+        "items": {
+          "fixed": {
+            "title": "Fixed expenses",
+            "desc": "Recurring bill templates that spawn one transaction per period, with optional end dates so loans and instalment plans stop on their own."
+          },
+          "variable": {
+            "title": "Variable spending",
+            "desc": "Fast entry for day-to-day spending, with a spent/received toggle, per-person attribution, and the option to exclude a transaction from totals without deleting it."
+          },
+          "matching": {
+            "title": "Auto-matching",
+            "desc": "Imported bank transactions are scored against your fixed expenses and queued for a single tap of confirmation. Merchants you've confirmed before match on their own."
+          }
+        }
+      },
+      "reports": {
+        "title": "Reports",
+        "summary": "Historical views across budget periods. Not built yet — we'd rather say so than mock it up."
+      },
+      "budget": {
+        "title": "Your budget",
+        "summary": "The pieces a budget is built from.",
+        "items": {
+          "income": {
+            "title": "Income sources",
+            "desc": "Salary, hourly, freelance or one-off — declared up front and per person, so every plan starts from what you actually earn."
+          },
+          "savings": {
+            "title": "Savings",
+            "desc": "Recurring savings goals per person. In the US, a tax reserve is maintained for you from your filing status, income and payment frequency."
+          },
+          "categories": {
+            "title": "Categories",
+            "desc": "Sensible categories out of the box, plus your own for anything that doesn't fit. Renaming one updates every transaction that used it."
+          },
+          "paymentMethods": {
+            "title": "Payment methods",
+            "desc": "Name each card, account or wallet and attribute it to a person, so shared spending is never ambiguous."
+          },
+          "alerts": {
+            "title": "Alerts",
+            "desc": "Be told in-app or by email when someone adds a transaction, when spending crosses a threshold you chose, or when a new period begins."
+          },
+          "plaid": {
+            "title": "Bank sync",
+            "desc": "Connect a US bank through Plaid and let transactions import themselves. Available on paid plans; US accounts only for now."
+          }
+        }
+      }
     },
     "useCases": {
       "title": "Use Cases",
@@ -530,10 +629,31 @@
     },
     "pricing": {
       "title": "Pricing",
-      "subtitle": "Simple and transparent.",
-      "freeTitle": "Free",
-      "freeDesc": "WellSpent is free to use. No hidden fees, no premium tiers — just a budgeting tool that works.",
-      "cta": "Start for free"
+      "subtitle": "Start free. Upgrade only if you outgrow it.",
+      "free": {
+        "name": "Free",
+        "price": "$0",
+        "tagline": "Enough to run a real budget, not a trial.",
+        "features": {
+          "people": "Up to 2 people on a budget",
+          "income": "Up to 2 income sources per person",
+          "alerts": "Up to 2 alert subscriptions",
+          "core": "Full planning, transactions, categories and savings"
+        },
+        "cta": "Start for free"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "Coming soon",
+        "tagline": "For households that need more room.",
+        "features": {
+          "unlimited": "Unlimited people and income sources",
+          "bankSync": "Automatic bank sync through Plaid",
+          "alerts": "Unlimited alerts, including new-transaction notices",
+          "noAds": "No ads"
+        }
+      },
+      "note": "Pro can't be bought yet — there's nothing to sign up for. The free plan stays free, and anything you set up now carries over."
     },
     "download": {
       "title": "Get the App",

@@ -136,7 +136,8 @@
         "cancel": "Cancelar",
         "delete": "Eliminar",
         "deleting": "Eliminando…"
-      }
+      },
+      "aboutSite": "Acerca de WellSpent"
     },
     "view": {
       "failedToLoad": "No se pudo cargar el presupuesto.",
@@ -486,7 +487,10 @@
       "download": "Descargar",
       "signIn": "Iniciar sesión",
       "getStarted": "Comenzar",
-      "menu": "Abrir menú"
+      "menu": "Abrir menú",
+      "about": "Nosotros",
+      "allFeatures": "Todas las características",
+      "openApp": "Abrir la app"
     },
     "hero": {
       "slide1Title": "Planifica Antes de Gastar",
@@ -502,21 +506,116 @@
       "title": "¿Qué es WellSpent?",
       "body": "WellSpent es una app de presupuesto basada en ingresos. Declara tus ingresos, planifica tus gastos fijos y ahorros, y luego registra tus gastos variables a medida que avanza el mes. El total en tiempo real siempre muestra cuánto te queda — sin sorpresas al final del mes."
     },
+    "showcase": {
+      "title": "Míralo antes de registrarte",
+      "subtitle": "Un presupuesto que de verdad se entiende, desde el plan hasta el último café.",
+      "items": {
+        "overview": {
+          "title": "Sabe a dónde fue el dinero",
+          "desc": "Cada categoría con su gasto real junto a lo que planificaste, de mayor a menor. Lo que supera el plan se marca en rojo con el monto excedido — sin rastrear filas para encontrar el problema."
+        },
+        "plan": {
+          "title": "Decide los números antes que el mes",
+          "desc": "Define un monto planificado por categoría y por persona. Ese plan es la referencia con la que se mide todo lo demás, así el exceso se nota el mismo día y no a fin de mes."
+        },
+        "fixed": {
+          "title": "Alquiler, suscripciones y todas las demás facturas",
+          "desc": "Los gastos recurrentes son plantillas: cada período aparece una transacción automáticamente, separada en pagadas y pendientes para que lo que falta esté siempre arriba. Los préstamos y planes en cuotas pueden llevar fecha de fin y detenerse solos."
+        },
+        "variable": {
+          "title": "El gasto diario, en segundos",
+          "desc": "Agrega un gasto con su categoría, método de pago y a quién corresponde. Busca, ordena o filtra solo las categorías que superaron el plan — y excluye algo puntual, como un reembolso, sin borrarlo."
+        }
+      }
+    },
+    "highlights": {
+      "title": "Dos cosas que una planilla no hace",
+      "subtitle": "Las partes de WellSpent que la gente no esperaba.",
+      "items": {
+        "shared": {
+          "tag": "Presupuestos compartidos",
+          "title": "Un presupuesto no es tarea de una sola persona",
+          "desc": "Invita a tu pareja o a quienes viven contigo por correo y asigna un rol a cada uno: administrador, colaborador o solo lectura. Los ingresos, métodos de pago y gastos se atribuyen por persona, así todos trabajan con los mismos números en lugar de comparar notas a fin de mes."
+        },
+        "matching": {
+          "tag": "Coincidencia automática",
+          "title": "Tu resumen bancario, ya conciliado",
+          "desc": "Conecta un banco y las transacciones importadas se comparan con los gastos fijos que ya planificaste: monto, comercio, método de pago y categoría. Una coincidencia confiable espera en la pestaña Por revisar con un solo toque. Confirma un comercio una vez y los cargos idénticos coinciden solos de ahí en adelante."
+        }
+      }
+    },
     "features": {
       "title": "Características",
-      "subtitle": "Todo lo que necesitas para tomar el control de tus finanzas.",
-      "item1Title": "Planificación por Ingresos",
-      "item1Desc": "Empieza con lo que ganas, no con lo que gastas. Ve cuánto puedes asignar antes de agregar un solo gasto.",
-      "item2Title": "Presupuestos Compartidos",
-      "item2Desc": "Invita a tu pareja o familiares. Asigna ingresos y gastos a cada persona para tener visibilidad total.",
-      "item3Title": "Gastos Fijos y Variables",
-      "item3Desc": "Registra facturas recurrentes por separado del gasto cotidiano. Sabe exactamente qué costos fijos están pagados cada período.",
-      "item4Title": "Metas de Ahorro",
-      "item4Desc": "Separa dinero para fondos de emergencia, inversiones o reservas fiscales antes de asignar el resto.",
-      "item5Title": "Categorías Inteligentes",
-      "item5Desc": "Categorías del sistema incluidas, más las tuyas propias para lo que no encaje.",
-      "item6Title": "Plan de Gastos",
-      "item6Desc": "Planifica montos de gasto por categoría y ve lo planificado vs. lo real de un vistazo."
+      "subtitle": "Agrupadas como en la app, para que sepas exactamente qué obtienes."
+    },
+    "featureGroups": {
+      "comingSoon": "Próximamente",
+      "plan": {
+        "title": "Plan",
+        "summary": "Define los números y observa cómo se cumplen.",
+        "items": {
+          "overview": {
+            "title": "Resumen de gastos",
+            "desc": "Gasto real por categoría con gráfico, desglose por persona plegable y una marca clara sobre todo lo que superó el plan."
+          },
+          "plan": {
+            "title": "Plan de gastos",
+            "desc": "Montos planificados por categoría y por persona, ordenados para que tus mayores compromisos estén siempre arriba."
+          }
+        }
+      },
+      "transactions": {
+        "title": "Transacciones",
+        "summary": "Todo lo que gastas, fijo o variable.",
+        "items": {
+          "fixed": {
+            "title": "Gastos fijos",
+            "desc": "Plantillas de facturas recurrentes que generan una transacción por período, con fecha de fin opcional para que los préstamos y planes en cuotas se detengan solos."
+          },
+          "variable": {
+            "title": "Gasto variable",
+            "desc": "Carga rápida del gasto diario, con selector de gastado/recibido, atribución por persona y la opción de excluir una transacción de los totales sin borrarla."
+          },
+          "matching": {
+            "title": "Coincidencia automática",
+            "desc": "Las transacciones bancarias importadas se comparan con tus gastos fijos y quedan listas para confirmar con un toque. Los comercios que ya confirmaste coinciden solos."
+          }
+        }
+      },
+      "reports": {
+        "title": "Reportes",
+        "summary": "Vistas históricas entre períodos. Todavía no está construido — preferimos decirlo antes que simularlo."
+      },
+      "budget": {
+        "title": "Tu presupuesto",
+        "summary": "Las piezas con las que se arma un presupuesto.",
+        "items": {
+          "income": {
+            "title": "Fuentes de ingreso",
+            "desc": "Sueldo, por hora, freelance o puntual — declarado por adelantado y por persona, para que cada plan parta de lo que realmente ganas."
+          },
+          "savings": {
+            "title": "Ahorros",
+            "desc": "Metas de ahorro recurrentes por persona. En EE. UU. se mantiene automáticamente una reserva de impuestos según tu situación fiscal, ingresos y frecuencia de pago."
+          },
+          "categories": {
+            "title": "Categorías",
+            "desc": "Categorías sensatas listas para usar, más las tuyas para lo que no encaje. Renombrar una actualiza todas las transacciones que la usaban."
+          },
+          "paymentMethods": {
+            "title": "Métodos de pago",
+            "desc": "Nombra cada tarjeta, cuenta o billetera y asígnala a una persona, para que el gasto compartido nunca sea ambiguo."
+          },
+          "alerts": {
+            "title": "Alertas",
+            "desc": "Entérate en la app o por correo cuando alguien agrega una transacción, cuando el gasto cruza el umbral que elegiste o cuando empieza un período nuevo."
+          },
+          "plaid": {
+            "title": "Sincronización bancaria",
+            "desc": "Conecta un banco de EE. UU. mediante Plaid y deja que las transacciones se importen solas. Disponible en planes pagos; por ahora solo cuentas de EE. UU."
+          }
+        }
+      }
     },
     "useCases": {
       "title": "Casos de Uso",
@@ -530,10 +629,31 @@
     },
     "pricing": {
       "title": "Precios",
-      "subtitle": "Simple y transparente.",
-      "freeTitle": "Gratis",
-      "freeDesc": "WellSpent es gratis. Sin tarifas ocultas, sin niveles premium — solo una herramienta de presupuesto que funciona.",
-      "cta": "Empezar gratis"
+      "subtitle": "Empieza gratis. Mejora solo si te queda chico.",
+      "free": {
+        "name": "Gratis",
+        "price": "$0",
+        "tagline": "Suficiente para un presupuesto real, no una prueba.",
+        "features": {
+          "people": "Hasta 2 personas por presupuesto",
+          "income": "Hasta 2 fuentes de ingreso por persona",
+          "alerts": "Hasta 2 suscripciones de alertas",
+          "core": "Planificación, transacciones, categorías y ahorros completos"
+        },
+        "cta": "Empezar gratis"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "Próximamente",
+        "tagline": "Para hogares que necesitan más espacio.",
+        "features": {
+          "unlimited": "Personas y fuentes de ingreso ilimitadas",
+          "bankSync": "Sincronización bancaria automática con Plaid",
+          "alerts": "Alertas ilimitadas, incluidas las de nuevas transacciones",
+          "noAds": "Sin anuncios"
+        }
+      },
+      "note": "Pro todavía no se puede comprar — no hay nada que contratar. El plan gratuito sigue siendo gratuito, y todo lo que configures ahora se conserva."
     },
     "download": {
       "title": "Obtén la App",
