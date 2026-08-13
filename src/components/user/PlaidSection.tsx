@@ -14,6 +14,7 @@ import { PlaidLinkLauncher } from './plaidSection/PlaidLinkLauncher'
 import { ConnectionRow } from './plaidSection/ConnectionRow'
 import { BudgetPickerDialog } from './plaidSection/BudgetPickerDialog'
 import { DisconnectConfirmDialog } from './plaidSection/DisconnectConfirmDialog'
+import { SyncWarningBanner } from './plaidSection/SyncWarningBanner'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
@@ -56,6 +57,7 @@ export function PlaidSection() {
   })
 
   const connections = connectionsData?.connections ?? []
+  const syncWarnings = connectionsData?.warnings ?? []
   const budgets = budgetsData?.profiles ?? []
 
   const budgetNameMap = Object.fromEntries(budgets.map((b) => [b.id, b.name]))
@@ -176,6 +178,10 @@ export function PlaidSection() {
         {isFree && (
           <Chip label={t('freeTierNote')} size="small" color="warning" variant="outlined" sx={{ alignSelf: 'flex-start' }} />
         )}
+
+        {/* Above the list deliberately: it concerns connections that aren't in
+            the list at all, since this screen only shows the caller's own. */}
+        <SyncWarningBanner warnings={syncWarnings} />
 
         {loadingConnections ? (
           <CircularProgress size={20} />
