@@ -752,5 +752,10 @@
     "resyncOncePerDay": "Available once a day per bank.",
     "resyncCooldown": "Already re-synced today — available again in {hours, plural, one {# hour} other {# hours}}",
     "resyncSyncDisabled": "This bank won't sync until its owner is on a paid plan"
+  },
+  "statusBanner": {
+    "learnMore": "Learn more",
+    "showLess": "Show less",
+    "dismiss": "Dismiss"
   }
 }
