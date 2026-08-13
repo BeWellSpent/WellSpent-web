@@ -8,8 +8,12 @@ export const HERO_SLIDES = [
 
 export const SLIDE_INTERVAL_MS = 4500
 
+/**
+ * Anchor-linked sections of the landing page. Features is deliberately absent:
+ * it is a route (`/[locale]/features`), not a section, and the nav renders its
+ * dropdown separately.
+ */
 export const NAV_SECTIONS = [
-  { key: 'features', id: 'features' },
   { key: 'useCases', id: 'use-cases' },
   { key: 'pricing', id: 'pricing' },
   { key: 'download', id: 'download' },

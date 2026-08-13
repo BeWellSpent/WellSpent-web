@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { BrandHomeLink } from './BrandHomeLink'
 import Box from '@mui/material/Box'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
@@ -27,7 +27,7 @@ export function MobileTopBar({ iconSrc, onBackToBudgets, onOpenManage, notificat
           <ArrowBackIcon />
         </IconButton>
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <Image src={iconSrc} alt="WellSpent" width={32} height={32} />
+          <BrandHomeLink iconSrc={iconSrc} />
         </Box>
         <ThemeToggle />
         {notificationBell}

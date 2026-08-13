@@ -185,7 +185,8 @@
       "expand": "Expand sidebar",
       "collapse": "Collapse sidebar",
       "manage": "Manage",
-      "alerts": "Alert Settings"
+      "alerts": "Alert Settings",
+      "website": "WellSpent website"
     },
     "income": {
       "title": "Income",
@@ -546,7 +547,8 @@
     },
     "features": {
       "title": "Features",
-      "subtitle": "Grouped the way the app is — so you know what you're getting."
+      "subtitle": "Grouped the way the app is — so you know what you're getting.",
+      "explore": "Explore"
     },
     "featureGroups": {
       "comingSoon": "Coming soon",

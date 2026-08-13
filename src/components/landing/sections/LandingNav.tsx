@@ -28,7 +28,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useThemeMode } from '@/context/ThemeContext'
 import { routing } from '@/i18n/routing'
 import { LOCALE_LABELS, NAV_SECTIONS, scrollToSection } from '../constants'
-import { FEATURE_GROUPS } from '../features/featureGroups'
+import { FEATURE_GROUPS, featureGroupHref } from '../features/featureGroups'
 
 /** Shared by every top-level nav button so they can't drift in weight or size. */
 const NAV_BUTTON_SX = {
@@ -62,11 +62,23 @@ export function LandingNav({ isAuthenticated }: Props) {
 
   useEffect(() => setMounted(true), [])
 
-  /** Scrolls to a section and closes whatever opened it. */
-  function navigateTo(id: string) {
+  // The section links are anchors on the landing page, but this nav also runs
+  // on the /features routes — where there is nothing to scroll to. From there
+  // they navigate home with a hash instead.
+  const isOnLanding = pathname === `/${locale}` || pathname === `/${locale}/`
+
+  function closeMenus() {
     setFeaturesAnchor(null)
     setDrawerOpen(false)
-    scrollToSection(id)
+  }
+
+  function goToSection(id: string) {
+    closeMenus()
+    if (isOnLanding) {
+      scrollToSection(id)
+      return
+    }
+    router.push(`/${locale}#${id}`)
   }
 
   function switchLocale(newLocale: string) {
@@ -101,22 +113,18 @@ export function LandingNav({ isAuthenticated }: Props) {
           {/* Desktop: centered nav links */}
           {!isMobile && (
             <Box sx={{ display: 'flex', gap: 0.5, mx: 'auto' }}>
-              {NAV_SECTIONS.map(({ key, id }) =>
-                key === 'features' ? (
-                  <Button
-                    key={key}
-                    onClick={(e) => setFeaturesAnchor(e.currentTarget)}
-                    endIcon={<ArrowDropDownIcon />}
-                    sx={NAV_BUTTON_SX}
-                  >
-                    {t(`nav.${key}`)}
-                  </Button>
-                ) : (
-                  <Button key={key} onClick={() => navigateTo(id)} sx={NAV_BUTTON_SX}>
-                    {t(`nav.${key}`)}
-                  </Button>
-                ),
-              )}
+              <Button
+                onClick={(e) => setFeaturesAnchor(e.currentTarget)}
+                endIcon={<ArrowDropDownIcon />}
+                sx={NAV_BUTTON_SX}
+              >
+                {t('nav.features')}
+              </Button>
+              {NAV_SECTIONS.map(({ key, id }) => (
+                <Button key={key} onClick={() => goToSection(id)} sx={NAV_BUTTON_SX}>
+                  {t(`nav.${key}`)}
+                </Button>
+              ))}
             </Box>
           )}
 
@@ -128,14 +136,21 @@ export function LandingNav({ isAuthenticated }: Props) {
             anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             transformOrigin={{ vertical: 'top', horizontal: 'center' }}
           >
-            <MenuItem onClick={() => navigateTo('features')} sx={{ fontWeight: 600 }}>
+            <MenuItem
+              component={NextLink}
+              href={`/${locale}/features`}
+              onClick={closeMenus}
+              sx={{ fontWeight: 600 }}
+            >
               {t('nav.allFeatures')}
             </MenuItem>
             <Divider />
             {FEATURE_GROUPS.map((group) => (
               <MenuItem
                 key={group.key}
-                onClick={() => navigateTo(group.id)}
+                component={NextLink}
+                href={featureGroupHref(locale, group.key)}
+                onClick={closeMenus}
                 sx={{ maxWidth: 340, whiteSpace: 'normal', alignItems: 'flex-start', py: 1 }}
               >
                 <ListItemText
@@ -239,35 +254,41 @@ export function LandingNav({ isAuthenticated }: Props) {
         </Box>
         <Divider />
         <List>
-          {NAV_SECTIONS.map(({ key, id }) =>
-            key === 'features' ? (
-              <Box key={key}>
-                <ListItemButton onClick={() => setFeaturesExpanded((open) => !open)}>
-                  <ListItemText primary={t(`nav.${key}`)} />
-                  {featuresExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </ListItemButton>
-                <Collapse in={featuresExpanded} unmountOnExit>
-                  <List disablePadding>
-                    <ListItemButton sx={{ pl: 4 }} onClick={() => navigateTo('features')}>
-                      <ListItemText primary={t('nav.allFeatures')} primaryTypographyProps={{ variant: 'body2' }} />
-                    </ListItemButton>
-                    {FEATURE_GROUPS.map((group) => (
-                      <ListItemButton key={group.key} sx={{ pl: 4 }} onClick={() => navigateTo(group.id)}>
-                        <ListItemText
-                          primary={t(`featureGroups.${group.key}.title`)}
-                          primaryTypographyProps={{ variant: 'body2' }}
-                        />
-                      </ListItemButton>
-                    ))}
-                  </List>
-                </Collapse>
-              </Box>
-            ) : (
-              <ListItemButton key={key} onClick={() => navigateTo(id)}>
-                <ListItemText primary={t(`nav.${key}`)} />
+          <ListItemButton onClick={() => setFeaturesExpanded((open) => !open)}>
+            <ListItemText primary={t('nav.features')} />
+            {featuresExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItemButton>
+          <Collapse in={featuresExpanded} unmountOnExit>
+            <List disablePadding>
+              <ListItemButton
+                component={NextLink}
+                href={`/${locale}/features`}
+                sx={{ pl: 4 }}
+                onClick={closeMenus}
+              >
+                <ListItemText primary={t('nav.allFeatures')} primaryTypographyProps={{ variant: 'body2' }} />
               </ListItemButton>
-            ),
-          )}
+              {FEATURE_GROUPS.map((group) => (
+                <ListItemButton
+                  key={group.key}
+                  component={NextLink}
+                  href={featureGroupHref(locale, group.key)}
+                  sx={{ pl: 4 }}
+                  onClick={closeMenus}
+                >
+                  <ListItemText
+                    primary={t(`featureGroups.${group.key}.title`)}
+                    primaryTypographyProps={{ variant: 'body2' }}
+                  />
+                </ListItemButton>
+              ))}
+            </List>
+          </Collapse>
+          {NAV_SECTIONS.map(({ key, id }) => (
+            <ListItemButton key={key} onClick={() => goToSection(id)}>
+              <ListItemText primary={t(`nav.${key}`)} />
+            </ListItemButton>
+          ))}
         </List>
       </Drawer>
     </>

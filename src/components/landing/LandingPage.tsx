@@ -6,7 +6,6 @@ import { HeroCarousel } from './sections/HeroCarousel'
 import { WhatIsSection } from './sections/WhatIsSection'
 import { ShowcaseSection } from './sections/ShowcaseSection'
 import { HighlightsSection } from './sections/HighlightsSection'
-import { FeaturesSection } from './sections/FeaturesSection'
 import { UseCasesSection } from './sections/UseCasesSection'
 import { PricingSection } from './sections/PricingSection'
 import { DownloadSection } from './sections/DownloadSection'
@@ -24,11 +23,11 @@ export function LandingPage({ isAuthenticated }: Props) {
       <LandingNav isAuthenticated={isAuthenticated} />
       <HeroCarousel isAuthenticated={isAuthenticated} />
       <WhatIsSection />
-      {/* Show the product before describing it — the captures do more selling
-          than the feature list, so they come first. */}
+      {/* The root is a summary: captures and the two differentiators. Feature
+          detail lives on its own routes under /features, reached from the nav
+          dropdown, so this page stays skimmable. */}
       <ShowcaseSection />
       <HighlightsSection />
-      <FeaturesSection />
       <UseCasesSection />
       <PricingSection />
       <DownloadSection />

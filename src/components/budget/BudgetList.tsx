@@ -29,7 +29,11 @@ import { useRouter } from '@/i18n/navigation'
 
 export function BudgetList() {
   const t = useTranslations('budget.list')
-  const tAuth = useTranslations('auth')
+  // "Logout" lives under budget.sidebar because the sidebar and manage drawer
+  // already label their button from it. This screen has no sidebar, but one
+  // string with one key beats a second key saying the same thing — which is
+  // how this previously pointed at a non-existent `auth.logout`.
+  const tChrome = useTranslations('budget.sidebar')
   const locale = useLocale()
   const router = useRouter()
   const { showError, showSuccess } = useSnackbar()
@@ -114,8 +118,8 @@ export function BudgetList() {
               {t('newBudget')}
             </Button>
           )}
-          <Tooltip title={tAuth('logout')}>
-            <IconButton onClick={handleLogout} aria-label={tAuth('logout')}>
+          <Tooltip title={tChrome('logout')}>
+            <IconButton onClick={handleLogout} aria-label={tChrome('logout')}>
               <LogoutIcon />
             </IconButton>
           </Tooltip>
