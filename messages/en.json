@@ -106,7 +106,10 @@
         "active": "Active",
         "disconnected": "Disconnected",
         "error": "Error"
-      }
+      },
+      "syncWarningTitle": "Some accounts aren't syncing",
+      "syncWarningMember": "{member} connected {count, plural, one {# bank} other {# banks}} to {budget}, but their account isn't on a paid plan — those transactions won't be imported. Bank sync is per person, so they'll need to upgrade.",
+      "syncWarningSelf": "You connected {count, plural, one {# bank} other {# banks}} to {budget}, but your account isn't on a paid plan, so those transactions won't be imported. Upgrade to Pro to turn bank sync on."
     },
     "subscription": {
       "title": "Subscription",

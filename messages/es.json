@@ -106,7 +106,10 @@
         "active": "Activo",
         "disconnected": "Desconectado",
         "error": "Error"
-      }
+      },
+      "syncWarningTitle": "Algunas cuentas no se están sincronizando",
+      "syncWarningMember": "{member} conectó {count, plural, one {# banco} other {# bancos}} a {budget}, pero su cuenta no tiene un plan pago, así que esas transacciones no se importarán. La sincronización bancaria es por persona, así que necesita mejorar su plan.",
+      "syncWarningSelf": "Conectaste {count, plural, one {# banco} other {# bancos}} a {budget}, pero tu cuenta no tiene un plan pago, así que esas transacciones no se importarán. Mejora a Pro para activar la sincronización bancaria."
     },
     "subscription": {
       "title": "Suscripci�n",
