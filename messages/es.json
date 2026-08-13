@@ -87,30 +87,6 @@
       "deleting": "Eliminando…"
     },
     "plaidTitle": "Cuentas bancarias conectadas",
-    "plaid": {
-      "empty": "Aún no hay cuentas bancarias conectadas.",
-      "connect": "Conectar cuenta bancaria",
-      "freeTierNote": "Solo disponible en cuentas Pro",
-      "manageAccounts": "Administrar cuentas",
-      "pickBudget": "¿A qué presupuesto deben ir las transacciones importadas?",
-      "noBudgets": "No tienes presupuestos. Crea uno primero.",
-      "cancel": "Cancelar",
-      "disconnect": "Desconectar",
-      "disconnectTitle": "¿Desconectar cuenta bancaria?",
-      "disconnectBody": "Las transacciones ya importadas de {name} permanecerán. No se importarán nuevas transacciones.",
-      "unknownBank": "Banco desconocido",
-      "unknownBudget": "Presupuesto desconocido",
-      "lastSynced": "Última sincronización {date}",
-      "neverSynced": "Nunca sincronizado",
-      "status": {
-        "active": "Activo",
-        "disconnected": "Desconectado",
-        "error": "Error"
-      },
-      "syncWarningTitle": "Algunas cuentas no se están sincronizando",
-      "syncWarningMember": "{member} conectó {count, plural, one {# banco} other {# bancos}} a {budget}, pero su cuenta no tiene un plan pago, así que esas transacciones no se importarán. La sincronización bancaria es por persona, así que necesita mejorar su plan.",
-      "syncWarningSelf": "Conectaste {count, plural, one {# banco} other {# bancos}} a {budget}, pero tu cuenta no tiene un plan pago, así que esas transacciones no se importarán. Mejora a Pro para activar la sincronización bancaria."
-    },
     "subscription": {
       "title": "Suscripci�n",
       "planLabel": "Plan actual",
@@ -189,7 +165,8 @@
       "collapse": "Contraer barra lateral",
       "manage": "Gestionar",
       "alerts": "Configuración de alertas",
-      "website": "Sitio web de WellSpent"
+      "website": "Sitio web de WellSpent",
+      "bankConnections": "Conexiones bancarias"
     },
     "income": {
       "title": "Ingresos",
@@ -739,5 +716,41 @@
       },
       "freeTierNote": "Gratuito: m�x 2 tipos de alerta � new_transaction requiere Pro"
     }
+  },
+  "plaid": {
+    "empty": "Aún no hay cuentas bancarias conectadas.",
+    "connect": "Conectar cuenta bancaria",
+    "freeTierNote": "Solo disponible en cuentas Pro",
+    "manageAccounts": "Administrar cuentas",
+    "pickBudget": "¿A qué presupuesto deben ir las transacciones importadas?",
+    "noBudgets": "No tienes presupuestos. Crea uno primero.",
+    "cancel": "Cancelar",
+    "disconnect": "Desconectar",
+    "disconnectTitle": "¿Desconectar cuenta bancaria?",
+    "disconnectBody": "Las transacciones ya importadas de {name} permanecerán. No se importarán nuevas transacciones.",
+    "unknownBank": "Banco desconocido",
+    "unknownBudget": "Presupuesto desconocido",
+    "lastSynced": "Última sincronización {date}",
+    "neverSynced": "Nunca sincronizado",
+    "status": {
+      "active": "Activo",
+      "disconnected": "Desconectado",
+      "error": "Error"
+    },
+    "syncWarningTitle": "Algunas cuentas no se están sincronizando",
+    "syncWarningMember": "{member} conectó {count, plural, one {# banco} other {# bancos}} a {budget}, pero su cuenta no tiene un plan pago, así que esas transacciones no se importarán. La sincronización bancaria es por persona, así que necesita mejorar su plan.",
+    "syncWarningSelf": "Conectaste {count, plural, one {# banco} other {# bancos}} a {budget}, pero tu cuenta no tiene un plan pago, así que esas transacciones no se importarán. Mejora a Pro para activar la sincronización bancaria.",
+    "budgetPanelIntro": "Conexiones bancarias que alimentan este presupuesto, de todos sus integrantes. Solo puedes modificar las tuyas.",
+    "emptyForBudget": "Todavía no hay cuentas bancarias conectadas a este presupuesto.",
+    "unknownMember": "Integrante desconocido",
+    "notYours": "Solo quien conectó este banco puede modificarlo",
+    "notSyncing": "Sin sincronizar",
+    "resync": "Volver a sincronizar",
+    "resyncTitle": "¿Volver a sincronizar este banco?",
+    "resyncBody": "WellSpent le pedirá a {name} todo su historial de transacciones otra vez, empezando ahora.",
+    "resyncWarning": "Las transacciones que eliminaste volverán a aparecer. Las ya importadas no se duplicarán.",
+    "resyncOncePerDay": "Disponible una vez al día por banco.",
+    "resyncCooldown": "Ya se sincronizó hoy — disponible de nuevo en {hours, plural, one {# hora} other {# horas}}",
+    "resyncSyncDisabled": "Este banco no se sincronizará hasta que su propietario tenga un plan de pago"
   }
 }

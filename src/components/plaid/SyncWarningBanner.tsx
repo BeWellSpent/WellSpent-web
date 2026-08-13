@@ -20,7 +20,7 @@ type Props = {
  * anywhere. One went unsynced for over two weeks before anyone noticed.
  */
 export function SyncWarningBanner({ warnings }: Props) {
-  const t = useTranslations('settings.plaid')
+  const t = useTranslations('plaid')
 
   if (warnings.length === 0) return null
 

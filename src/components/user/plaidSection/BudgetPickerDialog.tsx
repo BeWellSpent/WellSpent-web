@@ -24,7 +24,7 @@ export function BudgetPickerDialog({
   onSelect: (budgetId: string) => void
   onClose: () => void
 }) {
-  const t = useTranslations('settings.plaid')
+  const t = useTranslations('plaid')
   const fullScreen = useIsMobile()
 
   return (
