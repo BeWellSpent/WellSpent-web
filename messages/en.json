@@ -271,6 +271,7 @@
       "paid": "Paid",
       "unpaidSection": "Unpaid ({count})",
       "paidSection": "Paid ({count})",
+      "futureSection": "Future ({count})",
       "columns": {
         "item": "Item",
         "day": "Day",
