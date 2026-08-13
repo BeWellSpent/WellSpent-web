@@ -1,6 +1,11 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { FEATURE_GROUPS, featureGroupTranslationKeys } from '../features/featureGroups'
+import {
+  FEATURE_GROUPS,
+  featureGroupHref,
+  featureGroupTranslationKeys,
+  findFeatureGroup,
+} from '../features/featureGroups'
 
 const LOCALES = ['en', 'es'] as const
 
@@ -17,9 +22,8 @@ function resolve(root: Record<string, unknown>, path: string): unknown {
 }
 
 describe('FEATURE_GROUPS', () => {
-  it('has a unique key and anchor id per group', () => {
+  it('has a unique key per group, since the key is also the route segment', () => {
     expect(new Set(FEATURE_GROUPS.map((g) => g.key)).size).toBe(FEATURE_GROUPS.length)
-    expect(new Set(FEATURE_GROUPS.map((g) => g.id)).size).toBe(FEATURE_GROUPS.length)
   })
 
   it('lists items for every group that is not marked coming soon', () => {
@@ -37,8 +41,25 @@ describe('FEATURE_GROUPS', () => {
 
   it('has unique item keys within each group', () => {
     for (const group of FEATURE_GROUPS) {
-      expect(new Set(group.items).size).toBe(group.items.length)
+      const keys = group.items.map((item) => item.key)
+      expect(new Set(keys).size).toBe(keys.length)
     }
+  })
+})
+
+describe('feature group routing', () => {
+  it('builds a locale-prefixed path per group', () => {
+    expect(featureGroupHref('es', 'transactions')).toBe('/es/features/transactions')
+  })
+
+  it('resolves every group by its route segment', () => {
+    for (const group of FEATURE_GROUPS) {
+      expect(findFeatureGroup(group.key)).toBe(group)
+    }
+  })
+
+  it('returns undefined for an unknown segment, so the page can 404', () => {
+    expect(findFeatureGroup('nope')).toBeUndefined()
   })
 })
 

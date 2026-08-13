@@ -185,7 +185,8 @@
       "expand": "Expandir barra lateral",
       "collapse": "Contraer barra lateral",
       "manage": "Gestionar",
-      "alerts": "Configuración de alertas"
+      "alerts": "Configuración de alertas",
+      "website": "Sitio web de WellSpent"
     },
     "income": {
       "title": "Ingresos",
@@ -546,7 +547,8 @@
     },
     "features": {
       "title": "Características",
-      "subtitle": "Agrupadas como en la app, para que sepas exactamente qué obtienes."
+      "subtitle": "Agrupadas como en la app, para que sepas exactamente qué obtienes.",
+      "explore": "Explorar"
     },
     "featureGroups": {
       "comingSoon": "Próximamente",

@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography'
 import { useTranslations } from 'next-intl'
 import { SECTION_SX } from '../constants'
 import { SHOWCASE } from '../showcase/showcaseAssets'
-import { ShowcaseFrame } from '../showcase/ShowcaseFrame'
+import { AlternatingMediaRow } from '../showcase/AlternatingMediaRow'
 
 /**
  * The four views a visitor most needs to picture before signing up, in the
@@ -36,35 +36,13 @@ export function ShowcaseSection() {
         </Box>
 
         {SHOWCASE_ITEMS.map(({ key, src }, index) => (
-          <Box
+          <AlternatingMediaRow
             key={key}
-            sx={{
-              display: 'flex',
-              // Alternating sides on desktop; on mobile the capture always
-              // leads, since the copy makes little sense before you've seen it.
-              flexDirection: { xs: 'column', md: index % 2 === 1 ? 'row-reverse' : 'row' },
-              alignItems: 'center',
-              gap: { xs: 3, md: 6 },
-              mb: { xs: 7, md: 10 },
-              '&:last-of-type': { mb: 0 },
-            }}
-          >
-            <Box sx={{ flex: 1, width: '100%', minWidth: 0 }}>
-              <ShowcaseFrame
-                src={src}
-                alt={t(`showcase.items.${key}.title`)}
-                placeholderLabel={t(`showcase.items.${key}.title`)}
-              />
-            </Box>
-            <Box sx={{ flex: 1, minWidth: 0, textAlign: { xs: 'center', md: 'left' } }}>
-              <Typography variant="h5" fontWeight={700} gutterBottom>
-                {t(`showcase.items.${key}.title`)}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.8 }}>
-                {t(`showcase.items.${key}.desc`)}
-              </Typography>
-            </Box>
-          </Box>
+            src={src}
+            title={t(`showcase.items.${key}.title`)}
+            desc={t(`showcase.items.${key}.desc`)}
+            reversed={index % 2 === 1}
+          />
         ))}
       </Container>
     </Box>
