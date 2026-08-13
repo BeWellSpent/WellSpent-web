@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useTheme } from '@mui/material/styles'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
@@ -20,6 +19,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { AppVersionBadge } from '@/components/ui/AppVersionBadge'
+import { BrandHomeLink } from './BrandHomeLink'
 import type { NavItem } from './types'
 
 const SIDEBAR_WIDTH = 240
@@ -76,7 +76,7 @@ export function DesktopSidebar({ collapsed, onToggleCollapsed, budgetName, iconS
         >
           {!collapsed && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden' }}>
-              <Image src={iconSrc} alt="WellSpent" width={32} height={32} style={{ flexShrink: 0 }} />
+              <BrandHomeLink iconSrc={iconSrc} />
               <Typography variant="h6" fontWeight={700} noWrap>{budgetName}</Typography>
             </Box>
           )}

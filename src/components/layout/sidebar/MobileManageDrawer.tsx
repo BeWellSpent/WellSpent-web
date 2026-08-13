@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
@@ -14,6 +13,7 @@ import Typography from '@mui/material/Typography'
 import Tooltip from '@mui/material/Tooltip'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { AppVersionBadge } from '@/components/ui/AppVersionBadge'
+import { BrandHomeLink } from './BrandHomeLink'
 import type { NavItem } from './types'
 
 interface Props {
@@ -34,7 +34,7 @@ export function MobileManageDrawer({ open, onClose, budgetName, iconSrc, managem
     <Drawer anchor="right" open={open} onClose={onClose} sx={{ display: { md: 'none' } }}>
       <Box sx={{ width: 260, pt: 1 }}>
         <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Image src={iconSrc} alt="WellSpent" width={24} height={24} style={{ flexShrink: 0 }} />
+          <BrandHomeLink iconSrc={iconSrc} size={24} />
           <Typography variant="h6" fontWeight={700} noWrap>{budgetName}</Typography>
         </Box>
         <Divider />
