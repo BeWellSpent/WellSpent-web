@@ -271,6 +271,7 @@
       "paid": "Pagado",
       "unpaidSection": "Sin pagar ({count})",
       "paidSection": "Pagado ({count})",
+      "futureSection": "Próximos ({count})",
       "columns": {
         "item": "Concepto",
         "day": "Día",

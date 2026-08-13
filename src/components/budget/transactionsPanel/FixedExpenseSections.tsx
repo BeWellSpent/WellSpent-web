@@ -30,12 +30,15 @@ interface FixedExpenseSectionsProps {
   emptyLabel: string
 }
 
-// Renders the Fixed tab's rows as two sections — Unpaid (always expanded)
-// and Paid (collapsed by default, same manual-toggle pattern as TxRow's own
-// linked-review expand/collapse) — each independently day-grouped via the
-// same helper the flat Variable-tab list uses. "Not due yet" placeholder
-// rows stay appended after both, unaffected by the split (they aren't real
-// transactions yet, so paid/unpaid doesn't apply to them).
+// Renders the Fixed tab's rows as three sections — Unpaid (always expanded),
+// Paid (collapsed by default, same manual-toggle pattern as TxRow's own
+// linked-review expand/collapse), then Future. The first two are
+// independently day-grouped via the same helper the flat Variable-tab list
+// uses; Future is not, since those aren't transactions yet and have no date
+// in this period to group by — each carries its own next-due date instead.
+//
+// Future is expanded by default, unlike Paid: an upcoming bill is something
+// you'd want to see without a tap, whereas a paid one is already handled.
 export function FixedExpenseSections({
   transactions, notDueFixedExpenses, sortKey, sortDir,
   categoryMap, methodMap, personMap, isMobile, colSpan,
@@ -44,6 +47,7 @@ export function FixedExpenseSections({
 }: FixedExpenseSectionsProps) {
   const t = useTranslations('budget.transactions')
   const [paidExpanded, setPaidExpanded] = useState(false)
+  const [futureExpanded, setFutureExpanded] = useState(true)
 
   const { unpaid, paid } = splitByPaidStatus(transactions)
   const unpaidGroups = groupTransactionsByDay(unpaid, sortKey, sortDir, categoryMap, methodMap, personMap)
@@ -101,16 +105,12 @@ export function FixedExpenseSections({
       ))}
 
       {paid.length > 0 && (
-        <TableRow hover onClick={() => setPaidExpanded((v) => !v)} sx={{ cursor: 'pointer' }}>
-          <TableCell colSpan={colSpan} sx={{ bgcolor: 'action.hover', py: 0.5 }}>
-            <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <IconButton size="small" sx={{ p: 0 }} aria-label={t('paidSection', { count: paid.length })}>
-                {paidExpanded ? <KeyboardArrowUpIcon sx={{ fontSize: 16 }} /> : <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
-              </IconButton>
-              {t('paidSection', { count: paid.length })}
-            </Typography>
-          </TableCell>
-        </TableRow>
+        <CollapsibleSectionHeader
+          label={t('paidSection', { count: paid.length })}
+          expanded={paidExpanded}
+          onToggle={() => setPaidExpanded((v) => !v)}
+          colSpan={colSpan}
+        />
       )}
       {paidExpanded && paidGroups.map((group) => (
         <Fragment key={`paid-${group.day}`}>
@@ -123,7 +123,39 @@ export function FixedExpenseSections({
         </Fragment>
       ))}
 
-      {notDueFixedExpenses.map((fe) => renderNotDueRow(fe))}
+      {notDueFixedExpenses.length > 0 && (
+        <CollapsibleSectionHeader
+          label={t('futureSection', { count: notDueFixedExpenses.length })}
+          expanded={futureExpanded}
+          onToggle={() => setFutureExpanded((v) => !v)}
+          colSpan={colSpan}
+        />
+      )}
+      {futureExpanded && notDueFixedExpenses.map((fe) => renderNotDueRow(fe))}
     </>
+  )
+}
+
+// Shared by the Paid and Future headers so the two can't drift on styling or
+// on how the chevron reflects state.
+function CollapsibleSectionHeader({
+  label, expanded, onToggle, colSpan,
+}: {
+  label: string
+  expanded: boolean
+  onToggle: () => void
+  colSpan: number
+}) {
+  return (
+    <TableRow hover onClick={onToggle} sx={{ cursor: 'pointer' }}>
+      <TableCell colSpan={colSpan} sx={{ bgcolor: 'action.hover', py: 0.5 }}>
+        <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <IconButton size="small" sx={{ p: 0 }} aria-label={label}>
+            {expanded ? <KeyboardArrowUpIcon sx={{ fontSize: 16 }} /> : <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
+          </IconButton>
+          {label}
+        </Typography>
+      </TableCell>
+    </TableRow>
   )
 }

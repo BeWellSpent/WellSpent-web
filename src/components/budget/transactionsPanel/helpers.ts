@@ -235,6 +235,35 @@ export function compareTransactions(
   return primary !== 0 ? primary : a.id.localeCompare(b.id)
 }
 
+/**
+ * Active fixed expenses with no transaction in this period — i.e. upcoming
+ * bills, shown in the Fixed tab's "Future" section so a template is never
+ * simply invisible until its due date arrives.
+ *
+ * "No transaction this period" is a sound proxy for "not due this period":
+ * `createNextPeriod` spawns a transaction at period start for everything due
+ * within it, so a template with nothing here is genuinely next due in a later
+ * period. A template created mid-period spawns immediately when it's already
+ * due, and a deactivated one drops out via `isActive` while its existing
+ * transaction stays.
+ *
+ * That reasoning only holds for the *live* period. `ListFixedExpenses` is
+ * scoped to the profile, not the period, so on an archived period this would
+ * list every template created since — reporting bills as "upcoming" in a month
+ * that already ended. Nothing is upcoming in a closed period, so the whole
+ * section is suppressed there rather than shown with a wrong list.
+ */
+export function notDueFixedExpenses(
+  expenses: FixedExpense[],
+  fixedTransactions: Transaction[],
+  isArchivedPeriod = false,
+): FixedExpense[] {
+  if (isArchivedPeriod) return []
+  return expenses.filter(
+    (fe) => fe.isActive && !fixedTransactions.some((tx) => tx.fixedExpenseId === fe.id),
+  )
+}
+
 export function splitByPaidStatus(transactions: Transaction[]): { unpaid: Transaction[]; paid: Transaction[] } {
   const unpaid: Transaction[] = []
   const paid: Transaction[] = []

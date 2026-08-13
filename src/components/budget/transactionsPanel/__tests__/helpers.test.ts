@@ -10,6 +10,7 @@ import {
   buildPendingReviewMatchMap,
   computeOverBudgetTxIds,
   splitByPaidStatus,
+  notDueFixedExpenses,
 } from '../helpers'
 import type { Transaction, Category, PaymentMethod, BudgetPerson, TransactionReview, FixedExpense, ExpenseAllocation } from '@/gen/wellspent/v1/budget_pb'
 
@@ -393,5 +394,52 @@ describe('computeOverBudgetTxIds', () => {
     // plan = 100 (fixed tx planned amount); actual 150 crosses it
     const ids = computeOverBudgetTxIds([variableTx], [fixedTx], [], [])
     expect(ids).toEqual(new Set(['a']))
+  })
+})
+
+describe('notDueFixedExpenses', () => {
+  it('returns active templates that have no transaction this period', () => {
+    // These are the upcoming bills — nothing spawned for them, so they'd be
+    // invisible until their due date without the Future section.
+    const rent = makeFixedExpense({ id: 'fe-rent' })
+    const gym = makeFixedExpense({ id: 'fe-gym' })
+    const rentTx = makeTransaction({ id: 'tx-1', fixedExpenseId: 'fe-rent' })
+
+    const result = notDueFixedExpenses([rent, gym], [rentTx])
+
+    expect(result.map((fe) => fe.id)).toEqual(['fe-gym'])
+  })
+
+  it('ignores deactivated templates', () => {
+    // A completed payment plan auto-deactivates; it isn't upcoming.
+    const cancelled = makeFixedExpense({ id: 'fe-old', isActive: false })
+
+    expect(notDueFixedExpenses([cancelled], [])).toEqual([])
+  })
+
+  it('returns nothing at all on an archived period', () => {
+    // ListFixedExpenses is profile-scoped, so on a closed period this would
+    // otherwise report every template created since as "upcoming" in a month
+    // that already ended.
+    const rent = makeFixedExpense({ id: 'fe-rent' })
+
+    expect(notDueFixedExpenses([rent], [], true)).toEqual([])
+  })
+
+  it('treats a template as upcoming even when another template has a transaction', () => {
+    const rent = makeFixedExpense({ id: 'fe-rent' })
+    const gym = makeFixedExpense({ id: 'fe-gym' })
+    const unrelatedTx = makeTransaction({ id: 'tx-1', fixedExpenseId: 'fe-other' })
+
+    const result = notDueFixedExpenses([rent, gym], [unrelatedTx])
+
+    expect(result.map((fe) => fe.id)).toEqual(['fe-rent', 'fe-gym'])
+  })
+
+  it('returns nothing when every active template already spawned', () => {
+    const rent = makeFixedExpense({ id: 'fe-rent' })
+    const rentTx = makeTransaction({ id: 'tx-1', fixedExpenseId: 'fe-rent' })
+
+    expect(notDueFixedExpenses([rent], [rentTx])).toEqual([])
   })
 })

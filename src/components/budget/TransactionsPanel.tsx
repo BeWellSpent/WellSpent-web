@@ -12,7 +12,7 @@ import { useClient } from '@/hooks/useClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
 import { formatMoneyFromNumber } from '@/lib/format'
-import { type FilterOption, txAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds } from './transactionsPanel/helpers'
+import { type FilterOption, txAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds, notDueFixedExpenses } from './transactionsPanel/helpers'
 import { TransactionTable } from './transactionsPanel/TransactionTable'
 import { AddTransactionModal } from './modals/AddTransactionModal'
 import { EditTransactionModal } from './modals/EditTransactionModal'
@@ -149,11 +149,13 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const fixedTxs = fixedData?.transactions ?? []
   const variableTxs = variableData?.transactions ?? []
 
-  // Active fixed expenses with no transaction yet this period — not due yet
-  // (e.g. a future-dated anchor). Shown as a muted row so they're never
-  // simply invisible until their due date arrives.
-  const notDueFixedExpenses = (fixedExpensesData?.expenses ?? []).filter(
-    (fe) => fe.isActive && !fixedTxs.some((tx) => tx.fixedExpenseId === fe.id),
+  // Upcoming bills — rendered in the Fixed tab's "Future" section. Suppressed
+  // on an archived period; see the helper for why the derivation is only sound
+  // for the live one.
+  const futureFixedExpenses = notDueFixedExpenses(
+    fixedExpensesData?.expenses ?? [],
+    fixedTxs,
+    isArchivedPeriod,
   )
 
   // Grand total = what was actually paid. Fixed only counts once marked paid
@@ -293,7 +295,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
             <Tab label={t('variable')} sx={{ fontWeight: 700 }} />
           </Tabs>
           {tabIndex === 0
-            ? <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={notDueFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} linkedVariableByFixedTxId={linkedVariableByFixedTxId} />
+            ? <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={futureFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} linkedVariableByFixedTxId={linkedVariableByFixedTxId} />
             : <TransactionTable {...sharedTableProps} isFixed={false} transactions={variableTxs} isLoading={variableLoading} label={t('variable')} confirmedReviewVariableTxIds={confirmedReviewVariableTxIds} />
           }
         </Box>
@@ -301,7 +303,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 3 }}>
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block' }}>{t('fixed').toUpperCase()}</Typography>
-            <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={notDueFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} linkedVariableByFixedTxId={linkedVariableByFixedTxId} />
+            <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={futureFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} linkedVariableByFixedTxId={linkedVariableByFixedTxId} />
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block' }}>{t('variable').toUpperCase()}</Typography>
