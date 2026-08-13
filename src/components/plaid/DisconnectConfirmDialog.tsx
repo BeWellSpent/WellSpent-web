@@ -21,7 +21,7 @@ export function DisconnectConfirmDialog({
   onConfirm: () => void
   onClose: () => void
 }) {
-  const t = useTranslations('settings.plaid')
+  const t = useTranslations('plaid')
   const fullScreen = useIsMobile()
 
   return (

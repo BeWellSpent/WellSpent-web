@@ -28,6 +28,7 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import SavingsIcon from '@mui/icons-material/Savings'
 import CreditCardIcon from '@mui/icons-material/CreditCard'
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 
 const COLLAPSED_KEY = 'sidebar-collapsed'
 
@@ -51,6 +52,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   const [savingsOpen, setSavingsOpen] = useState(false)
   const [paymentMethodsOpen, setPaymentMethodsOpen] = useState(false)
   const [alertsOpen, setAlertsOpen] = useState(false)
+  const [bankConnectionsOpen, setBankConnectionsOpen] = useState(false)
   const [mobileManageOpen, setMobileManageOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [themeMounted, setThemeMounted] = useState(false)
@@ -83,7 +85,10 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   const { period: activePeriod } = useResolvedPeriod(budgetId, undefined, !!data)
 
   const budgetName = data?.profile?.name ?? '…'
-  const showBeforeTax = (data?.profile?.countryCode ?? '') === 'US'
+  // The budget's country is propagated from its owner at creation. It gates
+  // both the before-tax income fields and the bank-connections panel, since
+  // Plaid is US-only and the backend refuses everyone else outright.
+  const isUS = (data?.profile?.countryCode ?? '') === 'US'
   const iconSrc = themeMounted && effective === 'dark' ? '/app-icon-dark.png' : '/app-icon-light.png'
 
   const activePeriodStart = activePeriod?.startDate
@@ -116,6 +121,9 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     { label: t('people'), icon: <PeopleIcon />, action: () => setPeopleOpen(true) },
     ...(canManageUsers ? [{ label: t('invitations'), icon: <MailIcon />, action: () => setInvitesOpen(true) }] : []),
     { label: t('alerts'), icon: <NotificationsIcon />, action: () => setAlertsOpen(true) },
+    ...(isUS
+      ? [{ label: t('bankConnections'), icon: <AccountBalanceIcon />, action: () => setBankConnectionsOpen(true) }]
+      : []),
   ]
 
   const appItems: NavItem[] = [
@@ -180,6 +188,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           savings: savingsOpen,
           paymentMethods: paymentMethodsOpen,
           alerts: alertsOpen,
+          bankConnections: bankConnectionsOpen,
         }}
         onClose={{
           categories: () => setCategoriesOpen(false),
@@ -189,11 +198,12 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           savings: () => setSavingsOpen(false),
           paymentMethods: () => setPaymentMethodsOpen(false),
           alerts: () => setAlertsOpen(false),
+          bankConnections: () => setBankConnectionsOpen(false),
         }}
         budgetId={budgetId}
         canEdit={canEdit}
         canManageUsers={canManageUsers}
-        showBeforeTax={showBeforeTax}
+        showBeforeTax={isUS}
         activePeriodStart={activePeriodStart}
         activePeriodId={activePeriod?.id}
       />

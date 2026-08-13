@@ -87,30 +87,6 @@
       "deleting": "Deleting…"
     },
     "plaidTitle": "Connected bank accounts",
-    "plaid": {
-      "empty": "No bank accounts connected yet.",
-      "connect": "Connect a bank account",
-      "freeTierNote": "Only available on Pro accounts",
-      "manageAccounts": "Manage accounts",
-      "pickBudget": "Which budget should imported transactions go to?",
-      "noBudgets": "You have no budgets. Create one first.",
-      "cancel": "Cancel",
-      "disconnect": "Disconnect",
-      "disconnectTitle": "Disconnect bank account?",
-      "disconnectBody": "Transactions already imported from {name} will stay. No new transactions will be imported.",
-      "unknownBank": "Unknown bank",
-      "unknownBudget": "Unknown budget",
-      "lastSynced": "Last synced {date}",
-      "neverSynced": "Never synced",
-      "status": {
-        "active": "Active",
-        "disconnected": "Disconnected",
-        "error": "Error"
-      },
-      "syncWarningTitle": "Some accounts aren't syncing",
-      "syncWarningMember": "{member} connected {count, plural, one {# bank} other {# banks}} to {budget}, but their account isn't on a paid plan — those transactions won't be imported. Bank sync is per person, so they'll need to upgrade.",
-      "syncWarningSelf": "You connected {count, plural, one {# bank} other {# banks}} to {budget}, but your account isn't on a paid plan, so those transactions won't be imported. Upgrade to Pro to turn bank sync on."
-    },
     "subscription": {
       "title": "Subscription",
       "planLabel": "Current plan",
@@ -189,7 +165,8 @@
       "collapse": "Collapse sidebar",
       "manage": "Manage",
       "alerts": "Alert Settings",
-      "website": "WellSpent website"
+      "website": "WellSpent website",
+      "bankConnections": "Bank connections"
     },
     "income": {
       "title": "Income",
@@ -739,5 +716,41 @@
       },
       "freeTierNote": "Free: max 2 alert types � new_transaction requires Pro"
     }
+  },
+  "plaid": {
+    "empty": "No bank accounts connected yet.",
+    "connect": "Connect a bank account",
+    "freeTierNote": "Only available on Pro accounts",
+    "manageAccounts": "Manage accounts",
+    "pickBudget": "Which budget should imported transactions go to?",
+    "noBudgets": "You have no budgets. Create one first.",
+    "cancel": "Cancel",
+    "disconnect": "Disconnect",
+    "disconnectTitle": "Disconnect bank account?",
+    "disconnectBody": "Transactions already imported from {name} will stay. No new transactions will be imported.",
+    "unknownBank": "Unknown bank",
+    "unknownBudget": "Unknown budget",
+    "lastSynced": "Last synced {date}",
+    "neverSynced": "Never synced",
+    "status": {
+      "active": "Active",
+      "disconnected": "Disconnected",
+      "error": "Error"
+    },
+    "syncWarningTitle": "Some accounts aren't syncing",
+    "syncWarningMember": "{member} connected {count, plural, one {# bank} other {# banks}} to {budget}, but their account isn't on a paid plan — those transactions won't be imported. Bank sync is per person, so they'll need to upgrade.",
+    "syncWarningSelf": "You connected {count, plural, one {# bank} other {# banks}} to {budget}, but your account isn't on a paid plan, so those transactions won't be imported. Upgrade to Pro to turn bank sync on.",
+    "budgetPanelIntro": "Bank connections feeding this budget, from everyone on it. You can only change your own.",
+    "emptyForBudget": "No bank accounts are connected to this budget yet.",
+    "unknownMember": "Unknown member",
+    "notYours": "Only the person who connected this bank can change it",
+    "notSyncing": "Not syncing",
+    "resync": "Re-sync",
+    "resyncTitle": "Re-sync this bank?",
+    "resyncBody": "WellSpent will ask {name} for its full transaction history again, starting now.",
+    "resyncWarning": "Transactions you deleted will come back. Ones already imported won't be duplicated.",
+    "resyncOncePerDay": "Available once a day per bank.",
+    "resyncCooldown": "Already re-synced today — available again in {hours, plural, one {# hour} other {# hours}}",
+    "resyncSyncDisabled": "This bank won't sync until its owner is on a paid plan"
   }
 }

@@ -9,6 +9,7 @@ import { IncomePanel } from '@/components/budget/IncomePanel'
 import { SavingsPanel } from '@/components/budget/SavingsPanel'
 import { PaymentMethodsPanel } from '@/components/budget/PaymentMethodsPanel'
 import { AlertSubscriptionsPanel } from '@/components/budget/AlertSubscriptionsPanel'
+import { PlaidConnectionsPanel } from '@/components/budget/PlaidConnectionsPanel'
 
 interface OpenState {
   categories: boolean
@@ -18,6 +19,7 @@ interface OpenState {
   savings: boolean
   paymentMethods: boolean
   alerts: boolean
+  bankConnections: boolean
 }
 
 interface Props {
@@ -62,6 +64,10 @@ export function ManagementDrawers({ open, onClose, budgetId, canEdit, canManageU
 
       <FullScreenDrawer open={open.alerts} onClose={onClose.alerts} title={t('alerts')}>
         <AlertSubscriptionsPanel budgetProfileId={budgetId} />
+      </FullScreenDrawer>
+
+      <FullScreenDrawer open={open.bankConnections} onClose={onClose.bankConnections} title={t('bankConnections')}>
+        <PlaidConnectionsPanel budgetProfileId={budgetId} />
       </FullScreenDrawer>
     </>
   )
