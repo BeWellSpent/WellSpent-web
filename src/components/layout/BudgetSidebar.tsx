@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { useRouter } from '@/i18n/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useThemeMode } from '@/context/ThemeContext'
 import { useTheme } from '@mui/material/styles'
@@ -41,6 +42,8 @@ interface Props {
 export function BudgetSidebar({ budgetId, children }: Props) {
   const t = useTranslations('budget.sidebar')
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const theme = useTheme()
   // Sidebar collapses to a bottom bar earlier than the `sm` app-wide
   // breakpoint — there's a permanent sidebar to make room for down to `md`.
@@ -64,6 +67,23 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     setCollapsed(localStorage.getItem(COLLAPSED_KEY) === 'true')
     setThemeMounted(true)
   }, [])
+
+  // `?manage=paymentMethods` lets a view nested under this one (BudgetView's
+  // add-transaction gate) open a management drawer it doesn't own. Only
+  // paymentMethods is wired up — add cases here as other panels need it.
+  const managePanel = searchParams.get('manage')
+
+  useEffect(() => {
+    if (managePanel === 'paymentMethods') setPaymentMethodsOpen(true)
+  }, [managePanel])
+
+  /** Drops `?manage=` so closing a drawer doesn't leave it reopening on reload. */
+  function clearManageParam() {
+    if (!searchParams.has('manage')) return
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('manage')
+    router.replace({ pathname, query: Object.fromEntries(params) }, { scroll: false })
+  }
 
   function toggleCollapsed() {
     setCollapsed((prev) => {
@@ -202,7 +222,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           invites: () => setInvitesOpen(false),
           income: () => setIncomeOpen(false),
           savings: () => setSavingsOpen(false),
-          paymentMethods: () => setPaymentMethodsOpen(false),
+          paymentMethods: () => { setPaymentMethodsOpen(false); clearManageParam() },
           alerts: () => setAlertsOpen(false),
           bankConnections: () => setBankConnectionsOpen(false),
           preferences: () => setPreferencesOpen(false),

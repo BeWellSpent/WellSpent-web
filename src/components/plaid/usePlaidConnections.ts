@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PlaidService } from '@/gen/wellspent/v1/plaid_connect'
 import type { PlaidConnection } from '@/gen/wellspent/v1/plaid_pb'
 import { useClient } from '@/hooks/useClient'
+import { paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 
@@ -79,7 +80,7 @@ export function usePlaidConnections(budgetProfileId?: string) {
     onSuccess: (res) => {
       invalidate()
       if (res.connection?.budgetProfileId) {
-        queryClient.invalidateQueries({ queryKey: ['paymentMethods', res.connection.budgetProfileId] })
+        queryClient.invalidateQueries({ queryKey: paymentMethodsQueryKey(res.connection.budgetProfileId) })
       }
       logger.info('plaid.refreshAccounts.success')
     },

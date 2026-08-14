@@ -88,6 +88,7 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
 
       <ChartChoice
         label={t('planChart')}
+        caption={t('planChartHint')}
         value={planValue}
         disabled={isPending}
         onChange={(mode) => update({ plan: mode, overview: overviewValue })}
@@ -98,6 +99,7 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
 
       <ChartChoice
         label={t('overviewChart')}
+        caption={t('overviewChartHint')}
         value={overviewValue}
         disabled={isPending}
         onChange={(mode) => update({ plan: planValue, overview: mode })}
@@ -110,9 +112,10 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
 }
 
 function ChartChoice({
-  label, value, disabled, onChange, pieLabel, barLabel, identifier,
+  label, caption, value, disabled, onChange, pieLabel, barLabel, identifier,
 }: {
   label: string
+  caption: string
   value: ChartMode
   disabled: boolean
   onChange: (mode: ChartMode) => void
@@ -122,7 +125,10 @@ function ChartChoice({
 }) {
   return (
     <Box>
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>{label}</Typography>
+      <Typography variant="subtitle2">{label}</Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+        {caption}
+      </Typography>
       <ToggleButtonGroup
         exclusive
         size="small"

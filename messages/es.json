@@ -321,7 +321,13 @@
       "delete": "Eliminar",
       "deletePlaidLocked": "Las transacciones importadas del banco no se pueden eliminar",
       "linkedToFixed": "fijo",
-      "linkedToFixedTooltip": "Pendiente de revisión — vinculado a \"{name}\""
+      "linkedToFixedTooltip": "Pendiente de revisión — vinculado a \"{name}\"",
+      "paymentMethodRequired": {
+        "title": "Primero agrega un método de pago",
+        "body": "Las transacciones necesitan un método de pago — efectivo, una tarjeta o una cuenta bancaria — para poder ver a dónde fue el dinero. Agrega uno y podrás registrar transacciones de inmediato.",
+        "action": "Agregar un método de pago",
+        "cancel": "Ahora no"
+      }
     },
     "markForReview": {
       "title": "Marcar para revisión",
@@ -468,7 +474,9 @@
       "pie": "Circular",
       "bar": "Barras",
       "unavailable": "Las preferencias están disponibles cuando estés vinculado a este presupuesto.",
-      "saveFailed": "No se pudieron guardar tus preferencias."
+      "saveFailed": "No se pudieron guardar tus preferencias.",
+      "planChartHint": "Se muestra en la pestaña Plan de gastos, encima de tus montos planificados.",
+      "overviewChartHint": "Se muestra en la pestaña Resumen de gastos, encima de lo que gastaste realmente."
     }
   },
   "landing": {

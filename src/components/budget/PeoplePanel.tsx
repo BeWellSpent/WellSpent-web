@@ -7,6 +7,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { usePaymentMethods, paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -61,10 +62,7 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
     queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
 
-  const { data: pmData } = useQuery({
-    queryKey: ['paymentMethods', budgetProfileId],
-    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
-  })
+  const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
 
   const { data: incomeData } = useQuery({
     queryKey: ['income-sources', budgetProfileId],
@@ -87,7 +85,7 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
     }) => client.removeBudgetPerson({ budgetProfileId, personId, replacementPersonId, replacementPaymentMethodId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
-      queryClient.invalidateQueries({ queryKey: ['paymentMethods', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: paymentMethodsQueryKey(budgetProfileId) })
       queryClient.invalidateQueries({ queryKey: ['income-sources', budgetProfileId] })
     },
   })
@@ -306,7 +304,7 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
       <RemovePersonDialog
         person={removingPerson}
         people={people}
-        paymentMethods={pmData?.methods ?? []}
+        paymentMethods={paymentMethods}
         incomeSources={incomeData?.sources ?? []}
         isRemoving={isRemoving}
         onCancel={() => setRemovingPerson(null)}

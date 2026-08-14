@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
 import { formatMoneyFromNumber } from '@/lib/format'
@@ -113,10 +114,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     queryKey: ['categories', budgetProfileId],
     queryFn: () => client.listCategories({ budgetProfileId }),
   })
-  const { data: methodsData } = useQuery({
-    queryKey: ['paymentMethods', budgetProfileId],
-    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
-  })
+  const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
   const { data: peopleData } = useQuery({
     queryKey: ['budget-people', budgetProfileId],
     queryFn: () => client.listBudgetPeople({ budgetProfileId }),
@@ -136,7 +134,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   })
 
   const categoryMap = new Map((categoriesData?.categories ?? []).map((c) => [c.id, c]))
-  const methodMap = new Map((methodsData?.methods ?? []).map((m) => [m.id, m]))
+  const methodMap = new Map(paymentMethods.map((m) => [m.id, m]))
   const personMap = new Map((peopleData?.people ?? []).map((p) => [p.id.toString(), p]))
 
   const savingsCategoryId = (categoriesData?.categories ?? []).find(
