@@ -294,9 +294,14 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
             <Tab label={t('fixed')} sx={{ fontWeight: 700 }} />
             <Tab label={t('variable')} sx={{ fontWeight: 700 }} />
           </Tabs>
+          {/* Keyed so the two tabs don't share one instance: each needs its own
+              default sort direction (Fixed oldest-first, Variable newest-first),
+              and an initial useState value can't change on a prop switch.
+              Search and filter live here in the parent, so nothing the user
+              typed is lost by remounting. */}
           {tabIndex === 0
-            ? <TransactionTable {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={futureFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} linkedVariableByFixedTxId={linkedVariableByFixedTxId} />
-            : <TransactionTable {...sharedTableProps} isFixed={false} transactions={variableTxs} isLoading={variableLoading} label={t('variable')} confirmedReviewVariableTxIds={confirmedReviewVariableTxIds} />
+            ? <TransactionTable key="fixed" {...sharedTableProps} isFixed transactions={fixedTxs} isLoading={fixedLoading} label={t('fixed')} notDueFixedExpenses={futureFixedExpenses} onEditFixedExpense={setEditFixedExpenseTarget} linkedVariableByFixedTxId={linkedVariableByFixedTxId} />
+            : <TransactionTable key="variable" {...sharedTableProps} isFixed={false} transactions={variableTxs} isLoading={variableLoading} label={t('variable')} confirmedReviewVariableTxIds={confirmedReviewVariableTxIds} />
           }
         </Box>
       ) : (
