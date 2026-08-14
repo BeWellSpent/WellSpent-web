@@ -5,6 +5,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useAuth } from '@/context/AuthContext'
+import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
 
 /**
  * Resolves the current user's role for a given budget profile.
@@ -20,18 +21,12 @@ export function useBudgetRole(budgetProfileId: string): BudgetRole {
     queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
   })
 
-  const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
+  const { person: myPerson, isLoading: personLoading } = useMyBudgetPerson(budgetProfileId)
 
-  if (!profileData || !peopleData) return BudgetRole.ADMIN
+  if (!profileData || personLoading) return BudgetRole.ADMIN
 
   const profile = profileData.profile
-  const people = peopleData.people
-
   if (userId && profile?.userId && profile.userId === userId) return BudgetRole.ADMIN
 
-  const myPerson = people.find((p) => p.userId !== '' && p.userId === userId)
   return myPerson?.role ?? BudgetRole.UNSPECIFIED
 }

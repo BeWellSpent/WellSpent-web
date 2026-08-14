@@ -166,7 +166,8 @@
       "manage": "Gestionar",
       "alerts": "Configuración de alertas",
       "website": "Sitio web de WellSpent",
-      "bankConnections": "Conexiones bancarias"
+      "bankConnections": "Conexiones bancarias",
+      "preferences": "Preferencias"
     },
     "income": {
       "title": "Ingresos",
@@ -459,6 +460,15 @@
     },
     "people": {
       "freeTierLimit": "Plan gratuito: m�ximo 2 personas por presupuesto. Mejora a Pro para miembros ilimitados."
+    },
+    "preferences": {
+      "description": "Estos ajustes son solo tuyos — el resto de las personas en este presupuesto conservan los suyos.",
+      "planChart": "Gráfico del plan de gastos",
+      "overviewChart": "Gráfico del resumen de gastos",
+      "pie": "Circular",
+      "bar": "Barras",
+      "unavailable": "Las preferencias están disponibles cuando estés vinculado a este presupuesto.",
+      "saveFailed": "No se pudieron guardar tus preferencias."
     }
   },
   "landing": {
