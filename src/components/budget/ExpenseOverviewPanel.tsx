@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Category, PaymentMethod, BudgetPerson, Transaction, CategoryExpenseSummary } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { parseMoney } from './expensesPanel/helpers'
@@ -70,10 +71,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
     queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId! }),
     enabled: !!budgetPeriodId,
   })
-  const { data: paymentMethodsData, isLoading: pmLoading } = useQuery({
-    queryKey: ['payment-methods', budgetProfileId],
-    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
-  })
+  const { methods: paymentMethods, isLoading: pmLoading } = usePaymentMethods(budgetProfileId)
   // Server-computed planned/actual/remainder/over-budget/unplanned totals —
   // the single source of truth both web and iOS consume, replacing the
   // local re-derivation that previously drifted between the two clients
@@ -91,7 +89,6 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   const people = peopleData?.people ?? []
   const incomeCategoryId = categories.find((c) => c.name === 'Income' && c.isSystem)?.id
   const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
-  const paymentMethods = paymentMethodsData?.methods ?? []
 
   const categoryMap = new Map<number, Category>(categories.map((c) => [c.id, c]))
   const methodMap = new Map<string, PaymentMethod>(paymentMethods.map((pm) => [pm.id, pm]))

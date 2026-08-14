@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
+import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
@@ -36,16 +37,12 @@ export function PaymentMethodSelect({
 }: Props) {
   const client = useClient(BudgetService)
 
-  const { data: pmData } = useQuery({
-    queryKey: ['payment-methods', budgetProfileId],
-    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
-  })
+  const { methods } = usePaymentMethods(budgetProfileId)
   const { data: peopleData } = useQuery({
     queryKey: ['budget-people', budgetProfileId],
     queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
 
-  const methods = useMemo(() => pmData?.methods ?? [], [pmData])
   const personMap = useMemo(
     () => new Map((peopleData?.people ?? []).map((p) => [p.id.toString(), p])),
     [peopleData],

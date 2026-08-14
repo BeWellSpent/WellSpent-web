@@ -321,7 +321,13 @@
       "delete": "Delete",
       "deletePlaidLocked": "Bank-imported transactions can't be deleted",
       "linkedToFixed": "fixed",
-      "linkedToFixedTooltip": "Pending review — matched to \"{name}\""
+      "linkedToFixedTooltip": "Pending review — matched to \"{name}\"",
+      "paymentMethodRequired": {
+        "title": "Add a payment method first",
+        "body": "Transactions need a payment method — cash, a card, or a bank account — so you can see where the money went. Add one and you'll be able to record transactions right away.",
+        "action": "Add a payment method",
+        "cancel": "Not now"
+      }
     },
     "markForReview": {
       "title": "Flag for Review",

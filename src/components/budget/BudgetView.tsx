@@ -11,12 +11,15 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
+import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useResolvedPeriod } from '@/hooks/useResolvedPeriod'
 import { TransactionsPanel } from './TransactionsPanel'
 import { ExpensesPanel } from './ExpensesPanel'
 import { ExpenseOverviewPanel } from './ExpenseOverviewPanel'
 import { TransactionReviewPanel, transactionReviewCount } from './TransactionReviewPanel'
 import { ReportsPlaceholder } from './ReportsPlaceholder'
+import { PaymentMethodRequiredDialog } from './modals/PaymentMethodRequiredDialog'
+import { needsPaymentMethodSetup } from './transactionsPanel/helpers'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -55,12 +58,15 @@ export function BudgetView({ budgetId }: Props) {
   const rawView = searchParams.get('view')
   const activeView: ActiveView = rawView === 'transactions' ? 'transactions' : rawView === 'review' ? 'review' : rawView === 'overview' ? 'overview' : rawView === 'reports' ? 'reports' : 'expenses'
   const [addTransactionOpen, setAddTransactionOpen] = useState(false)
+  const [paymentMethodRequiredOpen, setPaymentMethodRequiredOpen] = useState(false)
 
   function setActiveView(view: ActiveView) {
     const params = new URLSearchParams(searchParams.toString())
     params.set('view', view)
     router.replace({ pathname, query: Object.fromEntries(params) }, { scroll: false })
   }
+
+  const { methods: paymentMethods, isLoading: paymentMethodsLoading } = usePaymentMethods(budgetId)
 
   const myRole = useBudgetRole(budgetId)
   const canEdit = myRole === BudgetRole.ADMIN || myRole === BudgetRole.COLLABORATOR
@@ -92,8 +98,24 @@ export function BudgetView({ budgetId }: Props) {
   const profile = profileData?.profile
 
   function handleFabClick() {
+    // Both Fixed and Variable need a payment method to save, so the whole
+    // form is blocked rather than half of it — see needsPaymentMethodSetup.
+    if (needsPaymentMethodSetup(paymentMethods, paymentMethodsLoading)) {
+      setPaymentMethodRequiredOpen(true)
+      return
+    }
     setActiveView('transactions')
     setAddTransactionOpen(true)
+  }
+
+  // The Payment Methods drawer is owned by BudgetSidebar, this view's parent,
+  // so it's opened through the URL the same way `view`/`tab`/`period` already
+  // are. BudgetSidebar clears the param when the drawer closes.
+  function openPaymentMethods() {
+    setPaymentMethodRequiredOpen(false)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('manage', 'paymentMethods')
+    router.replace({ pathname, query: Object.fromEntries(params) }, { scroll: false })
   }
 
   return (
@@ -184,6 +206,12 @@ export function BudgetView({ budgetId }: Props) {
           <AddIcon />
         </Fab>
       )}
+
+      <PaymentMethodRequiredDialog
+        open={paymentMethodRequiredOpen}
+        onClose={() => setPaymentMethodRequiredOpen(false)}
+        onGoToPaymentMethods={openPaymentMethods}
+      />
 
       {/* Mobile bottom navigation — mirrors desktop tabs */}
       {isMobile && (

@@ -293,3 +293,21 @@ export function groupTransactionsByDay(
     return { day, label: formatDayHeader(dayTransactions[0]?.date), transactions: dayTransactions }
   })
 }
+
+/**
+ * Whether adding a transaction has to be blocked because the budget has no
+ * payment method yet.
+ *
+ * A payment method is the one prerequisite the user has to create themselves —
+ * system categories always exist and the owner is auto-added as a person — so
+ * with none, the add form can be filled in completely and still refuse to save.
+ * Blocking the entry point with an explanation beats a permanently disabled
+ * Save button.
+ *
+ * Returns false while the list is still loading: a gate shown on incomplete
+ * data reads as a bug to someone who does have payment methods.
+ */
+export function needsPaymentMethodSetup(methods: PaymentMethod[], isLoading: boolean): boolean {
+  if (isLoading) return false
+  return methods.length === 0
+}

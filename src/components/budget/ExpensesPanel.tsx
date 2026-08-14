@@ -9,6 +9,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Category, ExpenseAllocation, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpenseModal'
 import { useClient } from '@/hooks/useClient'
+import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -98,10 +99,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     enabled: !!budgetPeriodId,
   })
 
-  const { data: paymentMethodsData, isLoading: pmLoading } = useQuery({
-    queryKey: ['payment-methods', budgetProfileId],
-    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
-  })
+  const { methods: paymentMethods, isLoading: pmLoading } = usePaymentMethods(budgetProfileId)
 
   const { data: savingsData, isLoading: savingsLoading } = useQuery({
     queryKey: ['savings-sources', budgetProfileId],
@@ -204,7 +202,6 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   // computation (chart, per-category actuals, plan summary) inherits it.
   const incomeCategoryId = categories.find((c) => c.name === 'Income' && c.isSystem)?.id
   const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
-  const paymentMethods = paymentMethodsData?.methods ?? []
   const savingsSources = savingsData?.sources ?? []
   const fixedExpenses = (fixedExpensesData?.expenses ?? []).filter((fe) => fe.isActive)
 

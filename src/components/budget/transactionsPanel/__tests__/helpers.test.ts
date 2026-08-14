@@ -11,6 +11,7 @@ import {
   computeOverBudgetTxIds,
   splitByPaidStatus,
   notDueFixedExpenses,
+  needsPaymentMethodSetup,
 } from '../helpers'
 import type { Transaction, Category, PaymentMethod, BudgetPerson, TransactionReview, FixedExpense, ExpenseAllocation } from '@/gen/wellspent/v1/budget_pb'
 
@@ -441,5 +442,21 @@ describe('notDueFixedExpenses', () => {
     const rentTx = makeTransaction({ id: 'tx-1', fixedExpenseId: 'fe-rent' })
 
     expect(notDueFixedExpenses([rent], [rentTx])).toEqual([])
+  })
+})
+
+describe('needsPaymentMethodSetup', () => {
+  const method = { id: 'pm-1' } as PaymentMethod
+
+  it('blocks when the budget has no payment methods', () => {
+    expect(needsPaymentMethodSetup([], false)).toBe(true)
+  })
+
+  it('allows once at least one exists', () => {
+    expect(needsPaymentMethodSetup([method], false)).toBe(false)
+  })
+
+  it('does not block while the list is still loading', () => {
+    expect(needsPaymentMethodSetup([], true)).toBe(false)
   })
 })

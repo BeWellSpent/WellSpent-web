@@ -32,10 +32,8 @@ interface Props {
   budgetPeriodId: string
   budgetProfileId: string
   open?: boolean
-  embedded?: boolean
   defaultTypeId?: number
   onClose?: () => void
-  onSkip?: () => void
   onDone: () => void
 }
 
@@ -95,7 +93,7 @@ function frequencyFieldsFor(unit: FrequencyUnitUI, count: number, dayOfWeek: num
 
 type Flow = 'spent' | 'received'
 
-export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, embedded, defaultTypeId = 1, onClose, onSkip, onDone }: Props) {
+export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, defaultTypeId = 1, onClose, onDone }: Props) {
   const t = useTranslations('budget.transactions')
   const { showError } = useSnackbar()
   const fullScreen = useIsMobile()
@@ -276,11 +274,6 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
 
   const form = (
     <Stack spacing={2}>
-      {embedded && (
-        <Typography variant="body2" color="text.secondary">
-          Add your first transaction. You can add more from the budget view.
-        </Typography>
-      )}
       <TextField label="Description" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
       <Stack direction="row" spacing={1} alignItems="flex-start">
         {!isFixed && (
@@ -410,20 +403,6 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, emb
       )}
     </Stack>
   )
-
-  if (embedded) {
-    return (
-      <>
-        {form}
-        <Stack direction="row" spacing={1} justifyContent="flex-end" mt={2}>
-          {onSkip && <Button onClick={onSkip} color="inherit">Skip</Button>}
-          <LoadingButton variant="contained" onClick={handleSave} disabled={!canSave} loading={isPending}>
-            Save & Finish
-          </LoadingButton>
-        </Stack>
-      </>
-    )
-  }
 
   return (
     <Dialog open={open ?? false} onClose={onClose} maxWidth="sm" fullWidth fullScreen={fullScreen}>

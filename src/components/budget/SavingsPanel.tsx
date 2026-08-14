@@ -7,6 +7,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { SavingsSource } from '@/gen/wellspent/v1/budget_pb'
 import { RecurringType } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -65,10 +66,7 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
     queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
 
-  const { data: pmData } = useQuery({
-    queryKey: ['payment-methods', budgetProfileId],
-    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
-  })
+  const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
 
   const { mutateAsync: doDelete } = useMutation({
     mutationFn: (id: bigint) => client.deleteSavingsSource({ id, budgetProfileId }),
@@ -88,7 +86,7 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
   const sources = data?.sources ?? []
   const people = peopleData?.people ?? []
   const personMap = new Map(people.map((p) => [p.id.toString(), p.userName]))
-  const pmMap = new Map((pmData?.methods ?? []).map((pm) => [pm.id, pm.alias || pm.name]))
+  const pmMap = new Map(paymentMethods.map((pm) => [pm.id, pm.alias || pm.name]))
   const savingsTotal = sources.reduce((sum, s) => sum + Number(s.amount?.units ?? 0n) + (s.amount?.nanos ?? 0) / 1e9, 0)
 
   if (isLoading) return <CircularProgress size={20} />

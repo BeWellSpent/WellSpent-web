@@ -321,7 +321,13 @@
       "delete": "Eliminar",
       "deletePlaidLocked": "Las transacciones importadas del banco no se pueden eliminar",
       "linkedToFixed": "fijo",
-      "linkedToFixedTooltip": "Pendiente de revisión — vinculado a \"{name}\""
+      "linkedToFixedTooltip": "Pendiente de revisión — vinculado a \"{name}\"",
+      "paymentMethodRequired": {
+        "title": "Primero agrega un método de pago",
+        "body": "Las transacciones necesitan un método de pago — efectivo, una tarjeta o una cuenta bancaria — para poder ver a dónde fue el dinero. Agrega uno y podrás registrar transacciones de inmediato.",
+        "action": "Agregar un método de pago",
+        "cancel": "Ahora no"
+      }
     },
     "markForReview": {
       "title": "Marcar para revisión",

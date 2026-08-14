@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useTranslations } from 'next-intl'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { PaymentType } from '@/gen/wellspent/v1/common_pb'
 import type { PaymentMethod } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { usePaymentMethods, paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { AddPaymentMethodDialog } from './paymentMethodsPanel/AddPaymentMethodDialog'
@@ -43,10 +44,13 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit =
 
   const client = useClient(BudgetService)
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['paymentMethods', budgetProfileId],
-    queryFn: () => client.listPaymentMethods({ budgetProfileId }),
-  })
+  const queryClient = useQueryClient()
+  const { methods, isLoading } = usePaymentMethods(budgetProfileId)
+
+  // Invalidate rather than refetch locally: every other reader of this list
+  // (the transaction dropdowns, the add-transaction gate) shares this key and
+  // has to see a newly added method too.
+  const refetch = () => queryClient.invalidateQueries({ queryKey: paymentMethodsQueryKey(budgetProfileId) })
 
   const { data: peopleData } = useQuery({
     queryKey: ['budget-people', budgetProfileId],
@@ -131,7 +135,6 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit =
 
   if (isLoading) return <CircularProgress size={20} />
 
-  const methods = data?.methods ?? []
   const people = peopleData?.people ?? []
   const transactions = transactionsData?.transactions ?? []
   const personMap = new Map(people.map((p) => [p.id.toString(), p.userName]))
