@@ -101,7 +101,10 @@ export function TransactionTable({
   const client = useClient(BudgetService)
   const isMobile = useIsMobile()
   const [sortKey, setSortKey] = useState<SortKey>('day')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  // Fixed reads as a schedule — oldest first, so the month runs top to bottom.
+  // Variable reads as a feed, where the latest spend is what you came to see.
+  // The sort control still overrides this; it's only the starting point.
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(isFixed ? 'asc' : 'desc')
   const [markPaidTarget, setMarkPaidTarget] = useState<Transaction | null>(null)
   const [markReviewTarget, setMarkReviewTarget] = useState<Transaction | null>(null)
 

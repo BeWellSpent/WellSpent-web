@@ -30,15 +30,16 @@ interface FixedExpenseSectionsProps {
   emptyLabel: string
 }
 
-// Renders the Fixed tab's rows as three sections — Unpaid (always expanded),
-// Paid (collapsed by default, same manual-toggle pattern as TxRow's own
-// linked-review expand/collapse), then Future. The first two are
+// Renders the Fixed tab's rows as three sections — Unpaid, Paid, then Future.
+// All three collapse; Unpaid and Future start open, Paid starts closed since
+// a paid bill is already handled. Unpaid collapses so a long list of bills
+// doesn't force a scroll past it to reach Paid or Future. The first two are
 // independently day-grouped via the same helper the flat Variable-tab list
 // uses; Future is not, since those aren't transactions yet and have no date
 // in this period to group by — each carries its own next-due date instead.
 //
 // Future is expanded by default, unlike Paid: an upcoming bill is something
-// you'd want to see without a tap, whereas a paid one is already handled.
+// you'd want to see without a tap.
 export function FixedExpenseSections({
   transactions, notDueFixedExpenses, sortKey, sortDir,
   categoryMap, methodMap, personMap, isMobile, colSpan,
@@ -46,6 +47,7 @@ export function FixedExpenseSections({
   buildActions, renderNotDueRow, emptyLabel,
 }: FixedExpenseSectionsProps) {
   const t = useTranslations('budget.transactions')
+  const [unpaidExpanded, setUnpaidExpanded] = useState(true)
   const [paidExpanded, setPaidExpanded] = useState(false)
   const [futureExpanded, setFutureExpanded] = useState(true)
 
@@ -85,15 +87,14 @@ export function FixedExpenseSections({
   return (
     <>
       {unpaid.length > 0 && (
-        <TableRow>
-          <TableCell colSpan={colSpan} sx={{ bgcolor: 'action.hover', py: 0.5 }}>
-            <Typography variant="caption" fontWeight={700} color="text.secondary">
-              {t('unpaidSection', { count: unpaid.length })}
-            </Typography>
-          </TableCell>
-        </TableRow>
+        <CollapsibleSectionHeader
+          label={t('unpaidSection', { count: unpaid.length })}
+          expanded={unpaidExpanded}
+          onToggle={() => setUnpaidExpanded((v) => !v)}
+          colSpan={colSpan}
+        />
       )}
-      {unpaidGroups.map((group) => (
+      {unpaidExpanded && unpaidGroups.map((group) => (
         <Fragment key={`unpaid-${group.day}`}>
           <TableRow>
             <TableCell colSpan={colSpan} sx={{ bgcolor: 'action.hover', py: 0.5 }}>
@@ -136,8 +137,8 @@ export function FixedExpenseSections({
   )
 }
 
-// Shared by the Paid and Future headers so the two can't drift on styling or
-// on how the chevron reflects state.
+// Shared by all three section headers so they can't drift on styling or on
+// how the chevron reflects state.
 function CollapsibleSectionHeader({
   label, expanded, onToggle, colSpan,
 }: {
