@@ -468,7 +468,9 @@
       "pie": "Circular",
       "bar": "Barras",
       "unavailable": "Las preferencias están disponibles cuando estés vinculado a este presupuesto.",
-      "saveFailed": "No se pudieron guardar tus preferencias."
+      "saveFailed": "No se pudieron guardar tus preferencias.",
+      "planChartHint": "Se muestra en la pestaña Plan de gastos, encima de tus montos planificados.",
+      "overviewChartHint": "Se muestra en la pestaña Resumen de gastos, encima de lo que gastaste realmente."
     }
   },
   "landing": {
