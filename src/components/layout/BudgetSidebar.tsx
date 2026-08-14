@@ -29,6 +29,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import SavingsIcon from '@mui/icons-material/Savings'
 import CreditCardIcon from '@mui/icons-material/CreditCard'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
+import TuneIcon from '@mui/icons-material/Tune'
 
 const COLLAPSED_KEY = 'sidebar-collapsed'
 
@@ -53,6 +54,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   const [paymentMethodsOpen, setPaymentMethodsOpen] = useState(false)
   const [alertsOpen, setAlertsOpen] = useState(false)
   const [bankConnectionsOpen, setBankConnectionsOpen] = useState(false)
+  const [preferencesOpen, setPreferencesOpen] = useState(false)
   const [mobileManageOpen, setMobileManageOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [themeMounted, setThemeMounted] = useState(false)
@@ -124,6 +126,9 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     ...(isUS
       ? [{ label: t('bankConnections'), icon: <AccountBalanceIcon />, action: () => setBankConnectionsOpen(true) }]
       : []),
+    // Not role-gated: these are the caller's own view settings, so a Viewer
+    // gets them too.
+    { label: t('preferences'), icon: <TuneIcon />, action: () => setPreferencesOpen(true) },
   ]
 
   const appItems: NavItem[] = [
@@ -189,6 +194,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           paymentMethods: paymentMethodsOpen,
           alerts: alertsOpen,
           bankConnections: bankConnectionsOpen,
+          preferences: preferencesOpen,
         }}
         onClose={{
           categories: () => setCategoriesOpen(false),
@@ -199,6 +205,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           paymentMethods: () => setPaymentMethodsOpen(false),
           alerts: () => setAlertsOpen(false),
           bankConnections: () => setBankConnectionsOpen(false),
+          preferences: () => setPreferencesOpen(false),
         }}
         budgetId={budgetId}
         canEdit={canEdit}

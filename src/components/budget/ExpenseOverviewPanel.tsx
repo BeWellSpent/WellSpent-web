@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
+import { useChartPreference, DEFAULT_CHART } from '@/hooks/useChartPreference'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Category, PaymentMethod, BudgetPerson, Transaction, CategoryExpenseSummary } from '@/gen/wellspent/v1/budget_pb'
@@ -46,7 +47,13 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   )
   const client = useClient(BudgetService)
 
-  const [chartType, setChartType] = useState<'pie' | 'bar'>('bar')
+  const savedChart = useChartPreference(budgetProfileId, 'overview')
+  const [chartOverride, setChartOverride] = useState<'pie' | 'bar' | null>(null)
+  // The in-chart toggle is a one-off view change: it overrides the saved
+  // default for this visit without writing it back (Preferences is the only
+  // place that sets a default).
+  const chartType = chartOverride ?? savedChart ?? DEFAULT_CHART
+  const setChartType = setChartOverride
   const [chartGrouping, setChartGrouping] = useState<'person' | 'category'>('category')
   const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set())
 
