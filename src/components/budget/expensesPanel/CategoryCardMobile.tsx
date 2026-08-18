@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import type { Category, BudgetPerson, ExpenseAllocation, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
-import { parseMoney, type CategoryRowData } from './helpers'
+import { parseMoney, categoryTotalDisplay, type CategoryRowData } from './helpers'
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
@@ -33,7 +33,8 @@ export function CategoryCardMobile({
   canEdit, formatMoney, onRemoveCategory, onOpenEditDialog, onEditFixedExpense,
 }: Props) {
   const t = useTranslations('budget.expenses')
-  const { isSavings, notDueInfo, isNotDue, isFixedOnly, plannedTotal } = rowData
+  const { isSavings, notDueInfo, isNotDue, isFixedOnly } = rowData
+  const total = categoryTotalDisplay(rowData)
 
   return (
     <Paper variant="outlined" sx={{ p: 1.5 }}>
@@ -58,8 +59,8 @@ export function CategoryCardMobile({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
           <Box sx={{ textAlign: 'right' }}>
             <Typography variant="caption" color="text.secondary" display="block">{t('plannedAmount')}</Typography>
-            <Typography variant="body2" fontWeight={600} color={isNotDue ? 'text.disabled' : undefined}>
-              {plannedTotal > 0 ? formatMoney(plannedTotal) : '—'}
+            <Typography variant="body2" fontWeight={600} color={total?.muted ? 'text.disabled' : undefined}>
+              {total ? formatMoney(total.amount) : '—'}
             </Typography>
           </Box>
           {canEdit && !isSavings && !isFixedOnly && (

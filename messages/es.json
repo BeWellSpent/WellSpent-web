@@ -358,7 +358,7 @@
       "plannedAllocations": "Asignaciones planificadas + Gastos fijos",
       "remainder": "Saldo restante",
       "spent": "Gastado",
-      "notDueTooltip": "No vence este período — próximo vencimiento {date}",
+      "notDueTooltip": "No vence este período — próximo vencimiento {date}. No cuenta en el plan de este período.",
       "chart": {
         "pie": "Pastel",
         "bar": "Barras",

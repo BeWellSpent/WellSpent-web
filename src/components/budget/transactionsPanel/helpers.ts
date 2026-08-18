@@ -77,10 +77,16 @@ export function fixedExpensePlannedAmount(fe: FixedExpense): number {
 // never budgeted for is, by definition, over budget starting from its first
 // transaction. Only truly uncategorized transactions (no categoryId at all)
 // are excluded, since there's no category to attribute the overage to.
+//
+// Fixed expenses that aren't due this period are deliberately not part of the
+// baseline: budgeting against a bill that hasn't arrived makes a category look
+// under budget when it isn't (issue #48). iOS's equivalent
+// (ExpensePlanCalculations.plannedTotal) always excluded them, so this also
+// ends a live disagreement between the two clients over which transactions the
+// "Exceeded only" filter shows.
 export function computeOverBudgetTxIds(
   variableTxs: Transaction[],
   fixedTxs: Transaction[],
-  fixedExpenses: FixedExpense[],
   allocations: ExpenseAllocation[],
   incomeCategoryId?: number,
 ): Set<string> {
@@ -92,11 +98,6 @@ export function computeOverBudgetTxIds(
   fixedTxs.filter((tx) => !isTransactionExcluded(tx, incomeCategoryId)).forEach((tx) => {
     if (!tx.categoryId) return
     plannedByCat.set(tx.categoryId, (plannedByCat.get(tx.categoryId) ?? 0) + txPlannedAmount(tx))
-  })
-  const fixedTxExpenseIds = new Set(fixedTxs.map((tx) => tx.fixedExpenseId).filter(Boolean))
-  fixedExpenses.filter((fe) => fe.isActive && !fixedTxExpenseIds.has(fe.id)).forEach((fe) => {
-    if (!fe.categoryId) return
-    plannedByCat.set(fe.categoryId, (plannedByCat.get(fe.categoryId) ?? 0) + fixedExpensePlannedAmount(fe))
   })
 
   const txsByCat = new Map<number, Transaction[]>()
@@ -259,9 +260,17 @@ export function notDueFixedExpenses(
   isArchivedPeriod = false,
 ): FixedExpense[] {
   if (isArchivedPeriod) return []
-  return expenses.filter(
-    (fe) => fe.isActive && !fixedTransactions.some((tx) => tx.fixedExpenseId === fe.id),
-  )
+  return expenses
+    .filter((fe) => fe.isActive && !fixedTransactions.some((tx) => tx.fixedExpenseId === fe.id))
+    // Soonest first. These arrive in ListFixedExpenses' `ORDER BY name`,
+    // which is arbitrary for a list whose whole purpose is "what's coming up
+    // next" (issue #48). A template with no next due date sorts last rather
+    // than jumping to the front as a zero timestamp would.
+    .sort((a, b) => nextDueSortKey(a) - nextDueSortKey(b))
+}
+
+function nextDueSortKey(fe: FixedExpense): number {
+  return fe.nextDueDate ? Number(fe.nextDueDate.seconds) : Number.MAX_SAFE_INTEGER
 }
 
 export function splitByPaidStatus(transactions: Transaction[]): { unpaid: Transaction[]; paid: Transaction[] } {

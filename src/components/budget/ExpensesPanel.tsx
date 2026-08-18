@@ -14,7 +14,7 @@ import { useCurrency } from '@/hooks/useCurrency'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { formatMoneyFromNumber } from '@/lib/format'
-import { parseMoney, moneyToProto, computeCategoryRow, type NotDueInfo } from './expensesPanel/helpers'
+import { parseMoney, moneyToProto, computeCategoryRow, buildNotDueInfo } from './expensesPanel/helpers'
 import { isTransactionExcluded } from './transactionsPanel/helpers'
 import { ExpenseChart, type ExpenseChartDatum } from './expensesPanel/ExpenseChart'
 import { CategoryCardMobile } from './expensesPanel/CategoryCardMobile'
@@ -238,23 +238,12 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   }
 
   // Fixed-expense categories not reflected by a due transaction this period
-  // — shown as a muted "not due" row so the category never simply vanishes
-  // between due periods (see docs/features/fixed-transactions-frequency.md).
-  const notDueFixedByCat = new Map<number, NotDueInfo>()
-  for (const fe of fixedExpenses) {
-    if (!fe.categoryId) continue
-    if (savingsCat && fe.categoryId === savingsCat.id) continue
-    if (fixedPlannedByCat.has(fe.categoryId)) continue // already has a due transaction this period
-    const amt = parseMoney(fe.plannedAmount?.units ?? 0n, fe.plannedAmount?.nanos ?? 0)
-    const nextDue = fe.nextDueDate ? new Date(Number(fe.nextDueDate.seconds) * 1000) : undefined
-    const existing = notDueFixedByCat.get(fe.categoryId)
-    if (existing) {
-      existing.amount += amt
-      if (nextDue && (!existing.nextDue || nextDue < existing.nextDue)) existing.nextDue = nextDue
-    } else {
-      notDueFixedByCat.set(fe.categoryId, { amount: amt, nextDue, fixedExpense: fe })
-    }
-  }
+  // — shown as a muted "not due" caption so the category never simply
+  // vanishes between due periods (see docs/features/fixed-transactions-frequency.md).
+  // The amount and date come from the server, which is also the thing that
+  // decided to leave them out of every total; re-summing them here would be a
+  // second implementation of a number the user compares against the first.
+  const notDueFixedByCat = buildNotDueInfo(summaryData.planCategories, fixedExpenses)
 
   // savings — amount is already the monthly figure; frequency is the cadence, not a multiplier
   const savingsByPerson = new Map<string, number>()

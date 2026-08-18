@@ -170,7 +170,6 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const overBudgetTxIds = computeOverBudgetTxIds(
     variableTxs,
     fixedTxs,
-    fixedExpensesData?.expenses ?? [],
     allocationsData?.allocations ?? [],
     incomeCategoryId,
   )
