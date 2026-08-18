@@ -327,6 +327,24 @@
         "body": "Las transacciones necesitan un método de pago — efectivo, una tarjeta o una cuenta bancaria — para poder ver a dónde fue el dinero. Agrega uno y podrás registrar transacciones de inmediato.",
         "action": "Agregar un método de pago",
         "cancel": "Ahora no"
+      },
+      "installments": {
+        "action": "Dividir en cuotas",
+        "title": "Dividir en cuotas",
+        "explainer": "{name} ({amount}) dejará de contar en este período. Un gasto fijo lo reemplaza, dividido en las cuotas indicadas abajo.",
+        "payments": "Cantidad de cuotas",
+        "firstPayment": "Primera cuota",
+        "firstPaymentHelp": "Por defecto el mes próximo — la tarjeta cobra en el resumen siguiente al de la compra.",
+        "endDate": "Última cuota",
+        "preview": "{amount} × {count} cuotas",
+        "residue": "Redondeado al centavo más cercano, el plan suma {total}.",
+        "willExclude": "La compra original sigue visible pero deja de contar en los totales.",
+        "confirm": "Crear plan",
+        "cancel": "Cancelar",
+        "error": "No se pudo crear el plan de cuotas.",
+        "rowBadge": "cuotas",
+        "rowTooltip": "Dividida en cuotas — excluida de los totales porque se cuentan sus cuotas en su lugar.",
+        "excludeLocked": "Excluida porque se dividió en cuotas. Volver a incluirla contaría la compra dos veces."
       }
     },
     "markForReview": {
