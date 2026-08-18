@@ -348,7 +348,7 @@ describe('computeOverBudgetTxIds', () => {
     // (categoryId 0), which has no category to attribute the overage to.
     const a = makeTransaction({ id: 'a', categoryId: 1, amount: money(50n), date: { seconds: day1, nanos: 0 } })
     const b = makeTransaction({ id: 'b', categoryId: 1, amount: money(20n), date: { seconds: day2, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([a, b], [], [], [])
+    const ids = computeOverBudgetTxIds([a, b], [], [])
     expect(ids).toEqual(new Set(['a', 'b']))
   })
 
@@ -357,35 +357,37 @@ describe('computeOverBudgetTxIds', () => {
     const b = makeTransaction({ id: 'b', categoryId: 1, amount: money(40n), date: { seconds: day2, nanos: 0 } })
     const c = makeTransaction({ id: 'c', categoryId: 1, amount: money(40n), date: { seconds: day3, nanos: 0 } })
     // plan = 100; running: a=40, b=80, c=120 -> only c crosses the line
-    const ids = computeOverBudgetTxIds([a, b, c], [], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
+    const ids = computeOverBudgetTxIds([a, b, c], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
     expect(ids).toEqual(new Set(['c']))
   })
 
   it('does not flag a received (negative) transaction even if it lands after the plan is crossed', () => {
     const a = makeTransaction({ id: 'a', categoryId: 1, amount: money(150n), date: { seconds: day1, nanos: 0 } })
     const b = makeTransaction({ id: 'b', categoryId: 1, amount: money(-20n), date: { seconds: day2, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([a, b], [], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
+    const ids = computeOverBudgetTxIds([a, b], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
     expect(ids).toEqual(new Set(['a']))
   })
 
   it('ignores uncategorized transactions', () => {
     const tx = makeTransaction({ id: 'a', categoryId: 0, amount: money(999n), date: { seconds: day1, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([tx], [], [], [makeAllocation({ categoryId: 1, plannedAmount: money(1n) })])
+    const ids = computeOverBudgetTxIds([tx], [], [makeAllocation({ categoryId: 1, plannedAmount: money(1n) })])
     expect(ids.size).toBe(0)
   })
 
   it('ignores excluded transactions when computing the running total', () => {
     const excluded = makeTransaction({ id: 'a', categoryId: 1, amount: money(200n), isExcluded: true, date: { seconds: day1, nanos: 0 } })
     const counted = makeTransaction({ id: 'b', categoryId: 1, amount: money(50n), date: { seconds: day2, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([excluded, counted], [], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
+    const ids = computeOverBudgetTxIds([excluded, counted], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
     expect(ids.size).toBe(0)
   })
 
-  it('includes an active fixed expense with no transaction yet this period in the plan', () => {
+  it('does not budget against a fixed expense that is not due this period', () => {
+    // A bill that hasn't arrived isn't money this period has to cover, so it
+    // must not raise the baseline and make real spending look affordable
+    // (issue #48). Previously the template's $100 was added to the plan and
+    // this $150 of spending read as within budget.
     const tx = makeTransaction({ id: 'a', categoryId: 1, amount: money(150n), date: { seconds: day1, nanos: 0 } })
-    const fe = makeFixedExpense({ id: 'fe-1', categoryId: 1, isActive: true, plannedAmount: money(100n) })
-    // plan = 0 (no allocation) + 100 (fixed expense) = 100; actual 150 crosses it
-    const ids = computeOverBudgetTxIds([tx], [], [fe], [])
+    const ids = computeOverBudgetTxIds([tx], [], [])
     expect(ids).toEqual(new Set(['a']))
   })
 
@@ -393,7 +395,7 @@ describe('computeOverBudgetTxIds', () => {
     const variableTx = makeTransaction({ id: 'a', categoryId: 1, amount: money(150n), transactionTypeId: 2, date: { seconds: day1, nanos: 0 } })
     const fixedTx = makeTransaction({ id: 'fixed-1', categoryId: 1, transactionTypeId: 1, plannedAmount: money(100n) })
     // plan = 100 (fixed tx planned amount); actual 150 crosses it
-    const ids = computeOverBudgetTxIds([variableTx], [fixedTx], [], [])
+    const ids = computeOverBudgetTxIds([variableTx], [fixedTx], [])
     expect(ids).toEqual(new Set(['a']))
   })
 })
@@ -442,6 +444,29 @@ describe('notDueFixedExpenses', () => {
     const rentTx = makeTransaction({ id: 'tx-1', fixedExpenseId: 'fe-rent' })
 
     expect(notDueFixedExpenses([rent], [rentTx])).toEqual([])
+  })
+
+  it('orders upcoming bills soonest first, not by name', () => {
+    // ListFixedExpenses returns ORDER BY name, which tells the user nothing
+    // about what is about to be charged (issue #48).
+    const gym = makeFixedExpense({ id: 'fe-gym', name: 'Gym', nextDueDate: { seconds: 300n, nanos: 0 } })
+    const auto = makeFixedExpense({ id: 'fe-auto', name: 'Auto', nextDueDate: { seconds: 900n, nanos: 0 } })
+    const rent = makeFixedExpense({ id: 'fe-rent', name: 'Rent', nextDueDate: { seconds: 100n, nanos: 0 } })
+
+    const result = notDueFixedExpenses([auto, gym, rent], [])
+
+    expect(result.map((fe) => fe.id)).toEqual(['fe-rent', 'fe-gym', 'fe-auto'])
+  })
+
+  it('sorts a template with no next due date last rather than first', () => {
+    // Guards the obvious regression: treating a missing date as 0 would put
+    // the one bill we know least about at the top of the list.
+    const dated = makeFixedExpense({ id: 'fe-dated', nextDueDate: { seconds: 500n, nanos: 0 } })
+    const undated = makeFixedExpense({ id: 'fe-undated', nextDueDate: undefined })
+
+    const result = notDueFixedExpenses([undated, dated], [])
+
+    expect(result.map((fe) => fe.id)).toEqual(['fe-dated', 'fe-undated'])
   })
 })
 

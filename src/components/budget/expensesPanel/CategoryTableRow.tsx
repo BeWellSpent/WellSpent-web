@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import type { Category, BudgetPerson, ExpenseAllocation, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
-import { parseMoney, type CategoryRowData } from './helpers'
+import { parseMoney, categoryTotalDisplay, type CategoryRowData } from './helpers'
 import { EditCell } from './EditCell'
 import TableCell from '@mui/material/TableCell'
 import TableRow from '@mui/material/TableRow'
@@ -36,7 +36,8 @@ export function CategoryTableRow({
   canEdit, currency, locale, formatMoney, onRemoveCategory, onUpsert, onEditFixedExpense,
 }: Props) {
   const t = useTranslations('budget.expenses')
-  const { isSavings, notDueInfo, isNotDue, isFixedOnly, plannedTotal } = rowData
+  const { isSavings, notDueInfo, isNotDue, isFixedOnly } = rowData
+  const total = categoryTotalDisplay(rowData)
 
   return (
     <TableRow hover>
@@ -106,8 +107,8 @@ export function CategoryTableRow({
         )
       })}
       <TableCell align="right">
-        {plannedTotal > 0
-          ? <Typography component="span" variant="body2" color={isNotDue ? 'text.disabled' : undefined}>{formatMoney(plannedTotal)}</Typography>
+        {total
+          ? <Typography component="span" variant="body2" color={total.muted ? 'text.disabled' : undefined}>{formatMoney(total.amount)}</Typography>
           : <Typography component="span" variant="body2" color="text.disabled">—</Typography>}
       </TableCell>
       <TableCell align="right">
