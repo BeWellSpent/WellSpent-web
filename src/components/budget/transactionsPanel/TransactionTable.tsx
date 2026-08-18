@@ -16,6 +16,7 @@ import { MarkForReviewDialog } from '../modals/MarkForReviewDialog'
 import { SortHeader } from './SortHeader'
 import { MobileRowActions } from './MobileRowActions'
 import { InstallmentPlanDialog } from './InstallmentPlanDialog'
+import { UnsplitInstallmentPlanDialog } from './UnsplitInstallmentPlanDialog'
 import { canSplitIntoInstallments } from './installmentPlan'
 import { TxRow } from './TxRow'
 import { FixedExpenseSections } from './FixedExpenseSections'
@@ -55,6 +56,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import CallSplitIcon from '@mui/icons-material/CallSplit'
+import UndoIcon from '@mui/icons-material/Undo'
 
 export interface TransactionTableProps {
   transactions: Transaction[]
@@ -111,6 +113,7 @@ export function TransactionTable({
   const [markPaidTarget, setMarkPaidTarget] = useState<Transaction | null>(null)
   const [markReviewTarget, setMarkReviewTarget] = useState<Transaction | null>(null)
   const [installmentTarget, setInstallmentTarget] = useState<Transaction | null>(null)
+  const [unsplitTarget, setUnsplitTarget] = useState<Transaction | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -230,6 +233,7 @@ export function TransactionTable({
           isIncomeRow={isIncomeRow(tx)}
           canSplitIntoInstallments={canSplitIntoInstallments(tx, txAmount(tx))}
           onSplitIntoInstallments={() => setInstallmentTarget(tx)}
+          onUnsplitInstallments={() => setUnsplitTarget(tx)}
           isInstallmentPlan={!!tx.installmentFixedExpenseId}
           canExclude={canMutate}
           excludePending={setExcludedPending}
@@ -265,6 +269,13 @@ export function TransactionTable({
           <Tooltip title={t('markForReview')}>
             <IconButton size="small" onClick={() => setMarkReviewTarget(tx)}>
               <FlagIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+        {tx.installmentFixedExpenseId && (
+          <Tooltip title={t('installments.unsplitAction')}>
+            <IconButton size="small" onClick={() => setUnsplitTarget(tx)}>
+              <UndoIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         )}
@@ -578,6 +589,13 @@ export function TransactionTable({
         personMap={personMap}
         onClose={() => setMarkReviewTarget(null)}
       />
+      {unsplitTarget && (
+        <UnsplitInstallmentPlanDialog
+          tx={unsplitTarget}
+          budgetPeriodId={budgetPeriodId}
+          onClose={() => setUnsplitTarget(null)}
+        />
+      )}
       {installmentTarget && (
         <InstallmentPlanDialog
           tx={installmentTarget}

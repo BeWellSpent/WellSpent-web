@@ -344,7 +344,12 @@
         "error": "No se pudo crear el plan de cuotas.",
         "rowBadge": "cuotas",
         "rowTooltip": "Dividida en cuotas — excluida de los totales porque se cuentan sus cuotas en su lugar.",
-        "excludeLocked": "Excluida porque se dividió en cuotas. Volver a incluirla contaría la compra dos veces."
+        "excludeLocked": "Excluida porque se dividió en cuotas. Volver a incluirla contaría la compra dos veces.",
+        "unsplitAction": "Deshacer división",
+        "unsplitTitle": "Deshacer la división en cuotas",
+        "unsplitBody": "Se eliminarán el plan y sus cuotas restantes, y {name} volverá a contar en su período.",
+        "unsplitConfirm": "Deshacer división",
+        "unsplitError": "No se pudo deshacer la división."
       }
     },
     "markForReview": {

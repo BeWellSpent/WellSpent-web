@@ -20,8 +20,6 @@ import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
@@ -110,7 +108,6 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
   const [categoryId, setCategoryId] = useState<number>(0)
   const [paymentMethodId, setPaymentMethodId] = useState('')
   const [typeId, setTypeId] = useState<number>(defaultTypeId)
-  const [recurring, setRecurring] = useState(defaultTypeId === 1)
   const client = useClient(BudgetService)
 
   const isFixed = typeId === 1
@@ -118,7 +115,6 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
   useEffect(() => {
     if (open) {
       setTypeId(defaultTypeId)
-      setRecurring(defaultTypeId === 1)
       setFlow('spent')
     }
   }, [open, defaultTypeId])
@@ -137,7 +133,6 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
       paymentMethodId: string
       transactionTypeId: number
       transactionFrequencyId: number
-      recurring: boolean
     }) => client.createTransaction({ budgetPeriodId, plannedAmount: vars.amount, ...vars }),
   })
 
@@ -260,8 +255,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
           categoryId,
           paymentMethodId,
           transactionTypeId: typeId,
-          transactionFrequencyId: recurring ? 4 : 1,
-          recurring,
+          transactionFrequencyId: 1,
         })
         logger.info('transaction.create', { budgetPeriodId, name, amount, flow })
       }
@@ -292,7 +286,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
           select
           label="Type"
           value={typeId}
-          onChange={(e) => { const v = Number(e.target.value); setTypeId(v); setRecurring(v === 1); if (v === 1) setFlow('spent') }}
+          onChange={(e) => { const v = Number(e.target.value); setTypeId(v); if (v === 1) setFlow('spent') }}
           sx={{ flex: 1 }}
         >
           <MenuItem value={1}>Fixed</MenuItem>
@@ -395,12 +389,6 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
         fullWidth
         inputProps={{ min: 0, step: '0.01', inputMode: 'decimal' }}
       />
-      {!isFixed && (
-        <FormControlLabel
-          control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
-          label="Recurring"
-        />
-      )}
     </Stack>
   )
 
