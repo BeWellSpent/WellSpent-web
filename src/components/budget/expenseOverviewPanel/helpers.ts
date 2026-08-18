@@ -10,8 +10,7 @@
  * What the two tabs *must* agree on is money **in**. A category whose
  * transactions net negative is money received, and it renders `+$X` green on
  * both tabs — matching `formatVariableAmount` in transactionsPanel/helpers.ts
- * (issue #52). Before this, web dropped the number entirely (`—`) and iOS
- * printed a bare `-$X`, so the sign read as inverted between the two tabs.
+ * (issue #52).
  *
  * Deliberately NOT used for the remainder rows: a negative "remaining" means
  * spending past income, not money received, and a `+` prefix there would say
@@ -19,24 +18,52 @@
  */
 export function formatOverviewAmountText(amount: number, formatMoney: (n: number) => string): string {
   if (amount < 0) return `+${formatMoney(-amount)}`
-  if (amount === 0) return '—'
   return formatMoney(amount)
 }
 
 /**
- * An actual-spend cell: its text plus the colour that goes with it.
+ * The colour an actual-spend amount carries. Three states for spending, so
+ * green means exactly one thing — "inside a plan you set":
  *
- * Shared by the desktop table row and the mobile card so the two layouts
- * can't disagree about whether a category is over budget or has received
- * money. Note green carries both meanings here — under budget, and money in —
- * disambiguated by the `+` prefix, exactly as it is in the transactions list.
+ * - received (negative): green, money in
+ * - over its plan:       red
+ * - inside its plan:     green
+ * - no plan at all:      neutral, NOT green
+ * - exactly zero:        muted
+ *
+ * That fourth case is the one worth stating. `is_over` is
+ * `planned > 0 && actual > planned` server-side, so an unplanned category can
+ * never be "over" — it used to fall through to green and read as within
+ * budget, while the same money was simultaneously counted into the orange
+ * Unplanned total at the bottom of this very screen. Unplanned spending is
+ * not a success.
+ *
+ * Mirrored by `OverviewAmountFormatting.tone` on iOS. The two return
+ * different things — an MUI token here, an abstract tone there, because a
+ * pure Swift helper shouldn't import SwiftUI — but the branch order is the
+ * contract and must stay identical.
+ */
+export function overviewActualColor(actual: number, planned: number, isOver: boolean): string {
+  if (actual < 0) return 'success.main'
+  if (actual === 0) return 'text.disabled'
+  if (isOver) return 'error.main'
+  if (planned > 0) return 'success.main'
+  return 'text.secondary'
+}
+
+/**
+ * An actual-spend cell: its text plus the colour that goes with it. Shared by
+ * the desktop table row and the mobile card so the two layouts can't disagree
+ * about whether a category is over budget, unplanned, or has received money.
  */
 export function formatOverviewActual(
   actual: number,
+  planned: number,
   isOver: boolean,
   formatMoney: (n: number) => string,
 ): { text: string; color: string } {
-  if (actual < 0) return { text: formatOverviewAmountText(actual, formatMoney), color: 'success.main' }
-  if (actual === 0) return { text: '—', color: 'text.disabled' }
-  return { text: formatMoney(actual), color: isOver ? 'error.main' : 'success.main' }
+  return {
+    text: formatOverviewAmountText(actual, formatMoney),
+    color: overviewActualColor(actual, planned, isOver),
+  }
 }
