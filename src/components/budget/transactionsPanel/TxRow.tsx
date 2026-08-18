@@ -116,6 +116,13 @@ export function TxRow({
                     </Typography>
                   </Tooltip>
                 )}
+                {tx.carriedFromBudgetPeriodId && (
+                  <Tooltip title={t('carryover.rowTooltip')}>
+                    <Typography variant="caption" color="text.secondary" sx={{ cursor: 'default' }}>
+                      ({t('carryover.rowBadge')})
+                    </Typography>
+                  </Tooltip>
+                )}
               </Box>
               {(method || person) && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -188,6 +195,13 @@ export function TxRow({
               <Tooltip title={t('installments.rowTooltip')}>
                 <Typography variant="caption" color="text.secondary" sx={{ cursor: 'default' }}>
                   ({t('installments.rowBadge')})
+                </Typography>
+              </Tooltip>
+            )}
+            {tx.carriedFromBudgetPeriodId && (
+              <Tooltip title={t('carryover.rowTooltip')}>
+                <Typography variant="caption" color="text.secondary" sx={{ cursor: 'default' }}>
+                  ({t('carryover.rowBadge')})
                 </Typography>
               </Tooltip>
             )}

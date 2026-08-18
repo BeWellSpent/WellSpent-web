@@ -350,6 +350,10 @@
         "unsplitBody": "The plan and its remaining payments will be deleted, and {name} will count toward its period again.",
         "unsplitConfirm": "Undo split",
         "unsplitError": "Couldn't undo the split."
+      },
+      "carryover": {
+        "rowBadge": "carried over",
+        "rowTooltip": "Carried from the previous period's ending balance. Edit or delete it like any other transaction — deleting it is how you say you've already settled it."
       }
     },
     "markForReview": {
@@ -500,6 +504,12 @@
       "saveFailed": "Couldn't save your preferences.",
       "planChartHint": "Shown on the Expense Plan tab, above your planned amounts.",
       "overviewChartHint": "Shown on the Expense Overview tab, above what you actually spent."
+    },
+    "carryover": {
+      "title": "Carry balance forward",
+      "description": "When a period ends, roll its balance into the next one. Money left over is added to Savings; if you overspent, the shortfall is split across the payment methods you spent it on, so the debt shows where it came from.",
+      "adminOnly": "Only a budget admin can change this.",
+      "saveFailed": "Could not save this setting."
     }
   },
   "landing": {

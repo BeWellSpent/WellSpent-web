@@ -1,6 +1,8 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import Divider from '@mui/material/Divider'
+import Stack from '@mui/material/Stack'
 import { FullScreenDrawer } from '@/components/ui/FullScreenDrawer'
 import { PeoplePanel } from '@/components/budget/PeoplePanel'
 import { InvitePanel } from '@/components/budget/InvitePanel'
@@ -11,6 +13,7 @@ import { PaymentMethodsPanel } from '@/components/budget/PaymentMethodsPanel'
 import { AlertSubscriptionsPanel } from '@/components/budget/AlertSubscriptionsPanel'
 import { PlaidConnectionsPanel } from '@/components/budget/PlaidConnectionsPanel'
 import { PreferencesPanel } from '@/components/budget/PreferencesPanel'
+import { CarryoverSettingsPanel } from '@/components/budget/CarryoverSettingsPanel'
 
 interface OpenState {
   categories: boolean
@@ -73,7 +76,11 @@ export function ManagementDrawers({ open, onClose, budgetId, canEdit, canManageU
       </FullScreenDrawer>
 
       <FullScreenDrawer open={open.preferences} onClose={onClose.preferences} title={t('preferences')}>
-        <PreferencesPanel budgetProfileId={budgetId} />
+        <Stack spacing={3} sx={{ px: { xs: 1, sm: 0 } }}>
+          <PreferencesPanel budgetProfileId={budgetId} />
+          <Divider />
+          <CarryoverSettingsPanel budgetProfileId={budgetId} />
+        </Stack>
       </FullScreenDrawer>
     </>
   )
