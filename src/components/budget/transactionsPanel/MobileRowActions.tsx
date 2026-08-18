@@ -11,6 +11,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import FlagIcon from '@mui/icons-material/Flag'
+import CallSplitIcon from '@mui/icons-material/CallSplit'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import EditIcon from '@mui/icons-material/Edit'
@@ -25,6 +26,8 @@ export interface MobileRowActionsProps {
   unmarkPending: boolean
   canFlagForReview: boolean
   isExcluded: boolean
+  canSplitIntoInstallments: boolean
+  isInstallmentPlan: boolean
   isIncomeRow: boolean
   /** False when full mutation is blocked (archived period). */
   canExclude: boolean
@@ -40,6 +43,7 @@ export interface MobileRowActionsProps {
   onUnmark: () => void
   onFlagForReview: () => void
   onToggleExcluded: () => void
+  onSplitIntoInstallments: () => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -50,6 +54,7 @@ export interface MobileRowActionsProps {
 // within the viewport.
 export function MobileRowActions({
   canMarkPaid, isAlreadyPaid, canUnmark, unmarkPending, canFlagForReview, isExcluded, isIncomeRow, canExclude, excludePending,
+  canSplitIntoInstallments, isInstallmentPlan, onSplitIntoInstallments,
   isRowEditable, canDelete, isPlaidImported, onMarkPaid, onUnmark, onFlagForReview, onToggleExcluded, onEdit, onDelete,
 }: MobileRowActionsProps) {
   const t = useTranslations('budget.transactions')
@@ -87,10 +92,16 @@ export function MobileRowActions({
             <ListItemText>{t('markForReview')}</ListItemText>
           </MenuItem>
         )}
-        {canExclude && (isIncomeRow ? (
+        {canSplitIntoInstallments && (
+          <MenuItem onClick={() => run(onSplitIntoInstallments)}>
+            <ListItemIcon><CallSplitIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>{t('installments.action')}</ListItemText>
+          </MenuItem>
+        )}
+        {canExclude && (isIncomeRow || isInstallmentPlan ? (
           <MenuItem disabled>
             <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
-            <ListItemText>{t('exclude.incomeAlwaysExcluded')}</ListItemText>
+            <ListItemText>{isInstallmentPlan ? t('installments.excludeLocked') : t('exclude.incomeAlwaysExcluded')}</ListItemText>
           </MenuItem>
         ) : (
           <MenuItem onClick={() => run(onToggleExcluded)} disabled={excludePending}>

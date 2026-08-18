@@ -15,6 +15,8 @@ import { MarkAsPaidDialog } from '../modals/MarkAsPaidDialog'
 import { MarkForReviewDialog } from '../modals/MarkForReviewDialog'
 import { SortHeader } from './SortHeader'
 import { MobileRowActions } from './MobileRowActions'
+import { InstallmentPlanDialog } from './InstallmentPlanDialog'
+import { canSplitIntoInstallments } from './installmentPlan'
 import { TxRow } from './TxRow'
 import { FixedExpenseSections } from './FixedExpenseSections'
 import {
@@ -52,6 +54,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import VisibilityIcon from '@mui/icons-material/Visibility'
+import CallSplitIcon from '@mui/icons-material/CallSplit'
 
 export interface TransactionTableProps {
   transactions: Transaction[]
@@ -107,6 +110,7 @@ export function TransactionTable({
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>(isFixed ? 'asc' : 'desc')
   const [markPaidTarget, setMarkPaidTarget] = useState<Transaction | null>(null)
   const [markReviewTarget, setMarkReviewTarget] = useState<Transaction | null>(null)
+  const [installmentTarget, setInstallmentTarget] = useState<Transaction | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -224,6 +228,9 @@ export function TransactionTable({
           canFlagForReview={!isFixed && isEditable}
           isExcluded={tx.isExcluded}
           isIncomeRow={isIncomeRow(tx)}
+          canSplitIntoInstallments={canSplitIntoInstallments(tx, txAmount(tx))}
+          onSplitIntoInstallments={() => setInstallmentTarget(tx)}
+          isInstallmentPlan={!!tx.installmentFixedExpenseId}
           canExclude={canMutate}
           excludePending={setExcludedPending}
           isRowEditable={isRowEditable(tx)}
@@ -261,13 +268,20 @@ export function TransactionTable({
             </IconButton>
           </Tooltip>
         )}
+        {canSplitIntoInstallments(tx, txAmount(tx)) && (
+          <Tooltip title={t('installments.action')}>
+            <IconButton size="small" onClick={() => setInstallmentTarget(tx)}>
+              <CallSplitIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
         {canMutate && (
-          <Tooltip title={isIncomeRow(tx) ? t('exclude.incomeAlwaysExcluded') : (tx.isExcluded ? t('exclude.unexclude') : t('exclude.exclude'))}>
+          <Tooltip title={isIncomeRow(tx) ? t('exclude.incomeAlwaysExcluded') : (tx.installmentFixedExpenseId ? t('installments.excludeLocked') : (tx.isExcluded ? t('exclude.unexclude') : t('exclude.exclude')))}>
             <span>
               <LoadingIconButton
                 size="small"
                 onClick={() => handleToggleExcluded(tx)}
-                disabled={isIncomeRow(tx)}
+                disabled={isIncomeRow(tx) || !!tx.installmentFixedExpenseId}
                 loading={setExcludedPending}
                 color={tx.isExcluded || isIncomeRow(tx) ? 'warning' : 'default'}
               >
@@ -564,6 +578,13 @@ export function TransactionTable({
         personMap={personMap}
         onClose={() => setMarkReviewTarget(null)}
       />
+      {installmentTarget && (
+        <InstallmentPlanDialog
+          tx={installmentTarget}
+          budgetPeriodId={budgetPeriodId}
+          onClose={() => setInstallmentTarget(null)}
+        />
+      )}
     </>
   )
 }

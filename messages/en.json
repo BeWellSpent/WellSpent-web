@@ -327,6 +327,24 @@
         "body": "Transactions need a payment method — cash, a card, or a bank account — so you can see where the money went. Add one and you'll be able to record transactions right away.",
         "action": "Add a payment method",
         "cancel": "Not now"
+      },
+      "installments": {
+        "action": "Split into installments",
+        "title": "Split into installments",
+        "explainer": "{name} ({amount}) will stop counting toward this period. A fixed expense takes its place, split across the payments below.",
+        "payments": "Number of payments",
+        "firstPayment": "First payment",
+        "firstPaymentHelp": "Defaults to next month — a card bills the statement after the one you bought in.",
+        "endDate": "Last payment",
+        "preview": "{amount} × {count} payments",
+        "residue": "Rounded to the nearest cent, the plan totals {total}.",
+        "willExclude": "The original purchase stays visible but stops counting toward totals.",
+        "confirm": "Create plan",
+        "cancel": "Cancel",
+        "error": "Couldn't create the installment plan.",
+        "rowBadge": "installments",
+        "rowTooltip": "Split into installments — excluded from totals because its payments are counted instead.",
+        "excludeLocked": "Excluded because it was split into installments. Re-including it would count the purchase twice."
       }
     },
     "markForReview": {

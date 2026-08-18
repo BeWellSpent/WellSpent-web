@@ -109,6 +109,13 @@ export function TxRow({
                     </Typography>
                   </Tooltip>
                 )}
+                {tx.installmentFixedExpenseId && (
+                  <Tooltip title={t('installments.rowTooltip')}>
+                    <Typography variant="caption" color="text.secondary" sx={{ cursor: 'default' }}>
+                      ({t('installments.rowBadge')})
+                    </Typography>
+                  </Tooltip>
+                )}
               </Box>
               {(method || person) && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -174,6 +181,13 @@ export function TxRow({
               <Tooltip title={t('linkedToFixedTooltip', { name: pendingReviewName })}>
                 <Typography variant="caption" color="text.secondary" sx={{ cursor: 'default' }}>
                   ({t('linkedToFixed')})
+                </Typography>
+              </Tooltip>
+            )}
+            {tx.installmentFixedExpenseId && (
+              <Tooltip title={t('installments.rowTooltip')}>
+                <Typography variant="caption" color="text.secondary" sx={{ cursor: 'default' }}>
+                  ({t('installments.rowBadge')})
                 </Typography>
               </Tooltip>
             )}
