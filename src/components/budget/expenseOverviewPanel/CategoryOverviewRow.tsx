@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import type { Category, BudgetPerson, Transaction, PaymentMethod, CategoryExpenseSummary } from '@/gen/wellspent/v1/budget_pb'
 import { parseMoney } from '../expensesPanel/helpers'
+import { formatOverviewActual } from './helpers'
 import { CategoryTransactionList } from './CategoryTransactionList'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
@@ -36,7 +37,7 @@ export function CategoryOverviewRow({
   const actual = parseMoney(summary.actualTotal?.units ?? 0n, summary.actualTotal?.nanos ?? 0)
   const planned = parseMoney(summary.plannedTotal?.units ?? 0n, summary.plannedTotal?.nanos ?? 0)
   const isOver = summary.isOver
-  const actualColor = actual > 0 ? (isOver ? 'error.main' : 'success.main') : 'text.disabled'
+  const actualDisplay = formatOverviewActual(actual, isOver, formatMoney)
   const hasPeople = people.length > 1
   const isExpandable = hasPeople || catTransactions.length > 0
   const pct = totalActual > 0 && actual > 0 ? Math.round(actual / totalActual * 100) : null
@@ -70,8 +71,8 @@ export function CategoryOverviewRow({
           </Box>
         </TableCell>
         <TableCell align="right">
-          <Typography variant="body2" sx={{ color: actualColor, fontWeight: actual > 0 ? 600 : 400 }}>
-            {actual > 0 ? formatMoney(actual) : '—'}
+          <Typography variant="body2" sx={{ color: actualDisplay.color, fontWeight: actual !== 0 ? 600 : 400 }}>
+            {actualDisplay.text}
           </Typography>
         </TableCell>
         <TableCell align="right">
@@ -98,6 +99,7 @@ export function CategoryOverviewRow({
         const personActual = parseMoney(pb.actualTotal?.units ?? 0n, pb.actualTotal?.nanos ?? 0)
         const personPlanned = parseMoney(pb.plannedTotal?.units ?? 0n, pb.plannedTotal?.nanos ?? 0)
         const isPersonOver = personPlanned > 0 && personActual > personPlanned
+        const personDisplay = formatOverviewActual(personActual, isPersonOver, formatMoney)
         return (
           <TableRow key={pb.budgetPersonId.toString()} sx={{ bgcolor: 'action.hover' }}>
             <TableCell sx={{ py: 0.5, pr: 0 }} />
@@ -112,11 +114,8 @@ export function CategoryOverviewRow({
               </Box>
             </TableCell>
             <TableCell align="right" sx={{ py: 0.5 }}>
-              <Typography
-                variant="body2"
-                sx={{ color: isPersonOver ? 'error.main' : (personActual > 0 ? 'success.main' : 'text.disabled') }}
-              >
-                {personActual > 0 ? formatMoney(personActual) : '—'}
+              <Typography variant="body2" sx={{ color: personDisplay.color }}>
+                {personDisplay.text}
               </Typography>
             </TableCell>
             <TableCell align="right" sx={{ py: 0.5 }}>

@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import type { Category, BudgetPerson, Transaction, PaymentMethod, CategoryExpenseSummary } from '@/gen/wellspent/v1/budget_pb'
 import { parseMoney } from '../expensesPanel/helpers'
+import { formatOverviewActual } from './helpers'
 import { CategoryTransactionList } from './CategoryTransactionList'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
@@ -37,7 +38,7 @@ export function CategoryOverviewCard({
   const actual = parseMoney(summary.actualTotal?.units ?? 0n, summary.actualTotal?.nanos ?? 0)
   const planned = parseMoney(summary.plannedTotal?.units ?? 0n, summary.plannedTotal?.nanos ?? 0)
   const isOver = summary.isOver
-  const actualColor = actual > 0 ? (isOver ? 'error.main' : 'success.main') : 'text.disabled'
+  const actualDisplay = formatOverviewActual(actual, isOver, formatMoney)
   const hasPeople = people.length > 1
   const isExpandable = hasPeople || catTransactions.length > 0
   const pct = totalActual > 0 && actual > 0 ? Math.round(actual / totalActual * 100) : null
@@ -64,8 +65,8 @@ export function CategoryOverviewCard({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
           <Box sx={{ textAlign: 'right' }}>
             <Typography variant="caption" color="text.secondary" display="block">{t('actual')}</Typography>
-            <Typography variant="body2" fontWeight={600} sx={{ color: actualColor }}>
-              {actual > 0 ? formatMoney(actual) : '—'}
+            <Typography variant="body2" fontWeight={600} sx={{ color: actualDisplay.color }}>
+              {actualDisplay.text}
             </Typography>
           </Box>
           <Box sx={{ textAlign: 'right' }}>
@@ -103,6 +104,7 @@ export function CategoryOverviewCard({
                   const personActual = parseMoney(pb.actualTotal?.units ?? 0n, pb.actualTotal?.nanos ?? 0)
                   const personPlanned = parseMoney(pb.plannedTotal?.units ?? 0n, pb.plannedTotal?.nanos ?? 0)
                   const isPersonOver = personPlanned > 0 && personActual > personPlanned
+                  const personDisplay = formatOverviewActual(personActual, isPersonOver, formatMoney)
                   return (
                     <Box key={pb.budgetPersonId.toString()} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {p.color && (
@@ -113,9 +115,9 @@ export function CategoryOverviewCard({
                       </Typography>
                       <Typography
                         variant="body2"
-                        sx={{ minWidth: 64, textAlign: 'right', color: isPersonOver ? 'error.main' : (personActual > 0 ? 'success.main' : 'text.disabled') }}
+                        sx={{ minWidth: 64, textAlign: 'right', color: personDisplay.color }}
                       >
-                        {personActual > 0 ? formatMoney(personActual) : '—'}
+                        {personDisplay.text}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ minWidth: 64, textAlign: 'right' }}>
                         {personPlanned > 0 ? formatMoney(personPlanned) : '—'}

@@ -13,7 +13,7 @@ import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
 import { formatMoneyFromNumber } from '@/lib/format'
-import { type FilterOption, txAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds, notDueFixedExpenses } from './transactionsPanel/helpers'
+import { type FilterOption, txAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds, notDueFixedExpenses, formatVariableAmount } from './transactionsPanel/helpers'
 import { TransactionTable } from './transactionsPanel/TransactionTable'
 import { AddTransactionModal } from './modals/AddTransactionModal'
 import { EditTransactionModal } from './modals/EditTransactionModal'
@@ -223,9 +223,14 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
           <Typography variant="subtitle1" fontWeight={600}>{t('title')}</Typography>
-          {grandTotal > 0 && (
+          {grandTotal !== 0 && (
             <Typography variant="subtitle2" color="text.secondary">
-              {t('grandTotal', { amount: formatMoney(grandTotal) })}
+              {/* Signed, like the rows it totals and like iOS's equivalent:
+                  this is a ledger total, so a net spend reads -$X and a
+                  period that netted received reads +$X (issue #52). The
+                  previous `> 0` guard also hid the total outright in the
+                  latter case. */}
+              {t('grandTotal', { amount: formatVariableAmount(grandTotal, currency, locale).text })}
             </Typography>
           )}
         </Box>
