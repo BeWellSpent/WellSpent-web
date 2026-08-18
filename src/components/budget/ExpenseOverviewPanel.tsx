@@ -12,6 +12,7 @@ import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { parseMoney } from './expensesPanel/helpers'
+import { formatOverviewAmountText } from './expenseOverviewPanel/helpers'
 import { isTransactionExcluded } from './transactionsPanel/helpers'
 import { ExpenseChart, type ExpenseChartDatum } from './expensesPanel/ExpenseChart'
 import { CategoryOverviewRow } from './expenseOverviewPanel/CategoryOverviewRow'
@@ -197,13 +198,13 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
           {uncategorizedActual !== 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, py: 0.75, bgcolor: 'action.hover', borderRadius: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>{t('uncategorized')}</Typography>
-              <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 600 }}>{formatMoney(uncategorizedActual)}</Typography>
+              <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 600 }}>{formatOverviewAmountText(uncategorizedActual, formatMoney)}</Typography>
             </Box>
           )}
           <Box sx={{ pt: 1, borderTop: '2px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" fontWeight={700}>{t('total')}</Typography>
-              <Typography variant="body2" fontWeight={700}>{totalActual > 0 ? formatMoney(totalActual) : '—'}</Typography>
+              <Typography variant="body2" fontWeight={700}>{formatOverviewAmountText(totalActual, formatMoney)}</Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">{t('planned')}</Typography>
@@ -274,7 +275,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
                   </TableCell>
                   <TableCell align="right" sx={{ py: 0.5 }}>
                     <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 600 }}>
-                      {formatMoney(uncategorizedActual)}
+                      {formatOverviewAmountText(uncategorizedActual, formatMoney)}
                     </Typography>
                   </TableCell>
                   <TableCell align="right" sx={{ py: 0.5 }}>
@@ -288,7 +289,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
               <TableRow sx={{ '& td': footerCellSx }}>
                 <TableCell />
                 <TableCell>{t('total')}</TableCell>
-                <TableCell align="right">{totalActual > 0 ? formatMoney(totalActual) : '—'}</TableCell>
+                <TableCell align="right">{formatOverviewAmountText(totalActual, formatMoney)}</TableCell>
                 <TableCell align="right">{totalPlanned > 0 ? formatMoney(totalPlanned) : '—'}</TableCell>
                 <TableCell />
               </TableRow>

@@ -1,4 +1,5 @@
 import {
+  formatVariableAmount,
   resolveCategoryName,
   resolveMethodName,
   resolveOwnerName,
@@ -483,5 +484,29 @@ describe('needsPaymentMethodSetup', () => {
 
   it('does not block while the list is still loading', () => {
     expect(needsPaymentMethodSetup([], true)).toBe(false)
+  })
+})
+
+// The Transactions tab is a ledger: money out reads -$X, money in reads +$X.
+// Now used for the tab's grand total as well as its rows, so the two can't
+// disagree the way they did before issue #52 (rows signed, footer unsigned).
+describe('formatVariableAmount', () => {
+  const currency = 'USD'
+  const locale = 'en-US'
+
+  it('renders spending as a red negative', () => {
+    expect(formatVariableAmount(84.2, currency, locale)).toEqual({ text: '-$84.20', color: 'error.main' })
+  })
+
+  it('renders money received as a green positive', () => {
+    expect(formatVariableAmount(-85, currency, locale)).toEqual({ text: '+$85.00', color: 'success.main' })
+  })
+
+  it('leaves zero unsigned and uncoloured', () => {
+    expect(formatVariableAmount(0, currency, locale)).toEqual({ text: '$0.00', color: undefined })
+  })
+
+  it('signs a net-received total, which the tab footer previously hid entirely', () => {
+    expect(formatVariableAmount(-40.2, currency, locale).text).toBe('+$40.20')
   })
 })
