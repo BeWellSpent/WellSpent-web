@@ -38,7 +38,7 @@ export function CategoryOverviewCard({
   const actual = parseMoney(summary.actualTotal?.units ?? 0n, summary.actualTotal?.nanos ?? 0)
   const planned = parseMoney(summary.plannedTotal?.units ?? 0n, summary.plannedTotal?.nanos ?? 0)
   const isOver = summary.isOver
-  const actualDisplay = formatOverviewActual(actual, isOver, formatMoney)
+  const actualDisplay = formatOverviewActual(actual, planned, isOver, formatMoney)
   const hasPeople = people.length > 1
   const isExpandable = hasPeople || catTransactions.length > 0
   const pct = totalActual > 0 && actual > 0 ? Math.round(actual / totalActual * 100) : null
@@ -104,7 +104,7 @@ export function CategoryOverviewCard({
                   const personActual = parseMoney(pb.actualTotal?.units ?? 0n, pb.actualTotal?.nanos ?? 0)
                   const personPlanned = parseMoney(pb.plannedTotal?.units ?? 0n, pb.plannedTotal?.nanos ?? 0)
                   const isPersonOver = personPlanned > 0 && personActual > personPlanned
-                  const personDisplay = formatOverviewActual(personActual, isPersonOver, formatMoney)
+                  const personDisplay = formatOverviewActual(personActual, personPlanned, isPersonOver, formatMoney)
                   return (
                     <Box key={pb.budgetPersonId.toString()} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {p.color && (
