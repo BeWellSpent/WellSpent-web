@@ -350,6 +350,10 @@
         "unsplitBody": "Se eliminarán el plan y sus cuotas restantes, y {name} volverá a contar en su período.",
         "unsplitConfirm": "Deshacer división",
         "unsplitError": "No se pudo deshacer la división."
+      },
+      "carryover": {
+        "rowBadge": "trasladado",
+        "rowTooltip": "Trasladado del saldo final del período anterior. Puedes editarlo o eliminarlo como cualquier otra transacción: eliminarlo es la forma de indicar que ya lo saldaste."
       }
     },
     "markForReview": {
@@ -500,6 +504,12 @@
       "saveFailed": "No se pudieron guardar tus preferencias.",
       "planChartHint": "Se muestra en la pestaña Plan de gastos, encima de tus montos planificados.",
       "overviewChartHint": "Se muestra en la pestaña Resumen de gastos, encima de lo que gastaste realmente."
+    },
+    "carryover": {
+      "title": "Trasladar el saldo",
+      "description": "Cuando termina un período, traslada su saldo al siguiente. El dinero que sobra se suma a Ahorros; si te pasaste, la diferencia se reparte entre los métodos de pago con los que gastaste, para que la deuda muestre de dónde viene.",
+      "adminOnly": "Solo un administrador del presupuesto puede cambiar esto.",
+      "saveFailed": "No se pudo guardar esta configuración."
     }
   },
   "landing": {
