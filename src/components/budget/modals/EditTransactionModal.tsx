@@ -19,8 +19,6 @@ import { LoadingButton } from '@/components/ui/LoadingButton'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
 import Stack from '@mui/material/Stack'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Checkbox from '@mui/material/Checkbox'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import ToggleButton from '@mui/material/ToggleButton'
@@ -91,7 +89,6 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
   const [dayOfMonth, setDayOfMonth] = useState(() => timestampToDayOfMonth(transaction.date))
   const [categoryId, setCategoryId] = useState(transaction.categoryId)
   const [paymentMethodId, setPaymentMethodId] = useState(transaction.paymentMethodId)
-  const [recurring, setRecurring] = useState(transaction.recurring)
 
   const isFixed = typeId === 1
 
@@ -106,7 +103,6 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
     setDayOfMonth(timestampToDayOfMonth(transaction.date))
     setCategoryId(transaction.categoryId)
     setPaymentMethodId(transaction.paymentMethodId)
-    setRecurring(transaction.recurring)
   }, [transaction])
 
   const { data: categoriesData } = useQuery({
@@ -124,7 +120,6 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
       paymentMethodId: string
       transactionTypeId: number
       transactionFrequencyId: number
-      recurring: boolean
     }) => client.updateTransaction({ id: transaction.id, ...vars }),
   })
 
@@ -156,7 +151,6 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
           paymentMethodId: current.paymentMethodId,
           transactionTypeId: current.transactionTypeId,
           transactionFrequencyId: current.transactionFrequencyId,
-          recurring: current.recurring,
         })
         logger.info('transaction.update.categoryOnly', { budgetProfileId, id: transaction.id, categoryId })
         onDone()
@@ -181,8 +175,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
         categoryId,
         paymentMethodId,
         transactionTypeId: typeId,
-        transactionFrequencyId: recurring ? 4 : 1,
-        recurring,
+        transactionFrequencyId: 1,
       })
       logger.info('transaction.update', { budgetProfileId, id: transaction.id, name, flow })
       onDone()
@@ -292,12 +285,6 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
             disabled={isLocked}
             inputProps={{ min: 0, step: '0.01', inputMode: 'decimal' }}
           />
-          {!isFixed && (
-            <FormControlLabel
-              control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} disabled={isLocked} />}
-              label="Recurring"
-            />
-          )}
         </Stack>
       </DialogContent>
       <DialogActions>

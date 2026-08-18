@@ -12,6 +12,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import FlagIcon from '@mui/icons-material/Flag'
 import CallSplitIcon from '@mui/icons-material/CallSplit'
+import UndoIcon from '@mui/icons-material/Undo'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import EditIcon from '@mui/icons-material/Edit'
@@ -44,6 +45,7 @@ export interface MobileRowActionsProps {
   onFlagForReview: () => void
   onToggleExcluded: () => void
   onSplitIntoInstallments: () => void
+  onUnsplitInstallments: () => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -54,7 +56,7 @@ export interface MobileRowActionsProps {
 // within the viewport.
 export function MobileRowActions({
   canMarkPaid, isAlreadyPaid, canUnmark, unmarkPending, canFlagForReview, isExcluded, isIncomeRow, canExclude, excludePending,
-  canSplitIntoInstallments, isInstallmentPlan, onSplitIntoInstallments,
+  canSplitIntoInstallments, isInstallmentPlan, onSplitIntoInstallments, onUnsplitInstallments,
   isRowEditable, canDelete, isPlaidImported, onMarkPaid, onUnmark, onFlagForReview, onToggleExcluded, onEdit, onDelete,
 }: MobileRowActionsProps) {
   const t = useTranslations('budget.transactions')
@@ -90,6 +92,12 @@ export function MobileRowActions({
           <MenuItem onClick={() => run(onFlagForReview)}>
             <ListItemIcon><FlagIcon fontSize="small" /></ListItemIcon>
             <ListItemText>{t('markForReview')}</ListItemText>
+          </MenuItem>
+        )}
+        {isInstallmentPlan && (
+          <MenuItem onClick={() => run(onUnsplitInstallments)}>
+            <ListItemIcon><UndoIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>{t('installments.unsplitAction')}</ListItemText>
           </MenuItem>
         )}
         {canSplitIntoInstallments && (
