@@ -79,6 +79,8 @@ export interface TransactionTableProps {
   notDueFixedExpenses?: FixedExpense[]
   fixedExpenseMap?: Map<string, FixedExpense>
   pendingReviewMatchByTxId?: Map<string, string>
+  /** The budget's auto_update_planned_amount setting, for the re-plan marker. */
+  autoUpdatePlannedAmount?: boolean
   confirmedReviewVariableTxIds?: Set<string>
   linkedVariableByFixedTxId?: Map<string, Transaction[]>
   searchQuery?: string
@@ -94,6 +96,7 @@ export interface TransactionTableProps {
 export function TransactionTable({
   transactions, isLoading, isEditable, canMutate = isEditable, isFixed, savingsCategoryId, incomeCategoryId, budgetPeriodId, budgetProfileId, label,
   categoryMap, methodMap, personMap, notDueFixedExpenses = [], fixedExpenseMap, pendingReviewMatchByTxId,
+  autoUpdatePlannedAmount = false,
   confirmedReviewVariableTxIds, linkedVariableByFixedTxId,
   searchQuery = '', activeFilter = 'none', overBudgetTxIds,
   onFilterChange,
@@ -529,6 +532,7 @@ export function TransactionTable({
                 linkedVariableByFixedTxId={linkedVariableByFixedTxId}
                 fixedExpenseMap={fixedExpenseMap}
                 pendingReviewMatchByTxId={pendingReviewMatchByTxId}
+                autoUpdatePlannedAmount={autoUpdatePlannedAmount}
                 buildActions={buildActions}
                 renderNotDueRow={renderNotDueRow}
                 emptyLabel={t('empty', { label })}
@@ -549,6 +553,7 @@ export function TransactionTable({
                   </TableRow>
                   {group.transactions.map((tx) => (
                     <TxRow
+                      autoUpdatePlannedAmount={autoUpdatePlannedAmount}
                       key={tx.id}
                       tx={tx}
                       isFixed={isFixed}

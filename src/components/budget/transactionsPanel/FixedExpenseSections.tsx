@@ -25,6 +25,8 @@ interface FixedExpenseSectionsProps {
   linkedVariableByFixedTxId?: Map<string, Transaction[]>
   fixedExpenseMap?: Map<string, FixedExpense>
   pendingReviewMatchByTxId?: Map<string, string>
+  /** The budget's auto_update_planned_amount setting, for the re-plan marker. */
+  autoUpdatePlannedAmount?: boolean
   buildActions: (tx: Transaction) => React.ReactNode
   renderNotDueRow: (fe: FixedExpense) => React.ReactNode
   emptyLabel: string
@@ -44,6 +46,7 @@ export function FixedExpenseSections({
   transactions, notDueFixedExpenses, sortKey, sortDir,
   categoryMap, methodMap, personMap, isMobile, colSpan,
   linkedVariableByFixedTxId, fixedExpenseMap, pendingReviewMatchByTxId,
+  autoUpdatePlannedAmount = false,
   buildActions, renderNotDueRow, emptyLabel,
 }: FixedExpenseSectionsProps) {
   const t = useTranslations('budget.transactions')
@@ -58,6 +61,7 @@ export function FixedExpenseSections({
   function renderRow(tx: Transaction) {
     return (
       <TxRow
+        autoUpdatePlannedAmount={autoUpdatePlannedAmount}
         key={tx.id}
         tx={tx}
         isFixed

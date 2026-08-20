@@ -354,6 +354,9 @@
       "carryover": {
         "rowBadge": "carried over",
         "rowTooltip": "Carried from the previous period's ending balance. Edit or delete it like any other transaction — deleting it is how you say you've already settled it."
+      },
+      "plannedAmountSync": {
+        "rowTooltip": "Paid at a different amount than planned. From the next period on, this bill will be planned at what you actually paid."
       }
     },
     "markForReview": {
@@ -508,6 +511,12 @@
     "carryover": {
       "title": "Carry balance forward",
       "description": "When a period ends, roll its balance into the next one. Money left over is added to Savings; if you overspent, the shortfall is split across the payment methods you spent it on, so the debt shows where it came from.",
+      "adminOnly": "Only a budget admin can change this.",
+      "saveFailed": "Could not save this setting."
+    },
+    "plannedAmountSync": {
+      "title": "Update the plan when a bill costs more",
+      "description": "When you mark a bill paid at a different amount, plan future periods at that new amount. The period you're paying keeps its original plan — only later ones change. Turn this off to keep your planned amounts exactly as you set them.",
       "adminOnly": "Only a budget admin can change this.",
       "saveFailed": "Could not save this setting."
     }

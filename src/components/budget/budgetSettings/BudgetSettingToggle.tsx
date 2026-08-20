@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Switch from '@mui/material/Switch'
@@ -12,76 +10,90 @@ import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
+import type { BudgetProfile } from '@/gen/wellspent/v1/budget_pb'
 
 interface Props {
   budgetProfileId: string
+  title: string
+  description: string
+  adminOnlyLabel: string
+  saveFailedLabel: string
+  /** Reads the current value off the profile. */
+  value: (profile: BudgetProfile | undefined) => boolean
+  /** Calls the RPC that persists it. */
+  save: (client: ReturnType<typeof useClient<typeof BudgetService>>, enabled: boolean) => Promise<unknown>
+  /** Logger event name, e.g. `budget.carryover.update`. */
+  event: string
+  testId: string
 }
 
 /**
- * Budget-wide carryover setting, deliberately a separate component from
- * `PreferencesPanel` even though both render in the same drawer: that one holds
- * the caller's own view preferences and is intentionally not role-gated, while
- * this changes what every member's next period will contain and is Admin only.
+ * A budget-wide, Admin-only boolean setting.
  *
- * The helper text spells the rule out rather than saying "carry my balance
- * forward". Nothing else in the app creates transactions on the user's behalf,
- * so a switch that silently does needs to say what it will produce.
+ * Extracted rather than copied: carryover and auto-update-planned-amount are
+ * the same component down to the optimistic-update-and-roll-back behaviour,
+ * and a third will be too. Deliberately separate from `PreferencesPanel`, which
+ * holds the caller's *own* view preferences and is intentionally not
+ * role-gated — these change what every member of the budget gets.
  */
-export function CarryoverSettingsPanel({ budgetProfileId }: Props) {
-  const t = useTranslations('budget.carryover')
+export function BudgetSettingToggle({
+  budgetProfileId, title, description, adminOnlyLabel, saveFailedLabel,
+  value, save, event, testId,
+}: Props) {
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
   const isAdmin = useBudgetRole(budgetProfileId) === BudgetRole.ADMIN
 
-  const { data: profileData } = useQuery({
+  const { data } = useQuery({
     queryKey: ['budget-profile', budgetProfileId],
     queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
   })
 
-  // Held locally once touched so the switch answers immediately instead of
-  // waiting on the refetch, same shape as PreferencesPanel's chart toggles.
+  // Held locally once touched so the switch answers immediately rather than
+  // waiting on the refetch.
   const [pending, setPending] = useState<boolean | null>(null)
-  const enabled = pending ?? profileData?.profile?.carryoverEnabled ?? false
+  const enabled = pending ?? value(data?.profile)
 
-  const { mutateAsync: save, isPending } = useMutation({
-    mutationFn: (next: boolean) => client.setBudgetCarryoverEnabled({ budgetProfileId, enabled: next }),
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (next: boolean) => save(client, next),
   })
 
   async function update(next: boolean) {
     const previous = enabled
     setPending(next)
     try {
-      await save(next)
+      await mutateAsync(next)
       await queryClient.invalidateQueries({ queryKey: ['budget-profile', budgetProfileId] })
-      logger.info('budget.carryover.update', { budgetProfileId, enabled: next })
+      logger.info(event, { budgetProfileId, enabled: next })
     } catch (err) {
       // Put the switch back, so the UI never claims a setting the server
       // didn't accept.
       setPending(previous)
-      showError(err instanceof Error ? err.message : t('saveFailed'))
+      showError(err instanceof Error ? err.message : saveFailedLabel)
     }
   }
 
   return (
     <Box>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-        <Typography variant="subtitle2">{t('title')}</Typography>
+        <Typography variant="subtitle2">{title}</Typography>
         <Switch
           checked={enabled}
           disabled={!isAdmin || isPending}
           onChange={(e) => update(e.target.checked)}
-          inputProps={{ 'aria-label': t('title') }}
-          data-testid="carryoverToggle"
+          inputProps={{ 'aria-label': title }}
+          data-testid={testId}
         />
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-        {t('description')}
+        {description}
       </Typography>
       {!isAdmin && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          {t('adminOnly')}
+          {adminOnlyLabel}
         </Typography>
       )}
     </Box>

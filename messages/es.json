@@ -354,6 +354,9 @@
       "carryover": {
         "rowBadge": "trasladado",
         "rowTooltip": "Trasladado del saldo final del período anterior. Puedes editarlo o eliminarlo como cualquier otra transacción: eliminarlo es la forma de indicar que ya lo saldaste."
+      },
+      "plannedAmountSync": {
+        "rowTooltip": "Pagada por un importe distinto al planificado. A partir del próximo período, esta factura se planificará con lo que realmente pagaste."
       }
     },
     "markForReview": {
@@ -508,6 +511,12 @@
     "carryover": {
       "title": "Trasladar el saldo",
       "description": "Cuando termina un período, traslada su saldo al siguiente. El dinero que sobra se suma a Ahorros; si te pasaste, la diferencia se reparte entre los métodos de pago con los que gastaste, para que la deuda muestre de dónde viene.",
+      "adminOnly": "Solo un administrador del presupuesto puede cambiar esto.",
+      "saveFailed": "No se pudo guardar esta configuración."
+    },
+    "plannedAmountSync": {
+      "title": "Actualizar el plan cuando una factura cuesta más",
+      "description": "Cuando marcas una factura como pagada por un importe distinto, planifica los períodos futuros con ese nuevo importe. El período que estás pagando conserva su plan original; solo cambian los siguientes. Desactívalo para mantener tus importes planificados tal como los definiste.",
       "adminOnly": "Solo un administrador del presupuesto puede cambiar esto.",
       "saveFailed": "No se pudo guardar esta configuración."
     }

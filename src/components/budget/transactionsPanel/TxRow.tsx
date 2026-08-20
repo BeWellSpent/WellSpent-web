@@ -14,6 +14,7 @@ import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 
 interface TxRowProps {
   tx: Transaction
@@ -25,6 +26,11 @@ interface TxRowProps {
   personMap: Map<string, BudgetPerson>
   fixedExpenseMap?: Map<string, FixedExpense>
   pendingReviewName?: string
+  /**
+   * The budget's auto_update_planned_amount setting. Optional: callers that
+   * only ever render Variable rows (the Overview drill-down) can't re-plan.
+   */
+  autoUpdatePlannedAmount?: boolean
   colSpan: number
   actions: React.ReactNode
 }
@@ -34,6 +40,7 @@ export function TxRow({
   linkedVariableTxs,
   categoryMap, methodMap, personMap, fixedExpenseMap,
   pendingReviewName,
+  autoUpdatePlannedAmount = false,
   colSpan,
   actions,
 }: TxRowProps) {
@@ -50,6 +57,16 @@ export function TxRow({
   const fe = isFixed && tx.fixedExpenseId ? fixedExpenseMap?.get(tx.fixedExpenseId) : undefined
   const progress = fe ? paymentProgress(fe) : null
   const hasLinked = linkedVariableTxs.length > 0
+
+  // Paid at something other than the plan, on a budget that re-plans from the
+  // paid amount: the template has already moved, so this bill costs a different
+  // amount from next period on. Only meaningful for a template-backed Fixed
+  // row — a one-off has no future period to re-plan.
+  const willRePlan = autoUpdatePlannedAmount
+    && isFixed
+    && tx.isPaid
+    && !!tx.fixedExpenseId
+    && txAmount(tx) !== txPlannedAmount(tx)
 
   const expandBtn = hasLinked ? (
     <IconButton size="small" onClick={() => setExpanded((v) => !v)} sx={{ p: 0 }}>
@@ -121,6 +138,17 @@ export function TxRow({
                     <Typography variant="caption" color="text.secondary" sx={{ cursor: 'default' }}>
                       ({t('carryover.rowBadge')})
                     </Typography>
+                  </Tooltip>
+                )}
+                {willRePlan && (
+                  <Tooltip title={t('plannedAmountSync.rowTooltip')}>
+                    <WarningAmberIcon
+                      fontSize="inherit"
+                      color="warning"
+                      sx={{ cursor: 'default' }}
+                      aria-label={t('plannedAmountSync.rowTooltip')}
+                      data-testid="plannedAmountSyncMarker"
+                    />
                   </Tooltip>
                 )}
               </Box>
@@ -203,6 +231,17 @@ export function TxRow({
                 <Typography variant="caption" color="text.secondary" sx={{ cursor: 'default' }}>
                   ({t('carryover.rowBadge')})
                 </Typography>
+              </Tooltip>
+            )}
+            {willRePlan && (
+              <Tooltip title={t('plannedAmountSync.rowTooltip')}>
+                <WarningAmberIcon
+                  fontSize="inherit"
+                  color="warning"
+                  sx={{ cursor: 'default' }}
+                  aria-label={t('plannedAmountSync.rowTooltip')}
+                  data-testid="plannedAmountSyncMarker"
+                />
               </Tooltip>
             )}
             {isFixed && formatDate(tx.date) && (
