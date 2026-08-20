@@ -127,6 +127,12 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     queryKey: ['expense-allocations', budgetProfileId],
     queryFn: () => client.listExpenseAllocations({ budgetProfileId }),
   })
+  // Same key the sidebar and useBudgetRole already populate, so this costs no
+  // extra round trip.
+  const { data: profileData } = useQuery({
+    queryKey: ['budget-profile', budgetProfileId],
+    queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
+  })
   const { data: reviewsData } = useQuery({
     queryKey: ['transaction-reviews', budgetProfileId],
     queryFn: () => client.listTransactionReviews({ budgetProfileId }),
@@ -180,6 +186,10 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     (fixedExpensesData?.expenses ?? []).map((fe) => [fe.id, fe])
   )
 
+  // Drives the re-plan marker on paid rows. Defaults true, matching the
+  // column default, so the marker doesn't blink off while the profile loads.
+  const autoUpdatePlannedAmount = profileData?.profile?.autoUpdatePlannedAmount ?? true
+
   const allReviews = reviewsData?.reviews ?? []
   const pendingReviewMatchByTxId = buildPendingReviewMatchMap(allReviews)
 
@@ -198,6 +208,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   }
 
   const sharedTableProps = {
+    autoUpdatePlannedAmount,
     isEditable,
     canMutate,
     savingsCategoryId,

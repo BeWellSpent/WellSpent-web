@@ -13,7 +13,8 @@ import { PaymentMethodsPanel } from '@/components/budget/PaymentMethodsPanel'
 import { AlertSubscriptionsPanel } from '@/components/budget/AlertSubscriptionsPanel'
 import { PlaidConnectionsPanel } from '@/components/budget/PlaidConnectionsPanel'
 import { PreferencesPanel } from '@/components/budget/PreferencesPanel'
-import { CarryoverSettingsPanel } from '@/components/budget/CarryoverSettingsPanel'
+import { CarryoverSettingsPanel } from '@/components/budget/budgetSettings/CarryoverSettingsPanel'
+import { PlannedAmountSettingsPanel } from '@/components/budget/budgetSettings/PlannedAmountSettingsPanel'
 
 interface OpenState {
   categories: boolean
@@ -80,6 +81,8 @@ export function ManagementDrawers({ open, onClose, budgetId, canEdit, canManageU
           <PreferencesPanel budgetProfileId={budgetId} />
           <Divider />
           <CarryoverSettingsPanel budgetProfileId={budgetId} />
+          <Divider />
+          <PlannedAmountSettingsPanel budgetProfileId={budgetId} />
         </Stack>
       </FullScreenDrawer>
     </>
