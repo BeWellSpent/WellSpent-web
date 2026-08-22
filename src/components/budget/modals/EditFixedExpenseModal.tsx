@@ -23,6 +23,7 @@ import MenuItem from '@mui/material/MenuItem'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
+import { useCategoryName, useSortedCategories } from '@/hooks/useCategoryName'
 
 interface Props {
   budgetProfileId: string
@@ -93,6 +94,7 @@ function frequencyFieldsFor(unit: FrequencyUnitUI, count: number, dayOfWeek: num
 
 export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, onDone }: Props) {
   const t = useTranslations('budget.fixedExpense')
+  const categoryName = useCategoryName()
   const { showError } = useSnackbar()
   const fullScreen = useIsMobile()
   const client = useClient(BudgetService)
@@ -203,6 +205,7 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
     queryKey: ['categories', budgetProfileId],
     queryFn: () => client.listCategories({ budgetProfileId }),
   })
+  const sortedCategories = useSortedCategories(categoriesData?.categories ?? [])
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {
@@ -306,8 +309,8 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
           </Stack>
           <TextField select label={t('fields.category')} value={categoryId} onChange={(e) => setCategoryId(Number(e.target.value))} fullWidth>
             <MenuItem value={0}>{t('fields.noCategory')}</MenuItem>
-            {(categoriesData?.categories ?? []).map((c) => (
-              <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+            {sortedCategories.map((c) => (
+              <MenuItem key={c.id} value={c.id}>{categoryName(c)}</MenuItem>
             ))}
           </TextField>
           <PaymentMethodSelect

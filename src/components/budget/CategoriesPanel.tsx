@@ -31,9 +31,11 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PaletteIcon from '@mui/icons-material/Palette'
 import ShuffleIcon from '@mui/icons-material/Shuffle'
+import { useCategoryName, useSortedCategories } from '@/hooks/useCategoryName'
 
 export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
   const { showError, showSuccess } = useSnackbar()
+  const categoryName = useCategoryName()
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
 
@@ -120,7 +122,7 @@ export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
     try {
       await doDelete({ id: deletingCat.id, replacementId })
       logger.info('category.delete', { id: deletingCat.id, replacementId })
-      showSuccess(`"${deletingCat.name}" deleted`)
+      showSuccess(`"${categoryName(deletingCat)}" deleted`)
       setDeletingCat(null)
     } catch (err) {
       showError(err)
@@ -128,7 +130,9 @@ export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
   }
 
   const categories = data?.categories ?? []
-  const systemCats = categories.filter((c) => c.isSystem)
+  // Re-sorted client-side: the server orders by the English name, which is no
+  // longer what the reader sees for a system category.
+  const systemCats = useSortedCategories(categories.filter((c) => c.isSystem))
   const userCats = categories.filter((c) => !c.isSystem)
   const replacementOptions = categories.filter((c) => c.id !== deletingCat?.id)
 
@@ -167,7 +171,7 @@ export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
                 }
               >
                 <ColorDot color={c.color} />
-                <ListItemText primary={c.name} />
+                <ListItemText primary={categoryName(c)} />
                 <Chip label="System" size="small" variant="outlined" sx={{ ml: 1, mr: 4 }} />
               </ListItem>
             ))}
@@ -204,7 +208,7 @@ export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
                 }
               >
                 <ColorDot color={c.color} />
-                <ListItemText primary={c.name} />
+                <ListItemText primary={categoryName(c)} />
               </ListItem>
             ))}
           </List>

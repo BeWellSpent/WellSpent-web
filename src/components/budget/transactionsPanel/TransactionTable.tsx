@@ -57,6 +57,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import CallSplitIcon from '@mui/icons-material/CallSplit'
 import UndoIcon from '@mui/icons-material/Undo'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 export interface TransactionTableProps {
   transactions: Transaction[]
@@ -103,6 +104,7 @@ export function TransactionTable({
   onDeleted, onEdit, onEditFixedExpense, onRefresh,
 }: TransactionTableProps) {
   const t = useTranslations('budget.transactions')
+  const categoryName = useCategoryName()
   const { showError } = useSnackbar()
   const { currency, locale } = useCurrency()
   const formatMoney = (amount: number) => formatMoneyFromNumber(amount, currency, locale)
@@ -208,12 +210,12 @@ export function TransactionTable({
     if (!isFixed && activeFilter === 'spentOnly' && txAmount(tx) <= 0) return false
     if (!isFixed && activeFilter === 'exceededOnly' && overBudgetTxIds && !overBudgetTxIds.has(tx.id)) return false
     if (activeFilter === 'excludedOnly' && !isTransactionExcluded(tx, incomeCategoryId)) return false
-    return matchesSearch(tx.name, tx.categoryId, tx.paymentMethodId, searchQuery, categoryMap, methodMap, personMap)
+    return matchesSearch(tx.name, tx.categoryId, tx.paymentMethodId, searchQuery, categoryMap, categoryName, methodMap, personMap)
   })
   const filteredNotDue = notDueFixedExpenses.filter((fe) =>
-    matchesSearch(fe.name, fe.categoryId, fe.paymentMethodId, searchQuery, categoryMap, methodMap, personMap))
+    matchesSearch(fe.name, fe.categoryId, fe.paymentMethodId, searchQuery, categoryMap, categoryName, methodMap, personMap))
 
-  const dayGroups = isFixed ? [] : groupTransactionsByDay(filteredTransactions, sortKey, sortDir, categoryMap, methodMap, personMap)
+  const dayGroups = isFixed ? [] : groupTransactionsByDay(filteredTransactions, sortKey, sortDir, categoryMap, categoryName, methodMap, personMap)
 
   // Desktop: Item | Category | PaymentMethod | Owner | Planned | Actual | (actions) for fixed
   //          Item | Category | PaymentMethod | Owner | Amount | (actions) for variable
@@ -362,7 +364,7 @@ export function TransactionTable({
                 </Box>
               )}
               {category && (
-                <Typography variant="caption" color="text.disabled">{category.name}</Typography>
+                <Typography variant="caption" color="text.disabled">{categoryName(category)}</Typography>
               )}
             </Box>
           </TableCell>
@@ -403,7 +405,7 @@ export function TransactionTable({
         </TableCell>
         <TableCell>
           {category && (
-            <Typography variant="body2" color="text.disabled">{category.name}</Typography>
+            <Typography variant="body2" color="text.disabled">{categoryName(category)}</Typography>
           )}
         </TableCell>
         <TableCell>

@@ -34,6 +34,8 @@ import TabIcon from '@mui/icons-material/Tab'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import type { ViewMode } from '@/hooks/useViewPreference'
+import { isSystemCategory } from '@/lib/categories/systemCategory'
+import { SystemCategory } from '@/gen/wellspent/v1/common_pb'
 
 interface Props {
   budgetPeriodId: string
@@ -144,10 +146,10 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const personMap = new Map((peopleData?.people ?? []).map((p) => [p.id.toString(), p]))
 
   const savingsCategoryId = (categoriesData?.categories ?? []).find(
-    (c) => c.name === 'Savings' && c.isSystem,
+    (c) => isSystemCategory(c, SystemCategory.SAVINGS),
   )?.id
   const incomeCategoryId = (categoriesData?.categories ?? []).find(
-    (c) => c.name === 'Income' && c.isSystem,
+    (c) => isSystemCategory(c, SystemCategory.INCOME),
   )?.id
 
   const fixedTxs = fixedData?.transactions ?? []

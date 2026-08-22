@@ -23,6 +23,7 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import { useCategoryName, useSortedCategories } from '@/hooks/useCategoryName'
 
 type Flow = 'spent' | 'received'
 
@@ -66,6 +67,7 @@ function dayOfMonthToTimestamp(day: number): { seconds: bigint; nanos: number } 
 
 export function EditTransactionModal({ budgetProfileId, transaction, isArchivedPeriod = false, onClose, onDone }: Props) {
   const t = useTranslations('budget.transactions')
+  const categoryName = useCategoryName()
   const { showError } = useSnackbar()
   const fullScreen = useIsMobile()
   const client = useClient(BudgetService)
@@ -109,6 +111,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
     queryKey: ['categories', budgetProfileId],
     queryFn: () => client.listCategories({ budgetProfileId }),
   })
+  const sortedCategories = useSortedCategories(categoriesData?.categories ?? [])
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {
@@ -258,11 +261,11 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
             fullWidth
           >
             <MenuItem value={0}>— None —</MenuItem>
-            {(categoriesData?.categories ?? []).map((c) => (
+            {sortedCategories.map((c) => (
               <MenuItem key={c.id} value={c.id}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {c.color && <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: c.color, flexShrink: 0 }} />}
-                  {c.name}
+                  {categoryName(c)}
                 </Box>
               </MenuItem>
             ))}

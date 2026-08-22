@@ -13,6 +13,7 @@ import Tooltip from '@mui/material/Tooltip'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditIcon from '@mui/icons-material/Edit'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 interface Props {
   cat: Category
@@ -33,6 +34,7 @@ export function CategoryCardMobile({
   canEdit, formatMoney, onRemoveCategory, onOpenEditDialog, onEditFixedExpense,
 }: Props) {
   const t = useTranslations('budget.expenses')
+  const categoryName = useCategoryName()
   const { isSavings, notDueInfo, isNotDue, isFixedOnly } = rowData
   const total = categoryTotalDisplay(rowData)
 
@@ -44,7 +46,7 @@ export function CategoryCardMobile({
           {cat.color && (
             <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: cat.color, flexShrink: 0 }} />
           )}
-          <Typography variant="body2" fontWeight={600} noWrap>{cat.name}</Typography>
+          <Typography variant="body2" fontWeight={600} noWrap>{categoryName(cat)}</Typography>
           {cat.isSystem && (
             <Chip label={t('global')} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 16 }} />
           )}

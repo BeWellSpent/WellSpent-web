@@ -14,6 +14,7 @@ import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
+import { useCategoryName, useSortedCategories } from '@/hooks/useCategoryName'
 
 interface Props {
   category: Category | null
@@ -25,6 +26,8 @@ interface Props {
 
 export function DeleteCategoryDialog({ category, replacementOptions, isDeleting, onCancel, onConfirm }: Props) {
   const [replacementId, setReplacementId] = useState(0)
+  const categoryName = useCategoryName()
+  const sortedOptions = useSortedCategories(replacementOptions)
 
   useEffect(() => {
     setReplacementId(0)
@@ -36,7 +39,7 @@ export function DeleteCategoryDialog({ category, replacementOptions, isDeleting,
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
           <Typography variant="body2" color="text.secondary">
-            All transactions in <strong>{category?.name}</strong> will be moved to the replacement category before it is deleted.
+            All transactions in <strong>{categoryName(category)}</strong> will be moved to the replacement category before it is deleted.
           </Typography>
           <FormControl fullWidth size="small">
             <InputLabel>Replacement category</InputLabel>
@@ -45,9 +48,9 @@ export function DeleteCategoryDialog({ category, replacementOptions, isDeleting,
               value={replacementId === 0 ? '' : replacementId}
               onChange={(e) => setReplacementId(Number(e.target.value))}
             >
-              {replacementOptions.map((c) => (
+              {sortedOptions.map((c) => (
                 <MenuItem key={c.id} value={c.id}>
-                  {c.name}{c.isSystem ? ' (System)' : ''}
+                  {categoryName(c)}{c.isSystem ? ' (System)' : ''}
                 </MenuItem>
               ))}
             </Select>

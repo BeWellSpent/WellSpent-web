@@ -37,6 +37,9 @@ import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
+import { isSystemCategory } from '@/lib/categories/systemCategory'
+import { SystemCategory } from '@/gen/wellspent/v1/common_pb'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 const CHART_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7', '#14b8a6', '#f97316']
 
@@ -48,6 +51,7 @@ interface Props {
 
 export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true }: Props) {
   const t = useTranslations('budget.expenses')
+  const categoryName = useCategoryName()
   const isMobile = useIsMobile()
   const { showError } = useSnackbar()
   const { currency, locale } = useCurrency()
@@ -179,7 +183,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     existing: ExpenseAllocation | undefined,
   ) {
     setEditDraft(currentValue != null ? currentValue.toFixed(2) : '')
-    setEditDialog({ open: true, catId: cat.id, catName: cat.name, personId, personName, existing })
+    setEditDialog({ open: true, catId: cat.id, catName: categoryName(cat), personId, personName, existing })
   }
 
   async function commitEditDialog() {
@@ -200,7 +204,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   // belong in an expense plan — same "excluded from totals" rule as the
   // Transactions view, applied here at the source so every downstream
   // computation (chart, per-category actuals, plan summary) inherits it.
-  const incomeCategoryId = categories.find((c) => c.name === 'Income' && c.isSystem)?.id
+  const incomeCategoryId = categories.find((c) => isSystemCategory(c, SystemCategory.INCOME))?.id
   const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
   const savingsSources = savingsData?.sources ?? []
   const fixedExpenses = (fixedExpensesData?.expenses ?? []).filter((fe) => fe.isActive)
@@ -217,8 +221,8 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     pmPersonMap.set(pm.id, pm.budgetPersonId)
   }
 
-  // "Savings" system category auto-shows when savings sources exist
-  const savingsCat = categories.find((c) => c.name === 'Savings' && c.isSystem)
+  // The Savings system category auto-shows when savings sources exist
+  const savingsCat = categories.find((c) => isSystemCategory(c, SystemCategory.SAVINGS))
 
   const catIdsWithAllocs = new Set(allocations.map((a) => a.categoryId))
 
@@ -292,7 +296,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
           }
           if (value === 0) value = fixedPlannedByCat.get(cat.id) ?? 0
         }
-        return { name: cat.name, value, color: cat.color || CHART_COLORS[i % CHART_COLORS.length] }
+        return { name: categoryName(cat), value, color: cat.color || CHART_COLORS[i % CHART_COLORS.length] }
       }).filter((d) => d.value > 0)
     }
     return people.map((p, i) => {

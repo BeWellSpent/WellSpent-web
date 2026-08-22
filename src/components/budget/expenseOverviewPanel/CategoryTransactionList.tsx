@@ -4,6 +4,7 @@ import { Fragment, useMemo } from 'react'
 import type { Transaction, Category, PaymentMethod, BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { groupTransactionsByDay } from '../transactionsPanel/helpers'
 import { TxRow } from '../transactionsPanel/TxRow'
+import { useCategoryName } from '@/hooks/useCategoryName'
 import Box from '@mui/material/Box'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -25,9 +26,10 @@ const DESKTOP_COL_SPAN = 5
 const MOBILE_COL_SPAN = 2
 
 export function CategoryTransactionList({ transactions, isMobile, categoryMap, methodMap, personMap }: Props) {
+  const categoryName = useCategoryName()
   const groups = useMemo(
-    () => groupTransactionsByDay(transactions, 'day', 'desc', categoryMap, methodMap, personMap),
-    [transactions, categoryMap, methodMap, personMap],
+    () => groupTransactionsByDay(transactions, 'day', 'desc', categoryMap, categoryName, methodMap, personMap),
+    [transactions, categoryMap, categoryName, methodMap, personMap],
   )
 
   if (transactions.length === 0) return null

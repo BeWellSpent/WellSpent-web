@@ -1,6 +1,10 @@
 import type { Transaction, Category, PaymentMethod, BudgetPerson, FixedExpense, TransactionReview, ExpenseAllocation } from '@/gen/wellspent/v1/budget_pb'
 import { formatMoneyFromNumber } from '@/lib/format'
 
+/** Resolves a category to the name shown on screen — translated for system
+ *  categories, verbatim for user-created ones. See useCategoryName. */
+export type CategoryNameResolver = (cat: Category | undefined) => string
+
 export type SortKey = 'name' | 'day' | 'amount' | 'category' | 'paymentMethod' | 'owner'
 export type FilterOption = 'none' | 'spentOnly' | 'exceededOnly' | 'excludedOnly'
 
@@ -168,8 +172,17 @@ function formatDayHeader(ts: { seconds: bigint } | undefined): string {
   })
 }
 
-export function resolveCategoryName(categoryId: number, categoryMap: Map<number, Category>): string {
-  return categoryId ? (categoryMap.get(categoryId)?.name ?? '') : ''
+// `categoryName` is passed in rather than reading `.name` directly: a system
+// category's displayed name is translated, and search has to match what the
+// user can actually see on screen while sort has to order by it. Required, not
+// optional-with-a-fallback — an optional translator that silently defaults to
+// English is the same silent failure this change exists to remove.
+export function resolveCategoryName(
+  categoryId: number,
+  categoryMap: Map<number, Category>,
+  categoryName: CategoryNameResolver,
+): string {
+  return categoryId ? categoryName(categoryMap.get(categoryId)) : ''
 }
 
 export function resolveMethodName(paymentMethodId: string, methodMap: Map<string, PaymentMethod>): string {
@@ -196,6 +209,7 @@ export function matchesSearch(
   paymentMethodId: string,
   query: string,
   categoryMap: Map<number, Category>,
+  categoryName: CategoryNameResolver,
   methodMap: Map<string, PaymentMethod>,
   personMap: Map<string, BudgetPerson>,
 ): boolean {
@@ -203,7 +217,7 @@ export function matchesSearch(
   const q = query.toLowerCase()
   return (
     name.toLowerCase().includes(q) ||
-    resolveCategoryName(categoryId, categoryMap).toLowerCase().includes(q) ||
+    resolveCategoryName(categoryId, categoryMap, categoryName).toLowerCase().includes(q) ||
     resolveOwnerName(paymentMethodId, methodMap, personMap).toLowerCase().includes(q)
   )
 }
@@ -214,6 +228,7 @@ export function compareTransactions(
   key: SortKey,
   dir: 'asc' | 'desc',
   categoryMap: Map<number, Category>,
+  categoryName: CategoryNameResolver,
   methodMap: Map<string, PaymentMethod>,
   personMap: Map<string, BudgetPerson>,
 ): number {
@@ -224,7 +239,7 @@ export function compareTransactions(
     case 'day': primary = (resolveDay(a) - resolveDay(b)) * sign; break
     case 'amount': primary = (txPlannedAmount(a) - txPlannedAmount(b)) * sign; break
     case 'category':
-      primary = resolveCategoryName(a.categoryId, categoryMap).localeCompare(resolveCategoryName(b.categoryId, categoryMap)) * sign
+      primary = resolveCategoryName(a.categoryId, categoryMap, categoryName).localeCompare(resolveCategoryName(b.categoryId, categoryMap, categoryName)) * sign
       break
     case 'paymentMethod':
       primary = resolveMethodName(a.paymentMethodId, methodMap).localeCompare(resolveMethodName(b.paymentMethodId, methodMap)) * sign
@@ -285,6 +300,7 @@ export function groupTransactionsByDay(
   sortKey: SortKey,
   sortDir: 'asc' | 'desc',
   categoryMap: Map<number, Category>,
+  categoryName: CategoryNameResolver,
   methodMap: Map<string, PaymentMethod>,
   personMap: Map<string, BudgetPerson>,
 ): TransactionDayGroup[] {
@@ -298,7 +314,7 @@ export function groupTransactionsByDay(
   const days = [...groups.keys()].sort((a, b) => (a - b) * dirSign)
   return days.map((day) => {
     const dayTransactions = [...groups.get(day)!].sort((a, b) =>
-      compareTransactions(a, b, sortKey, sortDir, categoryMap, methodMap, personMap))
+      compareTransactions(a, b, sortKey, sortDir, categoryMap, categoryName, methodMap, personMap))
     return { day, label: formatDayHeader(dayTransactions[0]?.date), transactions: dayTransactions }
   })
 }

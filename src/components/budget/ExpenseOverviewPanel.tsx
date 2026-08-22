@@ -27,6 +27,9 @@ import TableFooter from '@mui/material/TableFooter'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
+import { isSystemCategory } from '@/lib/categories/systemCategory'
+import { SystemCategory } from '@/gen/wellspent/v1/common_pb'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 const CHART_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7', '#14b8a6', '#f97316']
 
@@ -41,6 +44,7 @@ function money(m: { units: bigint; nanos: number } | undefined): number {
 
 export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props) {
   const t = useTranslations('budget.overview')
+  const categoryName = useCategoryName()
   const isMobile = useIsMobile()
   const { currency, locale } = useCurrency()
   const formatMoney = useCallback(
@@ -88,7 +92,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
 
   const categories = categoriesData?.categories ?? []
   const people = peopleData?.people ?? []
-  const incomeCategoryId = categories.find((c) => c.name === 'Income' && c.isSystem)?.id
+  const incomeCategoryId = categories.find((c) => isSystemCategory(c, SystemCategory.INCOME))?.id
   const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
 
   const categoryMap = new Map<number, Category>(categories.map((c) => [c.id, c]))
@@ -137,7 +141,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
       return visibleCats.map(({ cat, summary }, i) => {
         const actual = money(summary.actualTotal)
         return {
-          name: cat.name,
+          name: categoryName(cat),
           value: actual,
           color: summary.isOver ? '#ef4444' : (cat.color || CHART_COLORS[i % CHART_COLORS.length]),
         }

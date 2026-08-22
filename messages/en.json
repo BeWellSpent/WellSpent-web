@@ -519,6 +519,33 @@
       "description": "When you mark a bill paid at a different amount, plan future periods at that new amount. The period you're paying keeps its original plan — only later ones change. Turn this off to keep your planned amounts exactly as you set them.",
       "adminOnly": "Only a budget admin can change this.",
       "saveFailed": "Could not save this setting."
+    },
+    "systemCategories": {
+      "auto": "Auto",
+      "baby": "Baby",
+      "debt": "Debt",
+      "eatingOut": "Eating Out",
+      "entertainment": "Entertainment",
+      "family": "Family",
+      "gas": "Gas",
+      "groceries": "Groceries",
+      "house": "House",
+      "income": "Income",
+      "insurance": "Insurance",
+      "loan": "Loan",
+      "misc": "Misc",
+      "payment": "Payment",
+      "pet": "Pet",
+      "rent": "Rent",
+      "savings": "Savings",
+      "services": "Services",
+      "shopping": "Shopping",
+      "subscription": "Subscription",
+      "transfer": "Transfer",
+      "transportation": "Transportation",
+      "travel": "Travel",
+      "utilities": "Utilities",
+      "wellness": "Wellness"
     }
   },
   "landing": {

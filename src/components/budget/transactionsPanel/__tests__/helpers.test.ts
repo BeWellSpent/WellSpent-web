@@ -67,6 +67,11 @@ function makeFixedExpense(overrides: Partial<FixedExpense> = {}): FixedExpense {
   } as FixedExpense
 }
 
+// Stands in for the useCategoryName hook. These helpers only need *a* name
+// resolver; which language it produces is the hook's concern, tested separately
+// in systemCategory.test.ts.
+const catName = (c: Category | undefined) => c?.name ?? ''
+
 const category: Category = { id: 1, name: 'Food', typeId: 1, isSystem: false, color: '' }
 const method: PaymentMethod = { id: 'pm-1', name: 'Chase Visa', type: 2, budgetPersonId: 5n, color: '' }
 const person: BudgetPerson = { id: 5n, userName: 'Alex', color: '' }
@@ -77,15 +82,15 @@ const personMap = new Map([[person.id.toString(), person]])
 
 describe('resolveCategoryName', () => {
   it('returns the category name when set', () => {
-    expect(resolveCategoryName(1, categoryMap)).toBe('Food')
+    expect(resolveCategoryName(1, categoryMap, catName)).toBe('Food')
   })
 
   it('returns empty string when categoryId is 0 (unset)', () => {
-    expect(resolveCategoryName(0, categoryMap)).toBe('')
+    expect(resolveCategoryName(0, categoryMap, catName)).toBe('')
   })
 
   it('returns empty string when the category is not found', () => {
-    expect(resolveCategoryName(99, categoryMap)).toBe('')
+    expect(resolveCategoryName(99, categoryMap, catName)).toBe('')
   })
 })
 
@@ -117,23 +122,23 @@ describe('resolveOwnerName', () => {
 
 describe('matchesSearch', () => {
   it('matches on name (case-insensitive)', () => {
-    expect(matchesSearch('Groceries', 1, 'pm-1', 'grocer', categoryMap, methodMap, personMap)).toBe(true)
+    expect(matchesSearch('Groceries', 1, 'pm-1', 'grocer', categoryMap, catName, methodMap, personMap)).toBe(true)
   })
 
   it('matches on category name', () => {
-    expect(matchesSearch('Anything', 1, 'pm-1', 'food', categoryMap, methodMap, personMap)).toBe(true)
+    expect(matchesSearch('Anything', 1, 'pm-1', 'food', categoryMap, catName, methodMap, personMap)).toBe(true)
   })
 
   it('matches on owner name', () => {
-    expect(matchesSearch('Anything', 1, 'pm-1', 'alex', categoryMap, methodMap, personMap)).toBe(true)
+    expect(matchesSearch('Anything', 1, 'pm-1', 'alex', categoryMap, catName, methodMap, personMap)).toBe(true)
   })
 
   it('returns false when nothing matches', () => {
-    expect(matchesSearch('Groceries', 1, 'pm-1', 'zzz', categoryMap, methodMap, personMap)).toBe(false)
+    expect(matchesSearch('Groceries', 1, 'pm-1', 'zzz', categoryMap, catName, methodMap, personMap)).toBe(false)
   })
 
   it('returns true for an empty query', () => {
-    expect(matchesSearch('Groceries', 1, 'pm-1', '', categoryMap, methodMap, personMap)).toBe(true)
+    expect(matchesSearch('Groceries', 1, 'pm-1', '', categoryMap, catName, methodMap, personMap)).toBe(true)
   })
 })
 
@@ -141,19 +146,19 @@ describe('compareTransactions', () => {
   it('sorts by name ascending', () => {
     const a = makeTransaction({ id: 'a', name: 'Zebra' })
     const b = makeTransaction({ id: 'b', name: 'Apple' })
-    expect(compareTransactions(a, b, 'name', 'asc', categoryMap, methodMap, personMap)).toBeGreaterThan(0)
+    expect(compareTransactions(a, b, 'name', 'asc', categoryMap, catName, methodMap, personMap)).toBeGreaterThan(0)
   })
 
   it('sorts by name descending', () => {
     const a = makeTransaction({ id: 'a', name: 'Zebra' })
     const b = makeTransaction({ id: 'b', name: 'Apple' })
-    expect(compareTransactions(a, b, 'name', 'desc', categoryMap, methodMap, personMap)).toBeLessThan(0)
+    expect(compareTransactions(a, b, 'name', 'desc', categoryMap, catName, methodMap, personMap)).toBeLessThan(0)
   })
 
   it('sorts by amount', () => {
     const a = makeTransaction({ id: 'a', plannedAmount: money(50n) })
     const b = makeTransaction({ id: 'b', plannedAmount: money(200n) })
-    expect(compareTransactions(a, b, 'amount', 'asc', categoryMap, methodMap, personMap)).toBeLessThan(0)
+    expect(compareTransactions(a, b, 'amount', 'asc', categoryMap, catName, methodMap, personMap)).toBeLessThan(0)
   })
 
   it('sorts by resolved category name', () => {
@@ -163,7 +168,7 @@ describe('compareTransactions', () => {
     const a = makeTransaction({ id: 'a', categoryId: 1 })
     const b = makeTransaction({ id: 'b', categoryId: 2 })
     // "Auto" < "Food" alphabetically, so b should sort before a ascending
-    expect(compareTransactions(a, b, 'category', 'asc', map, methodMap, personMap)).toBeGreaterThan(0)
+    expect(compareTransactions(a, b, 'category', 'asc', map, catName, methodMap, personMap)).toBeGreaterThan(0)
   })
 
   it('sorts by resolved owner name', () => {
@@ -174,13 +179,13 @@ describe('compareTransactions', () => {
     const pMap = new Map([[person.id.toString(), person], [otherPerson.id.toString(), otherPerson]])
     const b = makeTransaction({ id: 'b', paymentMethodId: 'pm-2' })
     // "Alex" < "Blair" alphabetically
-    expect(compareTransactions(a, b, 'owner', 'asc', categoryMap, map, pMap)).toBeLessThan(0)
+    expect(compareTransactions(a, b, 'owner', 'asc', categoryMap, catName, map, pMap)).toBeLessThan(0)
   })
 
   it('falls back to id when the primary key is equal', () => {
     const a = makeTransaction({ id: 'a', name: 'Same' })
     const b = makeTransaction({ id: 'b', name: 'Same' })
-    expect(compareTransactions(a, b, 'name', 'asc', categoryMap, methodMap, personMap)).toBeLessThan(0)
+    expect(compareTransactions(a, b, 'name', 'asc', categoryMap, catName, methodMap, personMap)).toBeLessThan(0)
   })
 })
 
@@ -277,7 +282,7 @@ describe('groupTransactionsByDay', () => {
     const a = makeTransaction({ id: 'a', date: { seconds: day1, nanos: 0 } })
     const b = makeTransaction({ id: 'b', date: { seconds: day1, nanos: 0 } })
     const c = makeTransaction({ id: 'c', date: { seconds: day2, nanos: 0 } })
-    const groups = groupTransactionsByDay([a, b, c], 'day', 'asc', categoryMap, methodMap, personMap)
+    const groups = groupTransactionsByDay([a, b, c], 'day', 'asc', categoryMap, catName, methodMap, personMap)
     expect(groups).toHaveLength(2)
     expect(groups[0].transactions.map((t) => t.id).sort()).toEqual(['a', 'b'])
     expect(groups[1].transactions.map((t) => t.id)).toEqual(['c'])
@@ -286,33 +291,33 @@ describe('groupTransactionsByDay', () => {
   it('orders day groups chronologically ascending', () => {
     const a = makeTransaction({ id: 'a', date: { seconds: day2, nanos: 0 } })
     const b = makeTransaction({ id: 'b', date: { seconds: day1, nanos: 0 } })
-    const groups = groupTransactionsByDay([a, b], 'day', 'asc', categoryMap, methodMap, personMap)
+    const groups = groupTransactionsByDay([a, b], 'day', 'asc', categoryMap, catName, methodMap, personMap)
     expect(groups.map((g) => g.day)).toEqual([Number(day1), Number(day2)])
   })
 
   it('orders day groups descending when sortDir is desc', () => {
     const a = makeTransaction({ id: 'a', date: { seconds: day1, nanos: 0 } })
     const b = makeTransaction({ id: 'b', date: { seconds: day2, nanos: 0 } })
-    const groups = groupTransactionsByDay([a, b], 'day', 'desc', categoryMap, methodMap, personMap)
+    const groups = groupTransactionsByDay([a, b], 'day', 'desc', categoryMap, catName, methodMap, personMap)
     expect(groups.map((g) => g.day)).toEqual([Number(day2), Number(day1)])
   })
 
   it('sorts transactions within a day group by the given sort key', () => {
     const a = makeTransaction({ id: 'a', name: 'Zebra', date: { seconds: day1, nanos: 0 } })
     const b = makeTransaction({ id: 'b', name: 'Apple', date: { seconds: day1, nanos: 0 } })
-    const groups = groupTransactionsByDay([a, b], 'name', 'asc', categoryMap, methodMap, personMap)
+    const groups = groupTransactionsByDay([a, b], 'name', 'asc', categoryMap, catName, methodMap, personMap)
     expect(groups).toHaveLength(1)
     expect(groups[0].transactions.map((t) => t.name)).toEqual(['Apple', 'Zebra'])
   })
 
   it('formats the group label as weekday + month + day', () => {
     const a = makeTransaction({ id: 'a', date: { seconds: day1, nanos: 0 } })
-    const groups = groupTransactionsByDay([a], 'day', 'asc', categoryMap, methodMap, personMap)
+    const groups = groupTransactionsByDay([a], 'day', 'asc', categoryMap, catName, methodMap, personMap)
     expect(groups[0].label).toBe('Sat, December 12')
   })
 
   it('returns no groups for an empty transaction list', () => {
-    expect(groupTransactionsByDay([], 'day', 'asc', categoryMap, methodMap, personMap)).toEqual([])
+    expect(groupTransactionsByDay([], 'day', 'asc', categoryMap, catName, methodMap, personMap)).toEqual([])
   })
 })
 

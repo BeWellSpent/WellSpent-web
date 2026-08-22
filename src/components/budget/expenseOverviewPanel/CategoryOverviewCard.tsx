@@ -14,6 +14,7 @@ import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 interface Props {
   cat: Category
@@ -35,6 +36,7 @@ export function CategoryOverviewCard({
   catTransactions, categoryMap, methodMap, personMap,
 }: Props) {
   const t = useTranslations('budget.overview')
+  const categoryName = useCategoryName()
   const actual = parseMoney(summary.actualTotal?.units ?? 0n, summary.actualTotal?.nanos ?? 0)
   const planned = parseMoney(summary.plannedTotal?.units ?? 0n, summary.plannedTotal?.nanos ?? 0)
   const isOver = summary.isOver
@@ -53,7 +55,7 @@ export function CategoryOverviewCard({
           {cat.color && (
             <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: cat.color, flexShrink: 0 }} />
           )}
-          <Typography variant="body2" fontWeight={600} noWrap>{cat.name}</Typography>
+          <Typography variant="body2" fontWeight={600} noWrap>{categoryName(cat)}</Typography>
           {pct !== null && (
             <Chip label={`${pct}%`} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 16 }} />
           )}

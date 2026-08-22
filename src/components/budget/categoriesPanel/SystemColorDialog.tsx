@@ -11,6 +11,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
 import { LoadingButton } from '@/components/ui/LoadingButton'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 interface Props {
   category: Category | null
@@ -25,10 +26,11 @@ export function SystemColorDialog({ category, isSaving, onCancel, onConfirm }: P
   useEffect(() => {
     setColor(category?.color ?? '')
   }, [category])
+  const categoryName = useCategoryName()
 
   return (
     <Dialog open={category !== null} onClose={onCancel} maxWidth="xs" fullWidth>
-      <DialogTitle>Set color — {category?.name}</DialogTitle>
+      <DialogTitle>Set color — {categoryName(category)}</DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 1 }}>
           <Typography variant="caption" color="text.secondary" display="block" mb={1}>

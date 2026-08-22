@@ -14,6 +14,7 @@ import Tooltip from '@mui/material/Tooltip'
 import ClearIcon from '@mui/icons-material/Clear'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 interface Props {
   cat: Category
@@ -36,6 +37,7 @@ export function CategoryTableRow({
   canEdit, currency, locale, formatMoney, onRemoveCategory, onUpsert, onEditFixedExpense,
 }: Props) {
   const t = useTranslations('budget.expenses')
+  const categoryName = useCategoryName()
   const { isSavings, notDueInfo, isNotDue, isFixedOnly } = rowData
   const total = categoryTotalDisplay(rowData)
 
@@ -46,7 +48,7 @@ export function CategoryTableRow({
           {cat.color && (
             <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: cat.color, flexShrink: 0 }} />
           )}
-          {cat.name}
+          {categoryName(cat)}
           {cat.isSystem && (
             <Chip label={t('global')} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 16 }} />
           )}
