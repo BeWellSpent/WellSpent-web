@@ -12,13 +12,17 @@ import Slider from '@mui/material/Slider'
 import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
 import type { AlertSubscription } from '@/gen/wellspent/v1/notification_pb'
+import { useCategoryName, useSortedCategories } from '@/hooks/useCategoryName'
+import type { NameableCategory } from '@/lib/categories/systemCategory'
 
 type AlertType = 'new_transaction' | 'spending_threshold' | 'period_created' | 'review_pending'
 type Channel = 'in_app' | 'email' | 'both'
 
-interface CategoryOption {
+// Extends NameableCategory rather than restating `name`: a system category's
+// label is translated from `systemCategory`, so anything rendering a category
+// needs both fields, not just the name.
+interface CategoryOption extends NameableCategory {
   id: number
-  name: string
 }
 
 interface Props {
@@ -40,6 +44,8 @@ const THRESHOLD_MARKS = [
 
 export function AlertTypeRow({ alertType, subscription, categories, isPending, onEnable, onDisable, onUpdate }: Props) {
   const t = useTranslations('notifications.alerts')
+  const categoryName = useCategoryName()
+  const sortedCategories = useSortedCategories(categories)
   const enabled = !!subscription
 
   const channel = (subscription?.channel ?? 'in_app') as Channel
@@ -155,8 +161,8 @@ export function AlertTypeRow({ alertType, subscription, categories, isPending, o
                     onChange={(e) => handleCategoryChange(Number(e.target.value))}
                     disabled={isPending}
                   >
-                    {categories.map((c) => (
-                      <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                    {sortedCategories.map((c) => (
+                      <MenuItem key={c.id} value={c.id}>{categoryName(c)}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>

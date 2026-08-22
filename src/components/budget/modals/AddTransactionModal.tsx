@@ -25,6 +25,7 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Divider from '@mui/material/Divider'
 import { Timestamp } from '@bufbuild/protobuf'
+import { useCategoryName, useSortedCategories } from '@/hooks/useCategoryName'
 
 interface Props {
   budgetPeriodId: string
@@ -93,6 +94,7 @@ type Flow = 'spent' | 'received'
 
 export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, defaultTypeId = 1, onClose, onDone }: Props) {
   const t = useTranslations('budget.transactions')
+  const categoryName = useCategoryName()
   const { showError } = useSnackbar()
   const fullScreen = useIsMobile()
   const queryClient = useQueryClient()
@@ -123,6 +125,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
     queryKey: ['categories', budgetProfileId],
     queryFn: () => client.listCategories({ budgetProfileId }),
   })
+  const sortedCategories = useSortedCategories(categoriesData?.categories ?? [])
 
   const { mutateAsync: createTx, isPending: txPending } = useMutation({
     mutationFn: (vars: {
@@ -364,11 +367,11 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
       )}
       <TextField select label="Category" value={categoryId} onChange={(e) => setCategoryId(Number(e.target.value))} fullWidth>
         <MenuItem value={0}>— None —</MenuItem>
-        {(categoriesData?.categories ?? []).map((c) => (
+        {sortedCategories.map((c) => (
           <MenuItem key={c.id} value={c.id}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {c.color && <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: c.color, flexShrink: 0 }} />}
-              {c.name}
+              {categoryName(c)}
             </Box>
           </MenuItem>
         ))}

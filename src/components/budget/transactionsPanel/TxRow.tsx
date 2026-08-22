@@ -15,6 +15,7 @@ import Tooltip from '@mui/material/Tooltip'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 interface TxRowProps {
   tx: Transaction
@@ -45,6 +46,7 @@ export function TxRow({
   actions,
 }: TxRowProps) {
   const t = useTranslations('budget.transactions')
+  const categoryName = useCategoryName()
   const { currency, locale } = useCurrency()
   const formatMoney = (v: number) => formatMoneyFromNumber(v, currency, locale)
   const [expanded, setExpanded] = useState(false)
@@ -92,7 +94,7 @@ export function TxRow({
                   <Typography variant="caption" color="text.secondary">{formatDate(varTx.date)}</Typography>
                 )}
                 {varCategory && (
-                  <Typography variant="caption" sx={{ color: varCategory.color || 'text.secondary' }}>{varCategory.name}</Typography>
+                  <Typography variant="caption" sx={{ color: varCategory.color || 'text.secondary' }}>{categoryName(varCategory)}</Typography>
                 )}
                 {varMethod && (
                   <Typography variant="caption" sx={{ color: varMethod.color || 'inherit' }}>{varMethod.alias || varMethod.name}</Typography>
@@ -166,7 +168,7 @@ export function TxRow({
                 </Box>
               )}
               {category && (
-                <Typography variant="caption" sx={{ color: category.color || 'text.secondary' }}>{category.name}</Typography>
+                <Typography variant="caption" sx={{ color: category.color || 'text.secondary' }}>{categoryName(category)}</Typography>
               )}
               {isFixed && formatDate(tx.date) && (
                 <Typography variant="caption" color="text.secondary">{formatDate(tx.date)}</Typography>
@@ -251,7 +253,7 @@ export function TxRow({
         </TableCell>
         <TableCell>
           {category && (
-            <Typography variant="body2" sx={{ color: category.color || 'text.secondary' }}>{category.name}</Typography>
+            <Typography variant="body2" sx={{ color: category.color || 'text.secondary' }}>{categoryName(category)}</Typography>
           )}
         </TableCell>
         <TableCell>

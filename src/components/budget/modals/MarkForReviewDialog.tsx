@@ -33,6 +33,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { logger } from '@/lib/logger'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 function fmtMoney(tx: Transaction): string {
   const n = Number(tx.plannedAmount?.units ?? 0n) + (tx.plannedAmount?.nanos ?? 0) / 1e9
@@ -62,6 +63,7 @@ export function MarkForReviewDialog({
   categoryMap, methodMap, personMap,
 }: Props) {
   const t = useTranslations('budget.markForReview')
+  const categoryName = useCategoryName()
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
@@ -165,7 +167,7 @@ export function MarkForReviewDialog({
               {category && (
                 <Box>
                   <Typography variant="caption" color="text.secondary" display="block">{t('category')}</Typography>
-                  <Typography variant="body2">{category.name}</Typography>
+                  <Typography variant="body2">{categoryName(category)}</Typography>
                 </Box>
               )}
               {method && (

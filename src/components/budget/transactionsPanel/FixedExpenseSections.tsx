@@ -11,6 +11,7 @@ import TableRow from '@mui/material/TableRow'
 import IconButton from '@mui/material/IconButton'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 interface FixedExpenseSectionsProps {
   transactions: Transaction[]
@@ -50,13 +51,14 @@ export function FixedExpenseSections({
   buildActions, renderNotDueRow, emptyLabel,
 }: FixedExpenseSectionsProps) {
   const t = useTranslations('budget.transactions')
+  const categoryName = useCategoryName()
   const [unpaidExpanded, setUnpaidExpanded] = useState(true)
   const [paidExpanded, setPaidExpanded] = useState(false)
   const [futureExpanded, setFutureExpanded] = useState(true)
 
   const { unpaid, paid } = splitByPaidStatus(transactions)
-  const unpaidGroups = groupTransactionsByDay(unpaid, sortKey, sortDir, categoryMap, methodMap, personMap)
-  const paidGroups = groupTransactionsByDay(paid, sortKey, sortDir, categoryMap, methodMap, personMap)
+  const unpaidGroups = groupTransactionsByDay(unpaid, sortKey, sortDir, categoryMap, categoryName, methodMap, personMap)
+  const paidGroups = groupTransactionsByDay(paid, sortKey, sortDir, categoryMap, categoryName, methodMap, personMap)
 
   function renderRow(tx: Transaction) {
     return (

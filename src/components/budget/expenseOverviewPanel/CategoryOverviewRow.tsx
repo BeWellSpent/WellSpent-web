@@ -13,6 +13,7 @@ import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import { useCategoryName } from '@/hooks/useCategoryName'
 
 interface Props {
   cat: Category
@@ -34,6 +35,7 @@ export function CategoryOverviewRow({
   catTransactions, categoryMap, methodMap, personMap,
 }: Props) {
   const t = useTranslations('budget.overview')
+  const categoryName = useCategoryName()
   const actual = parseMoney(summary.actualTotal?.units ?? 0n, summary.actualTotal?.nanos ?? 0)
   const planned = parseMoney(summary.plannedTotal?.units ?? 0n, summary.plannedTotal?.nanos ?? 0)
   const isOver = summary.isOver
@@ -61,7 +63,7 @@ export function CategoryOverviewRow({
             {cat.color && (
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: cat.color, flexShrink: 0 }} />
             )}
-            {cat.name}
+            {categoryName(cat)}
             {pct !== null && (
               <Chip label={`${pct}%`} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 16 }} />
             )}

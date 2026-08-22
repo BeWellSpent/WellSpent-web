@@ -519,6 +519,33 @@
       "description": "Cuando marcas una factura como pagada por un importe distinto, planifica los períodos futuros con ese nuevo importe. El período que estás pagando conserva su plan original; solo cambian los siguientes. Desactívalo para mantener tus importes planificados tal como los definiste.",
       "adminOnly": "Solo un administrador del presupuesto puede cambiar esto.",
       "saveFailed": "No se pudo guardar esta configuración."
+    },
+    "systemCategories": {
+      "auto": "Auto",
+      "baby": "Bebé",
+      "debt": "Deuda",
+      "eatingOut": "Comer fuera",
+      "entertainment": "Entretenimiento",
+      "family": "Familia",
+      "gas": "Combustible",
+      "groceries": "Supermercado",
+      "house": "Hogar",
+      "income": "Ingresos",
+      "insurance": "Seguros",
+      "loan": "Préstamo",
+      "misc": "Varios",
+      "payment": "Pago",
+      "pet": "Mascota",
+      "rent": "Alquiler",
+      "savings": "Ahorros",
+      "services": "Servicios",
+      "shopping": "Compras",
+      "subscription": "Suscripción",
+      "transfer": "Transferencia",
+      "transportation": "Transporte",
+      "travel": "Viajes",
+      "utilities": "Servicios públicos",
+      "wellness": "Bienestar"
     }
   },
   "landing": {
