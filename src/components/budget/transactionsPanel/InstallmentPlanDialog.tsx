@@ -32,6 +32,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
+import { expenseSummaryQueryKey } from '@/hooks/useExpenseSummary'
 
 interface Props {
   tx: Transaction
@@ -93,7 +94,7 @@ export function InstallmentPlanDialog({ tx, budgetPeriodId, onClose }: Props) {
       logger.info('transaction.installmentPlan.create', { transactionId: tx.id, payments })
       queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
       queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] })
-      queryClient.invalidateQueries({ queryKey: ['expense-summary', budgetPeriodId] })
+      queryClient.invalidateQueries({ queryKey: expenseSummaryQueryKey(budgetPeriodId) })
       onClose()
     },
     onError: (err) => {

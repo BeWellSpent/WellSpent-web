@@ -9,6 +9,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Category, PaymentMethod, BudgetPerson, Transaction, CategoryExpenseSummary } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
+import { useExpenseSummary } from '@/hooks/useExpenseSummary'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { parseMoney } from './expensesPanel/helpers'
@@ -81,11 +82,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   // the single source of truth both web and iOS consume, replacing the
   // local re-derivation that previously drifted between the two clients
   // (see docs/features/expense-summary.md, issue #35).
-  const { data: summaryData, isLoading: summaryLoading } = useQuery({
-    queryKey: ['expense-summary', budgetPeriodId],
-    queryFn: () => client.getExpenseSummary({ budgetPeriodId: budgetPeriodId! }),
-    enabled: !!budgetPeriodId,
-  })
+  const { summary: summaryData, isLoading: summaryLoading } = useExpenseSummary(budgetPeriodId)
 
   const isLoading = catsLoading || peopleLoading || txnsLoading || pmLoading || summaryLoading
   if (isLoading || !summaryData) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>

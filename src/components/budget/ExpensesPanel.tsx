@@ -10,6 +10,7 @@ import type { Category, ExpenseAllocation, FixedExpense } from '@/gen/wellspent/
 import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpenseModal'
 import { useClient } from '@/hooks/useClient'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
+import { useExpenseSummary } from '@/hooks/useExpenseSummary'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -122,11 +123,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   // editable values (allocMap, fixedPlannedByCat, notDueFixedByCat below)
   // stay client-side since editing needs the raw, mutable allocation
   // entities, not a read-only computed summary.
-  const { data: summaryData, isLoading: summaryLoading } = useQuery({
-    queryKey: ['expense-summary', budgetPeriodId],
-    queryFn: () => client.getExpenseSummary({ budgetPeriodId: budgetPeriodId! }),
-    enabled: !!budgetPeriodId,
-  })
+  const { summary: summaryData, isLoading: summaryLoading } = useExpenseSummary(budgetPeriodId)
 
   const { mutateAsync: upsertAlloc } = useMutation({
     mutationFn: (req: Parameters<typeof client.upsertExpenseAllocation>[0]) =>
