@@ -15,6 +15,7 @@ import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
 import { LoadingButton } from '@/components/ui/LoadingButton'
 import Typography from '@mui/material/Typography'
+import { expenseSummaryQueryKey } from '@/hooks/useExpenseSummary'
 
 interface Props {
   tx: Transaction
@@ -40,7 +41,7 @@ export function UnsplitInstallmentPlanDialog({ tx, budgetPeriodId, onClose }: Pr
       logger.info('transaction.installmentPlan.delete', { transactionId: tx.id })
       queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
       queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] })
-      queryClient.invalidateQueries({ queryKey: ['expense-summary', budgetPeriodId] })
+      queryClient.invalidateQueries({ queryKey: expenseSummaryQueryKey(budgetPeriodId) })
       onClose()
     },
     onError: (err) => {

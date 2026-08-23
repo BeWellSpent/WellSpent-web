@@ -26,6 +26,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Divider from '@mui/material/Divider'
 import { Timestamp } from '@bufbuild/protobuf'
 import { useCategoryName, useSortedCategories } from '@/hooks/useCategoryName'
+import { expenseSummaryQueryKey } from '@/hooks/useExpenseSummary'
 
 interface Props {
   budgetPeriodId: string
@@ -244,6 +245,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
         })
         logger.info('fixedExpense.create', { budgetProfileId, name, amount })
         queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId, 1] })
+        queryClient.invalidateQueries({ queryKey: expenseSummaryQueryKey(budgetPeriodId) })
         queryClient.invalidateQueries({ queryKey: ['fixed-expenses', budgetProfileId] })
       } else {
         // Variable: spent = stored positive, received = stored negative

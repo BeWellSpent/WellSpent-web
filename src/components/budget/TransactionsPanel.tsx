@@ -13,7 +13,9 @@ import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
 import { formatMoneyFromNumber } from '@/lib/format'
-import { type FilterOption, txAmount, isTransactionExcluded, resolveSwipeDirection, buildPendingReviewMatchMap, computeOverBudgetTxIds, notDueFixedExpenses, formatVariableAmount } from './transactionsPanel/helpers'
+import { parseMoney } from './expensesPanel/helpers'
+import { useExpenseSummary } from '@/hooks/useExpenseSummary'
+import { type FilterOption, resolveSwipeDirection, buildPendingReviewMatchMap, notDueFixedExpenses, formatVariableAmount } from './transactionsPanel/helpers'
 import { TransactionTable } from './transactionsPanel/TransactionTable'
 import { AddTransactionModal } from './modals/AddTransactionModal'
 import { EditTransactionModal } from './modals/EditTransactionModal'
@@ -36,6 +38,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import type { ViewMode } from '@/hooks/useViewPreference'
 import { isSystemCategory } from '@/lib/categories/systemCategory'
 import { SystemCategory } from '@/gen/wellspent/v1/common_pb'
+import { expenseSummaryQueryKey } from '@/hooks/useExpenseSummary'
 
 interface Props {
   budgetPeriodId: string
@@ -125,16 +128,13 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     queryKey: ['fixed-expenses', budgetProfileId],
     queryFn: () => client.listFixedExpenses({ budgetProfileId }),
   })
-  const { data: allocationsData } = useQuery({
-    queryKey: ['expense-allocations', budgetProfileId],
-    queryFn: () => client.listExpenseAllocations({ budgetProfileId }),
-  })
   // Same key the sidebar and useBudgetRole already populate, so this costs no
   // extra round trip.
   const { data: profileData } = useQuery({
     queryKey: ['budget-profile', budgetProfileId],
     queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
   })
+  const { summary } = useExpenseSummary(budgetPeriodId)
   const { data: reviewsData } = useQuery({
     queryKey: ['transaction-reviews', budgetProfileId],
     queryFn: () => client.listTransactionReviews({ budgetProfileId }),
@@ -164,25 +164,24 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     isArchivedPeriod,
   )
 
-  // Grand total = what was actually paid. Fixed only counts once marked paid
-  // (using the actual amount paid, not the planned amount). Variable always
-  // counts. Excluded transactions and Income-category rows never count here.
-  const fixedActualTotal = fixedTxs
-    .filter((tx) => !isTransactionExcluded(tx, incomeCategoryId) && tx.isPaid)
-    .reduce((sum, tx) => sum + txAmount(tx), 0)
-  const variableTotal = variableTxs
-    .filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
-    .reduce((sum, tx) => sum + txAmount(tx), 0)
-  const grandTotal = fixedActualTotal + variableTotal
+  // Grand total = what was actually paid, straight from the server. Fixed only
+  // counts once marked paid, variable always counts, and excluded/Income rows
+  // never count — one filter, applied in one place, rather than re-summing the
+  // rows this panel happens to have fetched (#61).
+  const grandTotal = parseMoney(summary?.totalActual?.units ?? 0n, summary?.totalActual?.nanos ?? 0)
 
-  const overBudgetTxIds = computeOverBudgetTxIds(
-    variableTxs,
-    fixedTxs,
-    allocationsData?.allocations ?? [],
-    incomeCategoryId,
-  )
+  // Which transactions crossed their category's plan, also server-computed:
+  // the baseline is the same planned total the Plan and Overview tabs print,
+  // and this panel no longer fetches allocations just to rebuild it.
+  const overBudgetTxIds = new Set(summary?.overBudgetTransactionIds ?? [])
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
+  // The summary has to go too: the grand total and the "Exceeded only" set
+  // are both server-computed now, so invalidating only the transaction list
+  // leaves a stale total sitting above freshly changed rows.
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
+    queryClient.invalidateQueries({ queryKey: expenseSummaryQueryKey(budgetPeriodId) })
+  }
 
   const fixedExpenseMap = new Map<string, FixedExpense>(
     (fixedExpensesData?.expenses ?? []).map((fe) => [fe.id, fe])

@@ -1,4 +1,5 @@
 import {
+  paymentProgress,
   formatVariableAmount,
   resolveCategoryName,
   resolveMethodName,
@@ -9,12 +10,11 @@ import {
   isTransactionExcluded,
   resolveSwipeDirection,
   buildPendingReviewMatchMap,
-  computeOverBudgetTxIds,
   splitByPaidStatus,
   notDueFixedExpenses,
   needsPaymentMethodSetup,
 } from '../helpers'
-import type { Transaction, Category, PaymentMethod, BudgetPerson, TransactionReview, FixedExpense, ExpenseAllocation } from '@/gen/wellspent/v1/budget_pb'
+import type { Transaction, Category, PaymentMethod, BudgetPerson, TransactionReview, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 
 function money(units: bigint): { units: bigint; nanos: number } {
   return { units, nanos: 0 }
@@ -40,17 +40,6 @@ function makeTransaction(overrides: Partial<Transaction> = {}): Transaction {
     isExcluded: false,
     ...overrides,
   } as Transaction
-}
-
-function makeAllocation(overrides: Partial<ExpenseAllocation> = {}): ExpenseAllocation {
-  return {
-    id: 1n,
-    budgetProfileId: 'profile-1',
-    categoryId: 1,
-    budgetPersonId: 0n,
-    plannedAmount: money(100n),
-    ...overrides,
-  } as ExpenseAllocation
 }
 
 function makeFixedExpense(overrides: Partial<FixedExpense> = {}): FixedExpense {
@@ -343,66 +332,20 @@ describe('splitByPaidStatus', () => {
   })
 })
 
-describe('computeOverBudgetTxIds', () => {
-  const day1 = BigInt(Date.UTC(2026, 11, 1) / 1000)
-  const day2 = BigInt(Date.UTC(2026, 11, 2) / 1000)
-  const day3 = BigInt(Date.UTC(2026, 11, 3) / 1000)
-
-  it('defaults a category with no plan at all to a $0 plan, flagging spend from the first transaction', () => {
-    // A categorized transaction in a category nobody ever budgeted for is, by
-    // definition, over budget — distinct from a truly uncategorized transaction
-    // (categoryId 0), which has no category to attribute the overage to.
-    const a = makeTransaction({ id: 'a', categoryId: 1, amount: money(50n), date: { seconds: day1, nanos: 0 } })
-    const b = makeTransaction({ id: 'b', categoryId: 1, amount: money(20n), date: { seconds: day2, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([a, b], [], [])
-    expect(ids).toEqual(new Set(['a', 'b']))
+describe('paymentProgress', () => {
+  it('renders the server-computed count against the plan total', () => {
+    expect(paymentProgress(makeFixedExpense({ totalPayments: 12, paymentsMade: 3 }))).toBe('3/12')
   })
 
-  it('flags only the transactions from the point the running total first crosses the plan', () => {
-    const a = makeTransaction({ id: 'a', categoryId: 1, amount: money(40n), date: { seconds: day1, nanos: 0 } })
-    const b = makeTransaction({ id: 'b', categoryId: 1, amount: money(40n), date: { seconds: day2, nanos: 0 } })
-    const c = makeTransaction({ id: 'c', categoryId: 1, amount: money(40n), date: { seconds: day3, nanos: 0 } })
-    // plan = 100; running: a=40, b=80, c=120 -> only c crosses the line
-    const ids = computeOverBudgetTxIds([a, b, c], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
-    expect(ids).toEqual(new Set(['c']))
+  it('reports zero made rather than rounding up to the first payment', () => {
+    // The old client formula floored a month difference and added one, so a
+    // plan whose first payment had not come due still read 1/12 — and iOS
+    // read 0/12 for the same expense.
+    expect(paymentProgress(makeFixedExpense({ totalPayments: 12, paymentsMade: 0 }))).toBe('0/12')
   })
 
-  it('does not flag a received (negative) transaction even if it lands after the plan is crossed', () => {
-    const a = makeTransaction({ id: 'a', categoryId: 1, amount: money(150n), date: { seconds: day1, nanos: 0 } })
-    const b = makeTransaction({ id: 'b', categoryId: 1, amount: money(-20n), date: { seconds: day2, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([a, b], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
-    expect(ids).toEqual(new Set(['a']))
-  })
-
-  it('ignores uncategorized transactions', () => {
-    const tx = makeTransaction({ id: 'a', categoryId: 0, amount: money(999n), date: { seconds: day1, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([tx], [], [makeAllocation({ categoryId: 1, plannedAmount: money(1n) })])
-    expect(ids.size).toBe(0)
-  })
-
-  it('ignores excluded transactions when computing the running total', () => {
-    const excluded = makeTransaction({ id: 'a', categoryId: 1, amount: money(200n), isExcluded: true, date: { seconds: day1, nanos: 0 } })
-    const counted = makeTransaction({ id: 'b', categoryId: 1, amount: money(50n), date: { seconds: day2, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([excluded, counted], [], [makeAllocation({ categoryId: 1, plannedAmount: money(100n) })])
-    expect(ids.size).toBe(0)
-  })
-
-  it('does not budget against a fixed expense that is not due this period', () => {
-    // A bill that hasn't arrived isn't money this period has to cover, so it
-    // must not raise the baseline and make real spending look affordable
-    // (issue #48). Previously the template's $100 was added to the plan and
-    // this $150 of spending read as within budget.
-    const tx = makeTransaction({ id: 'a', categoryId: 1, amount: money(150n), date: { seconds: day1, nanos: 0 } })
-    const ids = computeOverBudgetTxIds([tx], [], [])
-    expect(ids).toEqual(new Set(['a']))
-  })
-
-  it('adds a fixed transaction planned amount to the category plan', () => {
-    const variableTx = makeTransaction({ id: 'a', categoryId: 1, amount: money(150n), transactionTypeId: 2, date: { seconds: day1, nanos: 0 } })
-    const fixedTx = makeTransaction({ id: 'fixed-1', categoryId: 1, transactionTypeId: 1, plannedAmount: money(100n) })
-    // plan = 100 (fixed tx planned amount); actual 150 crosses it
-    const ids = computeOverBudgetTxIds([variableTx], [fixedTx], [])
-    expect(ids).toEqual(new Set(['a']))
+  it('returns null when the expense has no payment plan', () => {
+    expect(paymentProgress(makeFixedExpense({ totalPayments: 0, paymentsMade: 0 }))).toBeNull()
   })
 })
 

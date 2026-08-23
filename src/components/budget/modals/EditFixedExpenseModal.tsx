@@ -185,22 +185,6 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
     }
   }
 
-  // Compute payments made client-side from anchor and interval.
-  function computePaymentsMade(): number {
-    const total = parseInt(paymentsInput, 10)
-    if (!total || total <= 0) return 0
-    const anchor = getAnchor()
-    const now = new Date()
-    let made: number
-    if (frequencyUnitUI === 'week') {
-      made = Math.floor(weeksBetween(anchor, now) / frequencyCount) + 1
-    } else {
-      const intervalMonths = frequencyUnitUI === 'year' ? frequencyCount * 12 : frequencyCount
-      made = Math.floor(monthsBetween(anchor, now) / intervalMonths) + 1
-    }
-    return Math.min(Math.max(0, made), total)
-  }
-
   const { data: categoriesData } = useQuery({
     queryKey: ['categories', budgetProfileId],
     queryFn: () => client.listCategories({ budgetProfileId }),
@@ -257,7 +241,12 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
     }
   }
 
-  const paymentsMade = computePaymentsMade()
+  // Progress is a fact about the saved plan, not the draft, so it comes from
+  // the server (`FixedExpensePaymentsMade`) and doesn't move while the form is
+  // edited — it updates on save. This modal used to recompute it live from its
+  // own form state, which is how it ended up disagreeing with the transaction
+  // row rendering the same expense, and with iOS (#61).
+  const paymentsMade = fixedExpense.paymentsMade
   const totalPaymentsParsed = parseInt(paymentsInput, 10)
 
   return (

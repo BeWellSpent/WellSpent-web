@@ -1,4 +1,4 @@
-import type { Transaction, Category, PaymentMethod, BudgetPerson, FixedExpense, TransactionReview, ExpenseAllocation } from '@/gen/wellspent/v1/budget_pb'
+import type { Transaction, Category, PaymentMethod, BudgetPerson, FixedExpense, TransactionReview } from '@/gen/wellspent/v1/budget_pb'
 import { formatMoneyFromNumber } from '@/lib/format'
 
 /** Resolves a category to the name shown on screen — translated for system
@@ -72,80 +72,19 @@ export function fixedExpensePlannedAmount(fe: FixedExpense): number {
   return Number(fe.plannedAmount?.units ?? 0n) + (fe.plannedAmount?.nanos ?? 0) / 1e9
 }
 
-// IDs of variable transactions that pushed their category's running total past
-// its combined plan (expense allocations + fixed planned amounts), walked
-// chronologically per category — only the transactions from the point the
-// running total first crosses the plan onward are flagged, not every
-// transaction in an over-budget category. A category with no plan at all
-// defaults to a $0 plan, same as before — any spending in a category that was
-// never budgeted for is, by definition, over budget starting from its first
-// transaction. Only truly uncategorized transactions (no categoryId at all)
-// are excluded, since there's no category to attribute the overage to.
-//
-// Fixed expenses that aren't due this period are deliberately not part of the
-// baseline: budgeting against a bill that hasn't arrived makes a category look
-// under budget when it isn't (issue #48). iOS's equivalent
-// (ExpensePlanCalculations.plannedTotal) always excluded them, so this also
-// ends a live disagreement between the two clients over which transactions the
-// "Exceeded only" filter shows.
-export function computeOverBudgetTxIds(
-  variableTxs: Transaction[],
-  fixedTxs: Transaction[],
-  allocations: ExpenseAllocation[],
-  incomeCategoryId?: number,
-): Set<string> {
-  const plannedByCat = new Map<number, number>()
-  allocations.forEach((a) => {
-    const p = Number(a.plannedAmount?.units ?? 0n) + (a.plannedAmount?.nanos ?? 0) / 1e9
-    plannedByCat.set(a.categoryId, (plannedByCat.get(a.categoryId) ?? 0) + p)
-  })
-  fixedTxs.filter((tx) => !isTransactionExcluded(tx, incomeCategoryId)).forEach((tx) => {
-    if (!tx.categoryId) return
-    plannedByCat.set(tx.categoryId, (plannedByCat.get(tx.categoryId) ?? 0) + txPlannedAmount(tx))
-  })
-
-  const txsByCat = new Map<number, Transaction[]>()
-  variableTxs.filter((tx) => !isTransactionExcluded(tx, incomeCategoryId)).forEach((tx) => {
-    if (!tx.categoryId) return
-    if (!txsByCat.has(tx.categoryId)) txsByCat.set(tx.categoryId, [])
-    txsByCat.get(tx.categoryId)!.push(tx)
-  })
-
-  const ids = new Set<string>()
-  txsByCat.forEach((txs, catId) => {
-    const planned = plannedByCat.get(catId) ?? 0
-    const sorted = [...txs].sort(
-      (a, b) => Number(a.date?.seconds ?? 0n) - Number(b.date?.seconds ?? 0n) || a.id.localeCompare(b.id)
-    )
-    let running = 0
-    for (const tx of sorted) {
-      running += txAmount(tx)
-      if (running > planned && txAmount(tx) > 0) ids.add(tx.id)
-    }
-  })
-  return ids
-}
-
-function monthsBetweenDates(from: Date, to: Date): number {
-  return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth())
-}
-
-function weeksBetweenDates(from: Date, to: Date): number {
-  return Math.floor((to.getTime() - from.getTime()) / (7 * 24 * 60 * 60 * 1000))
-}
-
+/**
+ * "N/M" payment-plan progress for a fixed expense, or null when it has no plan.
+ *
+ * `paymentsMade` is computed by the server (`FixedExpensePaymentsMade`). It
+ * used to be derived here from the anchor date and interval, and separately
+ * again inside EditFixedExpenseModal — the two disagreed with each other, and
+ * both disagreed with iOS. None of them could be right: the schedule falls
+ * back to `fixed_expense.created_at` when `anchorDate` is unset, and that
+ * column is deliberately not on the wire. See docs/features/expense-summary.md.
+ */
 export function paymentProgress(fe: FixedExpense): string | null {
   if (!fe.totalPayments || fe.totalPayments <= 0) return null
-  if (!fe.anchorDate?.seconds) return `1/${fe.totalPayments}`
-  const anchor = new Date(Number(fe.anchorDate.seconds) * 1000)
-  const now = new Date()
-  let made: number
-  if (fe.frequencyUnit === 2) {
-    made = Math.floor(weeksBetweenDates(anchor, now) / (fe.intervalWeeks || 1)) + 1
-  } else {
-    made = Math.floor(monthsBetweenDates(anchor, now) / (fe.intervalMonths || 1)) + 1
-  }
-  return `${Math.min(Math.max(1, made), fe.totalPayments)}/${fe.totalPayments}`
+  return `${fe.paymentsMade}/${fe.totalPayments}`
 }
 
 export function nextDueDateLabel(fe: FixedExpense): string {
