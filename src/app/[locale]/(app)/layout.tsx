@@ -4,6 +4,7 @@ import { TOKEN_COOKIE, isTokenExpired } from '@/lib/auth/token'
 import { AuthProvider } from '@/context/AuthContext'
 import { SnackbarProvider } from '@/components/ui/ErrorSnackbar'
 import { EmailVerificationGate } from '@/components/auth/EmailVerificationGate'
+import { WhatsNewDialog } from '@/components/changelog/WhatsNewDialog'
 
 export default async function AppLayout({
   children,
@@ -20,6 +21,9 @@ export default async function AppLayout({
     <SnackbarProvider>
       <AuthProvider token={token}>
         <EmailVerificationGate>
+          {/* Inside the gate on purpose: an unverified account is being told
+              to verify, and a what's-new dialog on top of that is noise. */}
+          <WhatsNewDialog />
           {children}
         </EmailVerificationGate>
       </AuthProvider>

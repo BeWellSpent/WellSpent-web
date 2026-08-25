@@ -1,0 +1,16 @@
+{
+  "component": "web",
+  "version": "1.28.0",
+  "items": [
+    {
+      "changeType": "added",
+      "summaryEn": "See what changed: new versions now show a short summary when you first open them.",
+      "summaryEs": "Mira qué cambió: las versiones nuevas ahora muestran un resumen la primera vez que las abres."
+    },
+    {
+      "changeType": "added",
+      "summaryEn": "A Help section in Settings lets you browse release notes for any past version.",
+      "summaryEs": "Una sección de Ayuda en Ajustes te permite ver las notas de cualquier versión anterior."
+    }
+  ]
+}
