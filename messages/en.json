@@ -141,7 +141,8 @@
       "remainderPlan": "Plan remaining",
       "global": "global",
       "uncategorized": "Uncategorized",
-      "noData": "No spending data yet for this period."
+      "noData": "No spending data yet for this period.",
+      "unattributed": "Unattributed"
     },
     "review": {
       "description": "These imported transactions may match a fixed expense. Confirm to mark the fixed expense as paid and remove the duplicate, or dismiss to keep it as a regular transaction.",

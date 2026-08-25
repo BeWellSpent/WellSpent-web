@@ -5,6 +5,8 @@ import type { Category, BudgetPerson, Transaction, PaymentMethod, CategoryExpens
 import { parseMoney } from '../expensesPanel/helpers'
 import { formatOverviewActual } from './helpers'
 import { CategoryTransactionList } from './CategoryTransactionList'
+import { groupTransactionsByOwner } from './ownerGrouping'
+import { Fragment } from 'react'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
@@ -42,6 +44,11 @@ export function CategoryOverviewRow({
   const actualDisplay = formatOverviewActual(actual, planned, isOver, formatMoney)
   const hasPeople = people.length > 1
   const isExpandable = hasPeople || catTransactions.length > 0
+  // Grouped so each person's spending sits under their own row (issue #62).
+  // Keyed on the people who actually get a row, so nothing can be filed under
+  // a name that isn't on screen — see groupTransactionsByOwner.
+  const renderedPersonIds = new Set(summary.personBreakdowns.map((pb) => pb.budgetPersonId.toString()))
+  const { byPerson, unclaimed } = groupTransactionsByOwner(catTransactions, methodMap, renderedPersonIds)
   const pct = totalActual > 0 && actual > 0 ? Math.round(actual / totalActual * 100) : null
 
   return (
@@ -102,8 +109,10 @@ export function CategoryOverviewRow({
         const personPlanned = parseMoney(pb.plannedTotal?.units ?? 0n, pb.plannedTotal?.nanos ?? 0)
         const isPersonOver = personPlanned > 0 && personActual > personPlanned
         const personDisplay = formatOverviewActual(personActual, personPlanned, isPersonOver, formatMoney)
+        const personTransactions = byPerson.get(pb.budgetPersonId.toString()) ?? []
         return (
-          <TableRow key={pb.budgetPersonId.toString()} sx={{ bgcolor: 'action.hover' }}>
+          <Fragment key={pb.budgetPersonId.toString()}>
+          <TableRow sx={{ bgcolor: 'action.hover' }}>
             <TableCell sx={{ py: 0.5, pr: 0 }} />
             <TableCell sx={{ py: 0.5, pl: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -137,20 +146,51 @@ export function CategoryOverviewRow({
               )}
             </TableCell>
           </TableRow>
+          {personTransactions.length > 0 && (
+            <TableRow>
+              <TableCell colSpan={5} sx={{ p: 0 }}>
+                <CategoryTransactionList
+                  transactions={personTransactions}
+                  isMobile={false}
+                  categoryMap={categoryMap}
+                  methodMap={methodMap}
+                  personMap={personMap}
+                />
+              </TableCell>
+            </TableRow>
+          )}
+          </Fragment>
         )
       })}
-      {isExpanded && catTransactions.length > 0 && (
-        <TableRow>
-          <TableCell colSpan={5} sx={{ p: 0 }}>
-            <CategoryTransactionList
-              transactions={catTransactions}
-              isMobile={false}
-              categoryMap={categoryMap}
-              methodMap={methodMap}
-              personMap={personMap}
-            />
-          </TableCell>
-        </TableRow>
+
+      {/* Spending that belongs to nobody — cash, or a payment method with no
+          person. It counts toward the category total but toward no person's,
+          so it cannot sit under a name without making that person's rows
+          contradict their own figure. */}
+      {isExpanded && unclaimed.length > 0 && (
+        <>
+          {hasPeople && (
+            <TableRow sx={{ bgcolor: 'action.hover' }}>
+              <TableCell sx={{ py: 0.5, pr: 0 }} />
+              <TableCell colSpan={4} sx={{ py: 0.5, pl: 4 }}>
+                <Typography variant="body2" color="text.secondary" noWrap>
+                  {t('unattributed')}
+                </Typography>
+              </TableCell>
+            </TableRow>
+          )}
+          <TableRow>
+            <TableCell colSpan={5} sx={{ p: 0 }}>
+              <CategoryTransactionList
+                transactions={unclaimed}
+                isMobile={false}
+                categoryMap={categoryMap}
+                methodMap={methodMap}
+                personMap={personMap}
+              />
+            </TableCell>
+          </TableRow>
+        </>
       )}
     </>
   )

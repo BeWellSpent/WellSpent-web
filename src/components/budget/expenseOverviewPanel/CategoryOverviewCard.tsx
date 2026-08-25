@@ -5,6 +5,8 @@ import type { Category, BudgetPerson, Transaction, PaymentMethod, CategoryExpens
 import { parseMoney } from '../expensesPanel/helpers'
 import { formatOverviewActual } from './helpers'
 import { CategoryTransactionList } from './CategoryTransactionList'
+import { groupTransactionsByOwner } from './ownerGrouping'
+import { Fragment } from 'react'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Collapse from '@mui/material/Collapse'
@@ -43,6 +45,9 @@ export function CategoryOverviewCard({
   const actualDisplay = formatOverviewActual(actual, planned, isOver, formatMoney)
   const hasPeople = people.length > 1
   const isExpandable = hasPeople || catTransactions.length > 0
+  // Same grouping as the desktop row — see CategoryOverviewRow.
+  const renderedPersonIds = new Set(summary.personBreakdowns.map((pb) => pb.budgetPersonId.toString()))
+  const { byPerson, unclaimed } = groupTransactionsByOwner(catTransactions, methodMap, renderedPersonIds)
   const pct = totalActual > 0 && actual > 0 ? Math.round(actual / totalActual * 100) : null
 
   return (
@@ -107,8 +112,10 @@ export function CategoryOverviewCard({
                   const personPlanned = parseMoney(pb.plannedTotal?.units ?? 0n, pb.plannedTotal?.nanos ?? 0)
                   const isPersonOver = personPlanned > 0 && personActual > personPlanned
                   const personDisplay = formatOverviewActual(personActual, personPlanned, isPersonOver, formatMoney)
+                  const personTransactions = byPerson.get(pb.budgetPersonId.toString()) ?? []
                   return (
-                    <Box key={pb.budgetPersonId.toString()} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Fragment key={pb.budgetPersonId.toString()}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {p.color && (
                         <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: p.color, flexShrink: 0 }} />
                       )}
@@ -125,19 +132,39 @@ export function CategoryOverviewCard({
                         {personPlanned > 0 ? formatMoney(personPlanned) : '—'}
                       </Typography>
                     </Box>
+                    <CategoryTransactionList
+                      transactions={personTransactions}
+                      isMobile
+                      categoryMap={categoryMap}
+                      methodMap={methodMap}
+                      personMap={personMap}
+                    />
+                    </Fragment>
                   )
                 })}
               </Box>
             </>
           )}
-          {catTransactions.length > 0 && (
-            <CategoryTransactionList
-              transactions={catTransactions}
-              isMobile
-              categoryMap={categoryMap}
-              methodMap={methodMap}
-              personMap={personMap}
-            />
+
+          {/* Belongs to nobody — cash, or a method with no person. It counts
+              toward the category total but toward no person's, so it gets its
+              own group rather than inflating someone's row. */}
+          {unclaimed.length > 0 && (
+            <>
+              {hasPeople && (
+                <>
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="body2" color="text.secondary">{t('unattributed')}</Typography>
+                </>
+              )}
+              <CategoryTransactionList
+                transactions={unclaimed}
+                isMobile
+                categoryMap={categoryMap}
+                methodMap={methodMap}
+                personMap={personMap}
+              />
+            </>
           )}
         </Collapse>
       )}

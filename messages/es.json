@@ -141,7 +141,8 @@
       "remainderPlan": "Sobrante del plan",
       "global": "global",
       "uncategorized": "Sin categoría",
-      "noData": "No hay datos de gastos aún para este período."
+      "noData": "No hay datos de gastos aún para este período.",
+      "unattributed": "Sin asignar"
     },
     "review": {
       "description": "Estas transacciones importadas pueden coincidir con un gasto fijo. Confirma para marcar el gasto fijo como pagado y eliminar el duplicado, o descarta para conservarla como transacción regular.",
