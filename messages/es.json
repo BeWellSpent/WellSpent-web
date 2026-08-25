@@ -846,5 +846,28 @@
     "learnMore": "Ver más",
     "showLess": "Ver menos",
     "dismiss": "Descartar"
+  },
+  "changelog": {
+    "whatsNew": "Novedades",
+    "gotIt": "Entendido",
+    "empty": "Todavía no hay notas de versión.",
+    "type": {
+      "added": "Nuevo",
+      "fixed": "Corregido",
+      "changed": "Cambiado"
+    },
+    "component": {
+      "web": "Esta aplicación",
+      "server": "Detrás de escena"
+    }
+  },
+  "help": {
+    "title": "Ayuda",
+    "changelogSubtitle": "Mira qué cambió en cada versión",
+    "component": {
+      "web": "Web",
+      "ios": "iOS",
+      "server": "Servidor"
+    }
   }
 }
