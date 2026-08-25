@@ -1,16 +1,10 @@
 'use client'
 
-import { Fragment, useMemo } from 'react'
 import type { Transaction, Category, PaymentMethod, BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
-import { groupTransactionsByDay } from '../transactionsPanel/helpers'
 import { TxRow } from '../transactionsPanel/TxRow'
-import { useCategoryName } from '@/hooks/useCategoryName'
 import Box from '@mui/material/Box'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableRow from '@mui/material/TableRow'
-import Typography from '@mui/material/Typography'
 
 interface Props {
   transactions: Transaction[]
@@ -25,13 +19,17 @@ interface Props {
 const DESKTOP_COL_SPAN = 5
 const MOBILE_COL_SPAN = 2
 
+/**
+ * One owner's transactions inside an expanded category, flat and newest-first.
+ *
+ * Previously this rendered *every* transaction in the category, day-grouped —
+ * which is what made it impossible to tell who had spent what (issue #62). It
+ * now renders a single group from `groupTransactionsByOwner`, and the caller
+ * places it directly beneath that person's row. The day headers went with the
+ * change: the person is the grouping this view is about, and person -> day ->
+ * transaction is a lot of nesting for a drill-down.
+ */
 export function CategoryTransactionList({ transactions, isMobile, categoryMap, methodMap, personMap }: Props) {
-  const categoryName = useCategoryName()
-  const groups = useMemo(
-    () => groupTransactionsByDay(transactions, 'day', 'desc', categoryMap, categoryName, methodMap, personMap),
-    [transactions, categoryMap, categoryName, methodMap, personMap],
-  )
-
   if (transactions.length === 0) return null
 
   const colSpan = isMobile ? MOBILE_COL_SPAN : DESKTOP_COL_SPAN
@@ -40,28 +38,19 @@ export function CategoryTransactionList({ transactions, isMobile, categoryMap, m
     <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
       <Table size="small">
         <TableBody>
-          {groups.map((group) => (
-            <Fragment key={group.day}>
-              <TableRow>
-                <TableCell colSpan={colSpan} sx={{ py: 0.25, bgcolor: 'action.hover' }}>
-                  <Typography variant="caption" color="text.secondary">{group.label}</Typography>
-                </TableCell>
-              </TableRow>
-              {group.transactions.map((tx) => (
-                <TxRow
-                  key={tx.id}
-                  tx={tx}
-                  isFixed={false}
-                  isMobile={isMobile}
-                  linkedVariableTxs={[]}
-                  categoryMap={categoryMap}
-                  methodMap={methodMap}
-                  personMap={personMap}
-                  colSpan={colSpan}
-                  actions={undefined}
-                />
-              ))}
-            </Fragment>
+          {transactions.map((tx) => (
+            <TxRow
+              key={tx.id}
+              tx={tx}
+              isFixed={false}
+              isMobile={isMobile}
+              linkedVariableTxs={[]}
+              categoryMap={categoryMap}
+              methodMap={methodMap}
+              personMap={personMap}
+              colSpan={colSpan}
+              actions={undefined}
+            />
           ))}
         </TableBody>
       </Table>
