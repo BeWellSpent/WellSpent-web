@@ -17,6 +17,8 @@ import { DesktopSidebar } from './sidebar/DesktopSidebar'
 import { MobileTopBar } from './sidebar/MobileTopBar'
 import { MobileManageDrawer } from './sidebar/MobileManageDrawer'
 import { ManagementDrawers } from './sidebar/ManagementDrawers'
+import { PeriodSwitcher } from './sidebar/PeriodSwitcher'
+import { parseViewParams } from '@/components/budget/budgetView/viewParams'
 import type { NavItem } from './sidebar/types'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { logger } from '@/lib/logger'
@@ -31,6 +33,7 @@ import SavingsIcon from '@mui/icons-material/Savings'
 import CreditCardIcon from '@mui/icons-material/CreditCard'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 import TuneIcon from '@mui/icons-material/Tune'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 
 const COLLAPSED_KEY = 'sidebar-collapsed'
 
@@ -73,6 +76,13 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   // paymentMethods is wired up — add cases here as other panels need it.
   const managePanel = searchParams.get('manage')
 
+  // The top bar names the view you're looking at (issue #60). BudgetView is a
+  // *child* of this component, so the name can't be passed up — but both read
+  // the same `?view=` param, which is already the convention here.
+  const tView = useTranslations('budget.view')
+  const { view: activeView } = parseViewParams(searchParams.get('view'), searchParams.get('planKind'))
+  const viewTitle = tView(activeView)
+
   useEffect(() => {
     if (managePanel === 'paymentMethods') setPaymentMethodsOpen(true)
   }, [managePanel])
@@ -104,7 +114,12 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   // Always the true active period, never a browsed-to archived one — see
   // useResolvedPeriod's doc comment for why Manage panels don't follow
   // BudgetView's `?period=` override.
-  const { period: activePeriod } = useResolvedPeriod(budgetId, undefined, !!data)
+  // `periods` is already fetched here to resolve the active one — the switcher
+  // reads that same copy rather than issuing its own ListBudgetPeriods.
+  const { period: activePeriod, periods } = useResolvedPeriod(budgetId, undefined, !!data)
+  // Which period the *content* is showing, which may be an archived one the
+  // user browsed to; `activePeriod` above is deliberately always the live one.
+  const shownPeriodId = searchParams.get('period') ?? activePeriod?.id
 
   const budgetName = data?.profile?.name ?? '…'
   // The budget's country is propagated from its owner at creation. It gates
@@ -124,10 +139,6 @@ export function BudgetSidebar({ budgetId, children }: Props) {
     } finally {
       router.push('/login')
     }
-  }
-
-  function goToBudgets() {
-    router.push('/budgets')
   }
 
   function openMobilePanel(openFn: () => void) {
@@ -158,6 +169,15 @@ export function BudgetSidebar({ budgetId, children }: Props) {
       action: () => router.push({ pathname: '/settings', query: { from: budgetId } }),
       disabled: false,
     },
+    // A shortcut to what the Settings page's own Help panel holds, not a
+    // second copy of it — issue #60 asks for Help to be reachable from the
+    // nav directly.
+    {
+      label: t('help'),
+      icon: <HelpOutlineIcon />,
+      action: () => router.push({ pathname: '/settings', query: { from: budgetId, section: 'help' } }),
+      disabled: false,
+    },
   ]
 
   const navItems = [...managementItems, ...appItems]
@@ -171,9 +191,16 @@ export function BudgetSidebar({ budgetId, children }: Props) {
           budgetName={budgetName}
           iconSrc={iconSrc}
           navItems={navItems}
-          onBackToBudgets={goToBudgets}
           onLogout={handleLogout}
           notificationBell={<NotificationBell budgetId={budgetId} />}
+          periodSwitcher={
+            <PeriodSwitcher
+              budgetId={budgetId}
+              periods={periods}
+              currentPeriodId={shownPeriodId}
+              collapsed={collapsed}
+            />
+          }
         />
       )}
 
@@ -181,8 +208,7 @@ export function BudgetSidebar({ budgetId, children }: Props) {
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {isMobile && (
           <MobileTopBar
-            iconSrc={iconSrc}
-            onBackToBudgets={goToBudgets}
+            title={viewTitle}
             onOpenManage={() => setMobileManageOpen(true)}
             notificationBell={<NotificationBell budgetId={budgetId} />}
           />
@@ -202,6 +228,14 @@ export function BudgetSidebar({ budgetId, children }: Props) {
         appItems={appItems}
         onOpenPanel={openMobilePanel}
         onLogout={handleLogout}
+        periodSwitcher={
+          <PeriodSwitcher
+            budgetId={budgetId}
+            periods={periods}
+            currentPeriodId={shownPeriodId}
+            onNavigate={() => setMobileManageOpen(false)}
+          />
+        }
       />
 
       <ManagementDrawers

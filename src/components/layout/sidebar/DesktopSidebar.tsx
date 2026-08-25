@@ -15,7 +15,6 @@ import Typography from '@mui/material/Typography'
 import Tooltip from '@mui/material/Tooltip'
 import IconButton from '@mui/material/IconButton'
 import LogoutIcon from '@mui/icons-material/Logout'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { AppVersionBadge } from '@/components/ui/AppVersionBadge'
@@ -31,12 +30,12 @@ interface Props {
   budgetName: string
   iconSrc: string
   navItems: NavItem[]
-  onBackToBudgets: () => void
   onLogout: () => void
   notificationBell?: React.ReactNode
+  periodSwitcher?: React.ReactNode
 }
 
-export function DesktopSidebar({ collapsed, onToggleCollapsed, budgetName, iconSrc, navItems, onBackToBudgets, onLogout, notificationBell }: Props) {
+export function DesktopSidebar({ collapsed, onToggleCollapsed, budgetName, iconSrc, navItems, onLogout, notificationBell, periodSwitcher }: Props) {
   const t = useTranslations('budget.sidebar')
   const theme = useTheme()
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH
@@ -100,21 +99,10 @@ export function DesktopSidebar({ collapsed, onToggleCollapsed, budgetName, iconS
         <Divider />
 
         {/* Back to budgets */}
-        <List disablePadding>
-          <ListItem disablePadding>
-            <Tooltip title={collapsed ? t('allBudgets') : ''} placement="right">
-              <ListItemButton
-                onClick={onBackToBudgets}
-                sx={{ justifyContent: collapsed ? 'center' : 'flex-start', px: collapsed ? 0 : 2 }}
-              >
-                <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
-                  <ArrowBackIcon />
-                </ListItemIcon>
-                {!collapsed && <ListItemText primary={t('allBudgets')} />}
-              </ListItemButton>
-            </Tooltip>
-          </ListItem>
-        </List>
+        {/* Which period is on screen, and a way to change it. Replaces the
+            back-to-all-budgets link, which pointed at a list that is no
+            longer above this screen (issue #60). */}
+        {periodSwitcher}
 
         <Divider />
 

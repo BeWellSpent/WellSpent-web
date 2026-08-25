@@ -99,16 +99,12 @@
   },
   "budget": {
     "list": {
-      "title": "Your Budgets",
-      "newBudget": "New Budget",
-      "createBudget": "Create Budget",
-      "empty": "No budgets yet. Create your first one to get started.",
-      "monthly": "Monthly",
-      "retry": "Retry",
+      "aboutSite": "About WellSpent",
       "active": "Active",
+      "allPeriods": "All periods",
       "archived": "Archived",
-      "yearPicker": "Year",
-      "noPeriods": "No periods yet.",
+      "backToBudget": "Back to budget",
+      "createBudget": "Create Budget",
       "deleteDialog": {
         "title": "Delete budget?",
         "body": "{name} and all its people, income sources, and transactions will be permanently deleted. This cannot be undone.",
@@ -116,17 +112,23 @@
         "delete": "Delete",
         "deleting": "Deleting…"
       },
-      "aboutSite": "About WellSpent"
+      "empty": "No budgets yet. Create your first one to get started.",
+      "noPeriods": "No periods yet.",
+      "retry": "Retry",
+      "yearPicker": "Year"
     },
     "view": {
+      "archivedPeriodNotice": "You're viewing a past period. Adding, deleting, marking paid, and excluding transactions are disabled — you can still change a transaction's category.",
+      "expenseOverview": "Overview",
+      "expensePlan": "Expense Plan",
       "failedToLoad": "Failed to load budget.",
       "noActivePeriod": "No active period found.",
-      "expensePlan": "Expense Plan",
-      "expenseOverview": "Overview",
-      "transactions": "Transactions",
-      "toReview": "To Review",
+      "plan": "Plan",
+      "planKindLabel": "Show planned or actual amounts",
       "reports": "Reports",
-      "archivedPeriodNotice": "You're viewing a past period. Adding, deleting, marking paid, and excluding transactions are disabled — you can still change a transaction's category."
+      "review": "Review",
+      "toReview": "To Review",
+      "transactions": "Transactions"
     },
     "overview": {
       "title": "Expense Overview",
@@ -152,23 +154,26 @@
       "empty": "No transactions to review."
     },
     "sidebar": {
-      "allBudgets": "All Budgets",
-      "income": "Income",
-      "savings": "Savings",
-      "paymentMethods": "Payment Methods",
-      "categories": "Categories",
-      "people": "People",
-      "invitations": "Invitations",
-      "settings": "Settings",
-      "logout": "Logout",
-      "theme": "Theme",
-      "expand": "Expand sidebar",
-      "collapse": "Collapse sidebar",
-      "manage": "Manage",
       "alerts": "Alert Settings",
-      "website": "WellSpent website",
+      "archived": "Archived",
       "bankConnections": "Bank connections",
-      "preferences": "Preferences"
+      "categories": "Categories",
+      "collapse": "Collapse sidebar",
+      "expand": "Expand sidebar",
+      "help": "Help",
+      "income": "Income",
+      "invitations": "Invitations",
+      "logout": "Logout",
+      "manage": "Manage",
+      "paymentMethods": "Payment Methods",
+      "people": "People",
+      "period": "Period",
+      "preferences": "Preferences",
+      "savings": "Savings",
+      "settings": "Settings",
+      "theme": "Theme",
+      "viewAllPeriods": "View all periods",
+      "website": "WellSpent website"
     },
     "income": {
       "title": "Income",

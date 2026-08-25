@@ -18,6 +18,8 @@ import { ExpensesPanel } from './ExpensesPanel'
 import { ExpenseOverviewPanel } from './ExpenseOverviewPanel'
 import { TransactionReviewPanel, transactionReviewCount } from './TransactionReviewPanel'
 import { ReportsPlaceholder } from './ReportsPlaceholder'
+import { PlanKindToggle } from './budgetView/PlanKindToggle'
+import { parseViewParams, type ActiveView, type PlanKind } from './budgetView/viewParams'
 import { PaymentMethodRequiredDialog } from './modals/PaymentMethodRequiredDialog'
 import { needsPaymentMethodSetup } from './transactionsPanel/helpers'
 import Box from '@mui/material/Box'
@@ -33,12 +35,9 @@ import BottomNavigationAction from '@mui/material/BottomNavigationAction'
 import Badge from '@mui/material/Badge'
 import AddIcon from '@mui/icons-material/Add'
 import AssignmentIcon from '@mui/icons-material/Assignment'
-import BarChartIcon from '@mui/icons-material/BarChart'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 import RuleIcon from '@mui/icons-material/Rule'
 import InsightsIcon from '@mui/icons-material/Insights'
-
-type ActiveView = 'expenses' | 'overview' | 'transactions' | 'review' | 'reports'
 
 interface Props {
   budgetId: string
@@ -53,16 +52,30 @@ export function BudgetView({ budgetId }: Props) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const router = useRouter()
-  // Which top-level section (Expense Plan vs Transactions) is stored in the
-  // URL, not component state, so a page reload lands back where you were.
-  const rawView = searchParams.get('view')
-  const activeView: ActiveView = rawView === 'transactions' ? 'transactions' : rawView === 'review' ? 'review' : rawView === 'overview' ? 'overview' : rawView === 'reports' ? 'reports' : 'expenses'
+  // Section and Plan sub-view both live in the URL, not component state, so a
+  // reload lands back where you were. See viewParams for the legacy `?view=`
+  // values that still have to resolve.
+  const { view: activeView, planKind } = parseViewParams(
+    searchParams.get('view'),
+    searchParams.get('planKind'),
+  )
   const [addTransactionOpen, setAddTransactionOpen] = useState(false)
   const [paymentMethodRequiredOpen, setPaymentMethodRequiredOpen] = useState(false)
 
   function setActiveView(view: ActiveView) {
     const params = new URLSearchParams(searchParams.toString())
     params.set('view', view)
+    // Drop the legacy alias so `?view=expenses&view=plan` can't coexist and
+    // have the alias win on the next read.
+    params.delete('planKind')
+    if (view === 'plan') params.set('planKind', planKind)
+    router.replace({ pathname, query: Object.fromEntries(params) }, { scroll: false })
+  }
+
+  function setPlanKind(kind: PlanKind) {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('view', 'plan')
+    params.set('planKind', kind)
     router.replace({ pathname, query: Object.fromEntries(params) }, { scroll: false })
   }
 
@@ -149,8 +162,7 @@ export function BudgetView({ budgetId }: Props) {
           onChange={(_, v: ActiveView) => setActiveView(v)}
           sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}
         >
-          <Tab value="expenses" label={t('expensePlan')} icon={<AssignmentIcon />} iconPosition="start" />
-          <Tab value="overview" label={t('expenseOverview')} icon={<BarChartIcon />} iconPosition="start" />
+          <Tab value="plan" label={t('plan')} icon={<AssignmentIcon />} iconPosition="start" />
           <Tab value="transactions" label={t('transactions')} icon={<ReceiptLongIcon />} iconPosition="start" />
           <Tab
             value="review"
@@ -168,10 +180,15 @@ export function BudgetView({ budgetId }: Props) {
 
       {/* Active panel */}
       <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
-        {activeView === 'expenses' ? (
-          <ExpensesPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} canEdit={canEdit} />
-        ) : activeView === 'overview' ? (
-          <ExpenseOverviewPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} />
+        {activeView === 'plan' ? (
+          <>
+            <PlanKindToggle value={planKind} onChange={setPlanKind} />
+            {planKind === 'plan' ? (
+              <ExpensesPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} canEdit={canEdit} />
+            ) : (
+              <ExpenseOverviewPanel budgetProfileId={budgetId} budgetPeriodId={activePeriod?.id} />
+            )}
+          </>
         ) : activeView === 'review' ? (
           <TransactionReviewPanel
             budgetProfileId={budgetId}
@@ -230,14 +247,9 @@ export function BudgetView({ budgetId }: Props) {
             onChange={(_, v: ActiveView) => setActiveView(v)}
           >
             <BottomNavigationAction
-              value="expenses"
-              label={t('expensePlan')}
+              value="plan"
+              label={t('plan')}
               icon={<AssignmentIcon />}
-            />
-            <BottomNavigationAction
-              value="overview"
-              label={t('expenseOverview')}
-              icon={<BarChartIcon />}
             />
             <BottomNavigationAction
               value="transactions"

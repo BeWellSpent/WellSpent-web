@@ -1,0 +1,26 @@
+{
+  "component": "web",
+  "version": "1.29.0",
+  "items": [
+    {
+      "changeType": "changed",
+      "summaryEn": "Signing in now takes you straight to your budget instead of a list with one entry in it.",
+      "summaryEs": "Al iniciar sesión ahora vas directamente a tu presupuesto en lugar de una lista con una sola entrada."
+    },
+    {
+      "changeType": "changed",
+      "summaryEn": "Expense Plan and Expense Overview are now one tab with a toggle, matching the iOS app.",
+      "summaryEs": "Plan de gastos y Resumen de gastos ahora son una sola pestaña con un selector, igual que en la app de iOS."
+    },
+    {
+      "changeType": "added",
+      "summaryEn": "Switch between this year's periods straight from the navigation, or open the full history from \"View all periods\".",
+      "summaryEs": "Cambia entre los períodos de este año desde la navegación, o abre el historial completo con «Ver todos los períodos»."
+    },
+    {
+      "changeType": "added",
+      "summaryEn": "Help is reachable from the navigation, and Reports has its own tab.",
+      "summaryEs": "La Ayuda es accesible desde la navegación, y los Informes tienen su propia pestaña."
+    }
+  ]
+}
