@@ -25,19 +25,22 @@ interface Props {
   appItems: NavItem[]
   onOpenPanel: (action: () => void) => void
   onLogout: () => void
+  periodSwitcher?: React.ReactNode
 }
 
-export function MobileManageDrawer({ open, onClose, budgetName, iconSrc, managementItems, appItems, onOpenPanel, onLogout }: Props) {
+export function MobileManageDrawer({ open, onClose, budgetName, iconSrc, managementItems, appItems, onOpenPanel, onLogout, periodSwitcher }: Props) {
   const t = useTranslations('budget.sidebar')
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose} sx={{ display: { md: 'none' } }}>
+    <Drawer anchor="left" open={open} onClose={onClose} sx={{ display: { md: 'none' } }}>
       <Box sx={{ width: 260, pt: 1 }}>
         <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
           <BrandHomeLink iconSrc={iconSrc} size={24} />
           <Typography variant="h6" fontWeight={700} noWrap>{budgetName}</Typography>
         </Box>
         <Divider />
+        {periodSwitcher}
+        {periodSwitcher && <Divider />}
         <List>
           {managementItems.map((item) => (
             <ListItem key={item.label} disablePadding>

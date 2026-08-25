@@ -99,16 +99,12 @@
   },
   "budget": {
     "list": {
-      "title": "Tus Presupuestos",
-      "newBudget": "Nuevo Presupuesto",
-      "createBudget": "Crear Presupuesto",
-      "empty": "No tienes presupuestos aún. Crea el primero para comenzar.",
-      "monthly": "Mensual",
-      "retry": "Reintentar",
+      "aboutSite": "Acerca de WellSpent",
       "active": "Activo",
+      "allPeriods": "Todos los períodos",
       "archived": "Archivado",
-      "yearPicker": "Año",
-      "noPeriods": "Aún no hay períodos.",
+      "backToBudget": "Volver al presupuesto",
+      "createBudget": "Crear Presupuesto",
       "deleteDialog": {
         "title": "¿Eliminar presupuesto?",
         "body": "{name} y todas sus personas, fuentes de ingresos y transacciones serán eliminados permanentemente. Esta acción no se puede deshacer.",
@@ -116,17 +112,23 @@
         "delete": "Eliminar",
         "deleting": "Eliminando…"
       },
-      "aboutSite": "Acerca de WellSpent"
+      "empty": "No tienes presupuestos aún. Crea el primero para comenzar.",
+      "noPeriods": "Aún no hay períodos.",
+      "retry": "Reintentar",
+      "yearPicker": "Año"
     },
     "view": {
+      "archivedPeriodNotice": "Estás viendo un período pasado. Agregar, eliminar, marcar como pagado y excluir transacciones están deshabilitados — aún puedes cambiar la categoría de una transacción.",
+      "expenseOverview": "Resumen",
+      "expensePlan": "Plan de Gastos",
       "failedToLoad": "No se pudo cargar el presupuesto.",
       "noActivePeriod": "No se encontró un período activo.",
-      "expensePlan": "Plan de Gastos",
-      "expenseOverview": "Resumen",
-      "transactions": "Transacciones",
-      "toReview": "Por Revisar",
+      "plan": "Plan",
+      "planKindLabel": "Mostrar montos planeados o reales",
       "reports": "Informes",
-      "archivedPeriodNotice": "Estás viendo un período pasado. Agregar, eliminar, marcar como pagado y excluir transacciones están deshabilitados — aún puedes cambiar la categoría de una transacción."
+      "review": "Revisión",
+      "toReview": "Por Revisar",
+      "transactions": "Transacciones"
     },
     "overview": {
       "title": "Resumen de Gastos",
@@ -152,23 +154,26 @@
       "empty": "No hay transacciones por revisar."
     },
     "sidebar": {
-      "allBudgets": "Todos los Presupuestos",
-      "income": "Ingresos",
-      "savings": "Ahorros",
-      "paymentMethods": "Métodos de Pago",
-      "categories": "Categorías",
-      "people": "Personas",
-      "invitations": "Invitaciones",
-      "settings": "Configuración",
-      "logout": "Cerrar sesión",
-      "theme": "Tema",
-      "expand": "Expandir barra lateral",
-      "collapse": "Contraer barra lateral",
-      "manage": "Gestionar",
       "alerts": "Configuración de alertas",
-      "website": "Sitio web de WellSpent",
+      "archived": "Archivado",
       "bankConnections": "Conexiones bancarias",
-      "preferences": "Preferencias"
+      "categories": "Categorías",
+      "collapse": "Contraer barra lateral",
+      "expand": "Expandir barra lateral",
+      "help": "Ayuda",
+      "income": "Ingresos",
+      "invitations": "Invitaciones",
+      "logout": "Cerrar sesión",
+      "manage": "Gestionar",
+      "paymentMethods": "Métodos de Pago",
+      "people": "Personas",
+      "period": "Período",
+      "preferences": "Preferencias",
+      "savings": "Ahorros",
+      "settings": "Configuración",
+      "theme": "Tema",
+      "viewAllPeriods": "Ver todos los períodos",
+      "website": "Sitio web de WellSpent"
     },
     "income": {
       "title": "Ingresos",
