@@ -1,10 +1,9 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { ChangelogService } from '@/gen/wellspent/v1/changelog_connect'
-import { ChangelogComponent } from '@/gen/wellspent/v1/common_pb'
-import type { ChangelogRelease } from '@/gen/wellspent/v1/changelog_pb'
-import { useClient } from '@/hooks/useClient'
+import type { ChangelogComponent, ChangelogRelease } from '@/lib/api/restModels'
+import { unwrap } from '@/lib/api/rest'
+import { useRestClient } from '@/hooks/useRestClient'
 
 /** The web bundle's own version, as package.json spells it. */
 export const WEB_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '0.0.0'
@@ -31,11 +30,16 @@ export function useChangelog(components: ChangelogComponent[], enabled = true): 
   serverVersion: string
   isLoading: boolean
 } {
-  const client = useClient(ChangelogService)
+  const client = useRestClient()
 
   const { data, isLoading } = useQuery({
     queryKey: changelogQueryKey(components),
-    queryFn: () => client.listChangelog({ components }),
+    queryFn: async () =>
+      unwrap(
+        await client.GET('/rest/v1/changelog', {
+          params: { query: { component: components } },
+        }),
+      ),
     enabled,
     // Release notes change when someone publishes, which is rare and never
     // urgent. Refetching on every window focus would be pure noise.

@@ -25,13 +25,18 @@ jest.mock('next-intl', () => ({
 }))
 
 let mockRegister: jest.Mock
-let mockListCountries: jest.Mock
 jest.mock('@connectrpc/connect', () => ({
   createClient: () => ({
     register: (...args: unknown[]) => mockRegister?.(...args),
-    listCountries: (...args: unknown[]) => mockListCountries?.(...args),
     updateMe: jest.fn().mockResolvedValue({}),
   }),
+}))
+// The country picker moved to the REST transport. Mocked at the hook rather
+// than at fetch: this suite is about the registration flow, and stubbing the
+// HTTP layer would only re-test openapi-fetch.
+let mockCountries: { code: string; name: string }[]
+jest.mock('@/hooks/useCountries', () => ({
+  useCountries: () => ({ countries: mockCountries, isLoading: false }),
 }))
 jest.mock('@/lib/api/client', () => ({
   publicTransport: {},
@@ -45,7 +50,7 @@ jest.mock('@/gen/wellspent/v1/user_connect', () => ({ UserService: {} }))
 beforeEach(() => {
   jest.clearAllMocks()
   mockRegister = jest.fn()
-  mockListCountries = jest.fn().mockResolvedValue({ countries: [] })
+  mockCountries = [{ code: 'US', name: 'United States' }]
   global.fetch = jest.fn().mockResolvedValue({ ok: true })
   localStorage.clear()
 })

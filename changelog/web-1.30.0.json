@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "1.30.0",
+  "items": [
+    {
+      "changeType": "changed",
+      "summaryEn": "The status banner, the country picker and the release notes now load from cache on repeat visits, so pages settle faster.",
+      "summaryEs": "El aviso de estado, el selector de país y las notas de la versión ahora se cargan desde la caché en visitas repetidas, por lo que las páginas se estabilizan más rápido."
+    }
+  ]
+}

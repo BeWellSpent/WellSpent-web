@@ -1,8 +1,7 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
-import type { ChangelogRelease } from '@/gen/wellspent/v1/changelog_pb'
-import { ChangeType } from '@/gen/wellspent/v1/common_pb'
+import type { ChangeType, ChangelogRelease } from '@/lib/api/restModels'
 import { localizedSummary } from './announce'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
@@ -14,16 +13,19 @@ interface Props {
 }
 
 /** Colour per change type. Semantic, and independent of the theme accent. */
-const CHIP_COLOR: Record<number, 'success' | 'warning' | 'info' | 'default'> = {
-  [ChangeType.ADDED]: 'success',
-  [ChangeType.FIXED]: 'warning',
-  [ChangeType.CHANGED]: 'info',
+const CHIP_COLOR: Record<ChangeType, 'success' | 'warning' | 'info'> = {
+  added: 'success',
+  fixed: 'warning',
+  changed: 'info',
 }
 
-const CHIP_KEY: Record<number, string> = {
-  [ChangeType.ADDED]: 'added',
-  [ChangeType.FIXED]: 'fixed',
-  [ChangeType.CHANGED]: 'changed',
+// The contract's change-type values are already the translation keys, so this
+// is identity — kept as an explicit map so a fourth type added to the contract
+// is a type error here rather than a silently missing chip label.
+const CHIP_KEY: Record<ChangeType, string> = {
+  added: 'added',
+  fixed: 'fixed',
+  changed: 'changed',
 }
 
 /**
@@ -51,7 +53,7 @@ export function ReleaseNotes({ releases }: Props) {
             <Typography variant="subtitle2" fontWeight={700}>{release.version}</Typography>
             {release.releasedAt && (
               <Typography variant="caption" color="text.secondary">
-                {new Date(Number(release.releasedAt.seconds) * 1000).toLocaleDateString(locale, {
+                {new Date(release.releasedAt).toLocaleDateString(locale, {
                   year: 'numeric', month: 'short', day: 'numeric',
                 })}
               </Typography>

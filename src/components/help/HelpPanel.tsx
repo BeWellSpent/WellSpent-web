@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { ChangelogComponent } from '@/gen/wellspent/v1/common_pb'
 import { ReleaseNotes } from '@/components/changelog/ReleaseNotes'
 import { releasesFor, useChangelog } from '@/components/changelog/useChangelog'
 import Accordion from '@mui/material/Accordion'
@@ -17,9 +16,9 @@ import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 const COMPONENTS = [
-  { value: ChangelogComponent.WEB, key: 'web' },
-  { value: ChangelogComponent.IOS, key: 'ios' },
-  { value: ChangelogComponent.SERVER, key: 'server' },
+  { value: 'web', key: 'web' },
+  { value: 'ios', key: 'ios' },
+  { value: 'server', key: 'server' },
 ] as const
 
 /**

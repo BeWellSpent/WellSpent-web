@@ -1,6 +1,6 @@
 {
   "name": "wellspent-web",
-  "version": "1.29.0",
+  "version": "1.30.0",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -H 0.0.0.0",
@@ -8,9 +8,11 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint src/",
-    "generate": "buf generate buf.build/bewellspent/wellspent",
+    "generate": "npm run generate:proto && npm run generate:rest",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "generate:proto": "buf generate buf.build/bewellspent/wellspent",
+    "generate:rest": "openapi-typescript https://raw.githubusercontent.com/BeWellSpent/WellSpent-proto/main/openapi/v1/wellspent.yaml -o src/gen/rest/schema.d.ts"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^1.10.0",
@@ -26,6 +28,7 @@
     "@vercel/analytics": "^2.0.1",
     "next": "^16.2.9",
     "next-intl": "^4.13.1",
+    "openapi-fetch": "^0.13.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-plaid-link": "^4.1.1",
@@ -47,6 +50,7 @@
     "eslint-config-next": "^16.2.9",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
+    "openapi-typescript": "^7.6.1",
     "typescript": "^5.6.2"
   }
 }

@@ -1,11 +1,10 @@
-import type { StatusBanner } from '@/gen/wellspent/v1/status_pb'
-import { StatusBannerSeverity } from '@/gen/wellspent/v1/common_pb'
+import type { StatusBanner, StatusBannerSeverity } from '@/lib/api/restModels'
 import { bannerMessage, bannerTone, isDismissible } from '../severity'
 
 function banner(overrides: Partial<StatusBanner> = {}): StatusBanner {
   return {
     id: 'b1',
-    severity: StatusBannerSeverity.WARNING,
+    severity: 'warning',
     messageEn: 'Bank syncing is delayed.',
     messageEs: 'La sincronización bancaria está retrasada.',
     ...overrides,
@@ -14,29 +13,31 @@ function banner(overrides: Partial<StatusBanner> = {}): StatusBanner {
 
 describe('bannerTone', () => {
   it('maps the three severities to green, yellow and red', () => {
-    expect(bannerTone(StatusBannerSeverity.INFO)).toBe('success')
-    expect(bannerTone(StatusBannerSeverity.WARNING)).toBe('warning')
-    expect(bannerTone(StatusBannerSeverity.CRITICAL)).toBe('error')
+    expect(bannerTone('info')).toBe('success')
+    expect(bannerTone('warning')).toBe('warning')
+    expect(bannerTone('critical')).toBe('error')
   })
 
   it('falls back to warning for a severity this build does not know', () => {
     // Understating an unknown severity is the worse failure of the two, so an
-    // unrecognised value must not render as the reassuring green one.
-    expect(bannerTone(StatusBannerSeverity.UNSPECIFIED)).toBe('warning')
-    expect(bannerTone(99 as StatusBannerSeverity)).toBe('warning')
+    // unrecognised value must not render as the reassuring green one. The cast
+    // stands in for a severity added to the contract after this build shipped —
+    // the string union makes that unrepresentable in typed code, which is an
+    // improvement over the proto enum, but the runtime guard still has to hold.
+    expect(bannerTone('catastrophic' as StatusBannerSeverity)).toBe('warning')
   })
 })
 
 describe('isDismissible', () => {
   it('lets the reader close informational and warning banners', () => {
-    expect(isDismissible(StatusBannerSeverity.INFO)).toBe(true)
-    expect(isDismissible(StatusBannerSeverity.WARNING)).toBe(true)
+    expect(isDismissible('info')).toBe(true)
+    expect(isDismissible('warning')).toBe(true)
   })
 
   it('pins a critical banner in place', () => {
     // A red banner is up because something is badly broken. One that can be
     // swiped away isn't doing its job.
-    expect(isDismissible(StatusBannerSeverity.CRITICAL)).toBe(false)
+    expect(isDismissible('critical')).toBe(false)
   })
 })
 

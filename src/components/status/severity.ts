@@ -1,5 +1,4 @@
-import type { StatusBanner } from '@/gen/wellspent/v1/status_pb'
-import { StatusBannerSeverity } from '@/gen/wellspent/v1/common_pb'
+import type { StatusBanner, StatusBannerSeverity } from '@/lib/api/restModels'
 
 /** MUI severity keys, so the banner inherits the theme's own palette. */
 export type BannerTone = 'success' | 'warning' | 'error'
@@ -13,9 +12,9 @@ export type BannerTone = 'success' | 'warning' | 'error'
  */
 export function bannerTone(severity: StatusBannerSeverity): BannerTone {
   switch (severity) {
-    case StatusBannerSeverity.INFO:
+    case 'info':
       return 'success'
-    case StatusBannerSeverity.CRITICAL:
+    case 'critical':
       return 'error'
     default:
       return 'warning'
@@ -30,7 +29,7 @@ export function bannerTone(severity: StatusBannerSeverity): BannerTone {
  * forcing them to stay would just be noise.
  */
 export function isDismissible(severity: StatusBannerSeverity): boolean {
-  return severity !== StatusBannerSeverity.CRITICAL
+  return severity !== 'critical'
 }
 
 /**

@@ -1,10 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { createClient } from '@connectrpc/connect'
-import { publicTransport } from '@/lib/api/client'
-import { StatusService } from '@/gen/wellspent/v1/status_connect'
-import type { StatusBanner } from '@/gen/wellspent/v1/status_pb'
+import { publicRestClient, unwrap } from '@/lib/api/rest'
+import type { StatusBanner } from '@/lib/api/restModels'
 import { browserStorage, isDismissed, markDismissed } from './dismissal'
 
 /**
@@ -14,14 +12,17 @@ import { browserStorage, isDismissed, markDismissed } from './dismissal'
  */
 const POLL_INTERVAL_MS = 5 * 60 * 1000
 
-const statusClient = createClient(StatusService, publicTransport)
-
 /**
  * Fetches the active status banner and tracks whether the reader has closed it.
  *
  * Deliberately not TanStack Query: `QueryClientProvider` lives inside
  * `AuthContext`, which doesn't exist on the landing or login pages — and those
  * are half the point of a banner that has to work during an outage.
+ *
+ * Served over REST rather than Connect so the response is genuinely cacheable.
+ * It carries `public, max-age=30` and an ETag, so the poll below mostly costs a
+ * conditional request answered with a 304 — including the "nothing is live"
+ * case, which is almost always the answer.
  */
 export function useStatusBanner() {
   const [banner, setBanner] = useState<StatusBanner | null>(null)
@@ -29,7 +30,7 @@ export function useStatusBanner() {
 
   const load = useCallback(async () => {
     try {
-      const res = await statusClient.getActiveStatusBanner({})
+      const res = unwrap(await publicRestClient.GET('/rest/v1/status/banner'))
       setBanner(res.banner ?? null)
     } catch {
       // Swallowed on purpose. This is decoration on top of every page,
