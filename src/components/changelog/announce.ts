@@ -1,4 +1,4 @@
-import type { ChangelogRelease } from '@/gen/wellspent/v1/changelog_pb'
+import type { ChangelogRelease } from '@/lib/api/restModels'
 
 /**
  * Which releases to put in front of the reader, for one component.

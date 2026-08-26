@@ -25,6 +25,7 @@ import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import CircularProgress from '@mui/material/CircularProgress'
 import InputAdornment from '@mui/material/InputAdornment'
+import { useCountries } from '@/hooks/useCountries'
 
 const authClient = createClient(AuthService, publicTransport)
 const userClient = createClient(UserService, publicTransport)
@@ -80,20 +81,9 @@ export function RegisterForm() {
   const [filingStatus, setFilingStatus] = useState<FilingStatus>(FilingStatus.UNSPECIFIED)
   const [language, setLanguage] = useState(locale)
   const [currency, setCurrency] = useState('USD')
-  const [countries, setCountries] = useState<{ code: string; name: string }[]>([])
-  const [countriesLoading, setCountriesLoading] = useState(true)
+  const { countries, isLoading: countriesLoading } = useCountries()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    userClient.listCountries({}).then((res) => {
-      setCountries(res.countries.map((c) => ({ code: c.code, name: c.name })))
-    }).catch((err) => {
-      logger.error('register.listCountries.failed', { error: err instanceof Error ? err.message : String(err) })
-    }).finally(() => {
-      setCountriesLoading(false)
-    })
-  }, [])
 
   async function handleGoogleSignIn() {
     const state = crypto.randomUUID()

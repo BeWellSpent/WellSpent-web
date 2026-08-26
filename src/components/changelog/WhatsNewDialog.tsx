@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { ChangelogComponent } from '@/gen/wellspent/v1/common_pb'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { browserStorage } from '@/components/status/dismissal'
 import { releasesToAnnounce } from './announce'
@@ -35,8 +34,8 @@ export function WhatsNewDialog() {
   const [dismissed, setDismissed] = useState(false)
 
   const { releases, serverVersion, isLoading } = useChangelog([
-    ChangelogComponent.WEB,
-    ChangelogComponent.SERVER,
+    WEB_COMPONENT,
+    SERVER_COMPONENT,
   ])
 
   const storage = useMemo(() => browserStorage(), [])
@@ -49,10 +48,10 @@ export function WhatsNewDialog() {
   }))
 
   const webReleases = releasesToAnnounce(
-    releasesFor(releases, ChangelogComponent.WEB), WEB_VERSION, seen.web,
+    releasesFor(releases, WEB_COMPONENT), WEB_VERSION, seen.web,
   )
   const serverReleases = releasesToAnnounce(
-    releasesFor(releases, ChangelogComponent.SERVER), serverVersion, seen.server,
+    releasesFor(releases, SERVER_COMPONENT), serverVersion, seen.server,
   )
 
   // Record what this reader is on as soon as we know it, whether or not

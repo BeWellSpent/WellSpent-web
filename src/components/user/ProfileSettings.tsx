@@ -30,6 +30,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium'
 import { PlaidSection } from './PlaidSection'
 import { AccountManagement } from './AccountManagement'
+import { useCountries } from '@/hooks/useCountries'
 
 const US_STATES = [
   ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
@@ -97,8 +98,7 @@ export function ProfileSettings() {
   const [taxFrequency, setTaxFrequency] = useState<TaxPaymentFrequency>(TaxPaymentFrequency.UNSPECIFIED)
   const [language, setLanguage] = useState('en')
   const [currency, setCurrency] = useState('USD')
-  const [countries, setCountries] = useState<{ code: string; name: string }[]>([])
-  const [countriesLoading, setCountriesLoading] = useState(true)
+  const { countries, isLoading: countriesLoading } = useCountries()
 
   useEffect(() => {
     if (user) {
@@ -112,17 +112,6 @@ export function ProfileSettings() {
       setCurrency(user.currency || 'USD')
     }
   }, [user])
-
-  useEffect(() => {
-    client.listCountries({}).then((res) => {
-      setCountries(res.countries.map((c) => ({ code: c.code, name: c.name })))
-    }).catch((err) => {
-      logger.error('settings.listCountries.failed', { error: err instanceof Error ? err.message : String(err) })
-    }).finally(() => {
-      setCountriesLoading(false)
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: () =>
