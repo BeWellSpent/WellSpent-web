@@ -8,6 +8,8 @@ import { InviteService } from '@/gen/wellspent/v1/invite_connect'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { InviteStatus } from '@/gen/wellspent/v1/invite_pb'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
+import { useRoleLabel } from './peoplePanel/useRoleLabel'
+import { INVITABLE_ROLES } from './modals/addPeople/pendingPerson'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -37,10 +39,6 @@ interface Props {
   canManageUsers?: boolean
 }
 
-const ROLE_OPTIONS = [
-  { value: BudgetRole.COLLABORATOR, labelKey: 'budget.invites.roles.collaborator' },
-  { value: BudgetRole.VIEWER, labelKey: 'budget.invites.roles.viewer' },
-]
 
 function statusColor(status: string): 'default' | 'warning' | 'success' | 'error' {
   switch (status) {
@@ -54,6 +52,7 @@ function statusColor(status: string): 'default' | 'warning' | 'success' | 'error
 export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
   const t = useTranslations()
   const tInvites = useTranslations('budget.invites')
+  const roleLabel = useRoleLabel()
   const { showError, showSuccess } = useSnackbar()
   const inviteClient = useClient(InviteService)
   const budgetClient = useClient(BudgetService)
@@ -170,14 +169,6 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
     }
   }
 
-  function roleLabel(r: BudgetRole): string {
-    switch (r) {
-      case BudgetRole.ADMIN: return tInvites('roles.admin')
-      case BudgetRole.COLLABORATOR: return tInvites('roles.collaborator')
-      case BudgetRole.VIEWER: return tInvites('roles.viewer')
-      default: return tInvites('roles.unspecified')
-    }
-  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -204,9 +195,9 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
                   value={role}
                   onChange={(e) => setRole(e.target.value as BudgetRole)}
                 >
-                  {ROLE_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {t(opt.labelKey)}
+                  {INVITABLE_ROLES.map((r) => (
+                    <MenuItem key={r} value={r}>
+                      {roleLabel(r)}
                     </MenuItem>
                   ))}
                 </Select>

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { PaymentType } from '@/gen/wellspent/v1/common_pb'
+import { useTranslations } from 'next-intl'
+import { PAYMENT_TYPE_KEYS } from '@/components/budget/paymentMethodsPanel/constants'
 import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { ColorPicker } from '@/components/ui/ColorPicker'
@@ -23,28 +25,6 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 
-const PAYMENT_TYPE_LABELS: Record<number, string> = {
-  [PaymentType.CASH]: 'Cash',
-  [PaymentType.CREDIT]: 'Credit Card',
-  [PaymentType.DEBIT]: 'Debit Card',
-  [PaymentType.DIGITAL_WALLET]: 'Digital Wallet',
-  [PaymentType.BANK_TRANSFER]: 'Bank Transfer',
-  [PaymentType.CRYPTO]: 'Crypto',
-  [PaymentType.INVESTMENT]: 'Investment',
-  [PaymentType.OTHER]: 'Other',
-}
-
-const PAYMENT_TYPE_OPTIONS = [
-  PaymentType.CASH,
-  PaymentType.CREDIT,
-  PaymentType.DEBIT,
-  PaymentType.DIGITAL_WALLET,
-  PaymentType.BANK_TRANSFER,
-  PaymentType.CRYPTO,
-  PaymentType.INVESTMENT,
-  PaymentType.OTHER,
-]
-
 interface Props {
   budgetProfileId: string
   onSkip: () => void
@@ -52,6 +32,9 @@ interface Props {
 }
 
 export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props) {
+  const t = useTranslations('budget.setup.paymentMethods')
+  const tActions = useTranslations('budget.setup.actions')
+  const tTypes = useTranslations('budget.paymentMethods.types')
   const { showError } = useSnackbar()
   const [name, setName] = useState('')
   const [type, setType] = useState<PaymentType>(PaymentType.DEBIT)
@@ -83,7 +66,8 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
     try {
       await mutateAsync({ name, type, budgetPersonId, color })
       logger.info('budget.payment_method.add', { budgetProfileId, name })
-      setSavedMethods((prev) => [...prev, `${name} (${PAYMENT_TYPE_LABELS[type] ?? 'Other'})`])
+      const typeKey = PAYMENT_TYPE_KEYS.find((option) => option.value === type)?.key ?? 'other'
+      setSavedMethods((prev) => [...prev, `${name} (${tTypes(typeKey)})`])
       setName('')
       setColor('')
     } catch (err) {
@@ -94,7 +78,7 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
   return (
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">
-        Add your payment methods (e.g. Chase Visa, Cash). You&apos;ll use these when recording transactions.
+        {t('help')}
       </Typography>
 
       {savedMethods.length > 0 && (
@@ -112,32 +96,32 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
       )}
 
       <TextField
-        label="Payment method name"
+        label={t('name')}
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
         fullWidth
-        placeholder="e.g. Chase Visa"
+        placeholder={t('namePlaceholder')}
       />
 
       <FormControl fullWidth size="small">
-        <InputLabel>Type</InputLabel>
+        <InputLabel>{t('type')}</InputLabel>
         <Select
-          label="Type"
+          label={t('type')}
           value={type}
           onChange={(e) => setType(e.target.value as PaymentType)}
         >
-          {PAYMENT_TYPE_OPTIONS.map((t) => (
-            <MenuItem key={t} value={t}>{PAYMENT_TYPE_LABELS[t]}</MenuItem>
+          {PAYMENT_TYPE_KEYS.map((option) => (
+            <MenuItem key={option.value} value={option.value}>{tTypes(option.key)}</MenuItem>
           ))}
         </Select>
       </FormControl>
 
       {people.length > 1 && (
         <FormControl fullWidth size="small">
-          <InputLabel>Belongs to</InputLabel>
+          <InputLabel>{t('belongsTo')}</InputLabel>
           <Select
-            label="Belongs to"
+            label={t('belongsTo')}
             value={budgetPersonId.toString()}
             onChange={(e) => setBudgetPersonId(BigInt(e.target.value))}
           >
@@ -154,10 +138,10 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
 
       <Stack direction="row" spacing={1} justifyContent="flex-end">
         <Button variant="outlined" onClick={onDone}>
-          {savedMethods.length === 0 ? 'Skip' : 'Continue'}
+          {savedMethods.length === 0 ? tActions('skip') : tActions('continue')}
         </Button>
         <LoadingButton variant="contained" onClick={handleAdd} disabled={!name.trim() || budgetPersonId === 0n} loading={isPending}>
-          Add
+          {tActions('add')}
         </LoadingButton>
       </Stack>
     </Stack>

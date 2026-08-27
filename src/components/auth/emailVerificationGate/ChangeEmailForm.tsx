@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ME_QUERY_KEY } from '@/hooks/useMe'
 import { useTranslations } from 'next-intl'
 import { useQueryClient } from '@tanstack/react-query'
 import { UserService } from '@/gen/wellspent/v1/user_connect'
@@ -44,7 +45,7 @@ export function ChangeEmailForm({
       logger.info('auth.verification.emailChanged')
       // The gate keys off GetMe, so refreshing it is what swaps the dialog
       // over to the new address.
-      await queryClient.invalidateQueries({ queryKey: ['getMe'] })
+      await queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY })
       onCancel()
     } catch (err) {
       const message = err instanceof Error ? err.message : t('changeFailed')

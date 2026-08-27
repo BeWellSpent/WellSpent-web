@@ -7,7 +7,9 @@ import { useSearchParams } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { UserService } from '@/gen/wellspent/v1/user_connect'
 import { AccountPlan, FilingStatus, TaxPaymentFrequency } from '@/gen/wellspent/v1/common_pb'
+import { US_STATES, FILING_STATUS_OPTIONS } from '@/lib/profile/usProfileOptions'
 import { useClient } from '@/hooks/useClient'
+import { useMe } from '@/hooks/useMe'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
@@ -32,29 +34,7 @@ import { PlaidSection } from './PlaidSection'
 import { AccountManagement } from './AccountManagement'
 import { useCountries } from '@/hooks/useCountries'
 
-const US_STATES = [
-  ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
-  ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
-  ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'], ['ID', 'Idaho'],
-  ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'], ['KS', 'Kansas'],
-  ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'], ['MD', 'Maryland'],
-  ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'], ['MS', 'Mississippi'],
-  ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'], ['NV', 'Nevada'],
-  ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'], ['NY', 'New York'],
-  ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'], ['OK', 'Oklahoma'],
-  ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'], ['SC', 'South Carolina'],
-  ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'], ['UT', 'Utah'],
-  ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'], ['WV', 'West Virginia'],
-  ['WI', 'Wisconsin'], ['WY', 'Wyoming'], ['DC', 'District of Columbia'],
-]
 
-const FILING_STATUS_OPTIONS = [
-  { value: FilingStatus.SINGLE, label: 'Single' },
-  { value: FilingStatus.MARRIED_FILING_JOINTLY, label: 'Married Filing Jointly' },
-  { value: FilingStatus.MARRIED_FILING_SEPARATELY, label: 'Married Filing Separately' },
-  { value: FilingStatus.HEAD_OF_HOUSEHOLD, label: 'Head of Household' },
-  { value: FilingStatus.QUALIFYING_SURVIVING_SPOUSE, label: 'Qualifying Surviving Spouse' },
-]
 
 const TAX_FREQUENCY_OPTIONS = [
   { value: TaxPaymentFrequency.MONTHLY, label: 'Monthly' },
@@ -84,11 +64,7 @@ export function ProfileSettings() {
   const { showError } = useSnackbar()
   const [saved, setSaved] = useState(false)
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => client.getMe({}),
-  })
-  const user = data?.user
+  const { user, isLoading } = useMe()
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')

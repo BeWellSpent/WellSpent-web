@@ -1,0 +1,41 @@
+{
+  "component": "web",
+  "version": "1.31.0",
+  "items": [
+    {
+      "changeType": "added",
+      "summaryEn": "Budget setup now has a savings step, so you can set money aside from the start instead of finding it later.",
+      "summaryEs": "La configuración del presupuesto ahora tiene un paso de ahorros, para apartar dinero desde el principio en vez de descubrirlo después."
+    },
+    {
+      "changeType": "added",
+      "summaryEn": "You can now give someone an email while adding them to a budget, and choose whether they can edit it or only look at it. The invitation goes out as soon as they're added.",
+      "summaryEs": "Ahora puedes indicar el correo de alguien al agregarlo al presupuesto y elegir si puede editarlo o solo verlo. La invitación se envía apenas se agrega."
+    },
+    {
+      "changeType": "added",
+      "summaryEn": "Budget setup can be cancelled at any point, which removes the half-finished budget and everything added to it.",
+      "summaryEs": "La configuración del presupuesto se puede cancelar en cualquier momento, lo que elimina el presupuesto a medio crear y todo lo que se le agregó."
+    },
+    {
+      "changeType": "added",
+      "summaryEn": "Signing in with Google or Apple now asks for your country before you start, so currency and tax handling work from day one.",
+      "summaryEs": "Iniciar sesión con Google o Apple ahora pregunta tu país antes de empezar, para que la moneda y los impuestos funcionen desde el primer día."
+    },
+    {
+      "changeType": "changed",
+      "summaryEn": "Payment methods are now set up before income, since savings need a payment method to come out of.",
+      "summaryEs": "Los métodos de pago ahora se configuran antes que los ingresos, ya que los ahorros necesitan un método de pago del cual salir."
+    },
+    {
+      "changeType": "fixed",
+      "summaryEn": "Budget setup is now fully translated. It was mostly untranslated English regardless of the language you had chosen.",
+      "summaryEs": "La configuración del presupuesto ahora está totalmente traducida. Antes aparecía casi toda en inglés sin importar el idioma elegido."
+    },
+    {
+      "changeType": "fixed",
+      "summaryEn": "Saving your profile now updates it everywhere in the app at once, instead of leaving some screens showing the old details.",
+      "summaryEs": "Guardar tu perfil ahora lo actualiza en toda la aplicación a la vez, en lugar de dejar algunas pantallas mostrando los datos anteriores."
+    }
+  ]
+}
