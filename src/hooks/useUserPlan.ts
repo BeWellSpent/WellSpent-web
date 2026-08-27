@@ -1,17 +1,11 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { AccountPlan } from '@/gen/wellspent/v1/common_pb'
-import { UserService } from '@/gen/wellspent/v1/user_connect'
-import { useClient } from '@/hooks/useClient'
+import { useMe } from '@/hooks/useMe'
 
 function useUserPlan(): AccountPlan {
-  const client = useClient(UserService)
-  const { data } = useQuery({
-    queryKey: ['getMe'],
-    queryFn: () => client.getMe({}),
-  })
-  return data?.user?.plan ?? AccountPlan.FREE
+  const { user } = useMe()
+  return user?.plan ?? AccountPlan.FREE
 }
 
 export function useIsFreeTier(): boolean {

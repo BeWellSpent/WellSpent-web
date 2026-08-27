@@ -8,6 +8,7 @@ import { createClient } from '@connectrpc/connect'
 import { AuthService } from '@/gen/wellspent/v1/auth_connect'
 import { UserService } from '@/gen/wellspent/v1/user_connect'
 import { FilingStatus } from '@/gen/wellspent/v1/common_pb'
+import { US_STATES, FILING_STATUS_OPTIONS } from '@/lib/profile/usProfileOptions'
 import { publicTransport, createTransport } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
@@ -30,29 +31,7 @@ import { useCountries } from '@/hooks/useCountries'
 const authClient = createClient(AuthService, publicTransport)
 const userClient = createClient(UserService, publicTransport)
 
-const US_STATES = [
-  ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
-  ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
-  ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'], ['ID', 'Idaho'],
-  ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'], ['KS', 'Kansas'],
-  ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'], ['MD', 'Maryland'],
-  ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'], ['MS', 'Mississippi'],
-  ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'], ['NV', 'Nevada'],
-  ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'], ['NY', 'New York'],
-  ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'], ['OK', 'Oklahoma'],
-  ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'], ['SC', 'South Carolina'],
-  ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'], ['UT', 'Utah'],
-  ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'], ['WV', 'West Virginia'],
-  ['WI', 'Wisconsin'], ['WY', 'Wyoming'], ['DC', 'District of Columbia'],
-]
 
-const FILING_STATUS_OPTIONS = [
-  { value: FilingStatus.SINGLE, label: 'Single' },
-  { value: FilingStatus.MARRIED_FILING_JOINTLY, label: 'Married Filing Jointly' },
-  { value: FilingStatus.MARRIED_FILING_SEPARATELY, label: 'Married Filing Separately' },
-  { value: FilingStatus.HEAD_OF_HOUSEHOLD, label: 'Head of Household' },
-  { value: FilingStatus.QUALIFYING_SURVIVING_SPOUSE, label: 'Qualifying Surviving Spouse' },
-]
 
 const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' },

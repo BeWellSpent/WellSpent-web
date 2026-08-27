@@ -56,6 +56,15 @@
       "changing": "Saving…",
       "changeFailed": "Couldn't change your email address. Please try again.",
       "cancel": "Cancel"
+    },
+    "completeProfile": {
+      "title": "One more thing",
+      "body": "Signing in with Google or Apple doesn't tell us where you are, and WellSpent needs that to handle your currency and taxes correctly.",
+      "country": "Country",
+      "state": "State",
+      "filingStatus": "Filing status",
+      "notSet": "— Not set —",
+      "submit": "Continue"
     }
   },
   "settings": {
@@ -266,7 +275,8 @@
         "digitalWallet": "Digital Wallet",
         "bankTransfer": "Bank Transfer",
         "crypto": "Crypto",
-        "investment": "Investment"
+        "investment": "Investment",
+        "other": "Other"
       }
     },
     "transactions": {
@@ -456,11 +466,73 @@
       "addIncome": "Add Income"
     },
     "setup": {
+      "title": "Set up your budget",
+      "finishLater": "Budget created. You can finish setting it up from the budget view.",
+      "complete": "Your budget is ready.",
       "steps": {
         "create": "Create Budget",
         "addPeople": "Add People",
+        "paymentMethods": "Payment Methods",
         "addIncome": "Add Income",
-        "paymentMethods": "Payment Methods"
+        "addSavings": "Add Savings"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "back": "Back",
+        "skip": "Skip",
+        "continue": "Continue",
+        "saveAndContinue": "Save & Continue",
+        "add": "Add",
+        "finishLater": "Finish later",
+        "finish": "Finish"
+      },
+      "create": {
+        "help": "Give your budget a name to get started.",
+        "name": "Budget name",
+        "submit": "Create"
+      },
+      "people": {
+        "help": "Add other people who share this budget. You've already been added.",
+        "existing": "ALREADY IN THIS BUDGET",
+        "you": "You",
+        "name": "Name",
+        "namePlaceholder": "e.g. Jane",
+        "email": "Email (optional)",
+        "emailHelp": "Add an email to invite them to this budget.",
+        "invalidEmail": "That doesn't look like an email address.",
+        "role": "They can",
+        "roleHelp": {
+          "collaborator": "Add and edit transactions, income and savings — but not manage people.",
+          "viewer": "See the whole budget without changing anything."
+        },
+        "inviteSent": "Invitation sent to {email}.",
+        "remove": "Remove"
+      },
+      "paymentMethods": {
+        "help": "Add your payment methods (e.g. Chase Visa, Cash). You'll use these when recording transactions.",
+        "name": "Payment method name",
+        "namePlaceholder": "e.g. Chase Visa",
+        "type": "Type",
+        "belongsTo": "Belongs to"
+      },
+      "income": {
+        "name": "Source name",
+        "namePlaceholder": "e.g. Salary",
+        "amount": "Monthly amount",
+        "recurring": "Recurring monthly",
+        "beforeTax": "Before-tax income (used for tax reserve estimate)",
+        "attributedTo": "Attributed to"
+      },
+      "savings": {
+        "help": "Set money aside each period — an emergency fund, a holiday, anything you want kept apart from spending."
+      },
+      "cancelDialog": {
+        "title": "Cancel setup?",
+        "bodyWithBudget": "This deletes “{name}” and everything added to it — people, payment methods, income and savings. Any invitation already sent will stop working.",
+        "bodyNoBudget": "Nothing has been created yet, so nothing will be lost.",
+        "keep": "Keep setting up",
+        "confirmDelete": "Delete budget",
+        "confirmDiscard": "Discard"
       }
     },
     "invites": {

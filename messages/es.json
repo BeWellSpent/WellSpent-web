@@ -56,6 +56,15 @@
       "changing": "Guardando…",
       "changeFailed": "No pudimos cambiar tu dirección de correo. Inténtalo de nuevo.",
       "cancel": "Cancelar"
+    },
+    "completeProfile": {
+      "title": "Una cosa más",
+      "body": "Iniciar sesión con Google o Apple no nos dice dónde estás, y WellSpent lo necesita para manejar correctamente tu moneda y tus impuestos.",
+      "country": "País",
+      "state": "Estado",
+      "filingStatus": "Estado civil fiscal",
+      "notSet": "— Sin definir —",
+      "submit": "Continuar"
     }
   },
   "settings": {
@@ -266,7 +275,8 @@
         "digitalWallet": "Billetera Digital",
         "bankTransfer": "Transferencia Bancaria",
         "crypto": "Cripto",
-        "investment": "Inversión"
+        "investment": "Inversión",
+        "other": "Otro"
       }
     },
     "transactions": {
@@ -456,11 +466,73 @@
       "addIncome": "Agregar Ingreso"
     },
     "setup": {
+      "title": "Configura tu presupuesto",
+      "finishLater": "Presupuesto creado. Puedes terminar de configurarlo desde la vista del presupuesto.",
+      "complete": "Tu presupuesto está listo.",
       "steps": {
-        "create": "Crear Presupuesto",
-        "addPeople": "Agregar Personas",
-        "addIncome": "Agregar Ingresos",
-        "paymentMethods": "Métodos de Pago"
+        "create": "Crear presupuesto",
+        "addPeople": "Agregar personas",
+        "paymentMethods": "Métodos de pago",
+        "addIncome": "Agregar ingresos",
+        "addSavings": "Agregar ahorros"
+      },
+      "actions": {
+        "cancel": "Cancelar",
+        "back": "Atrás",
+        "skip": "Omitir",
+        "continue": "Continuar",
+        "saveAndContinue": "Guardar y continuar",
+        "add": "Agregar",
+        "finishLater": "Terminar después",
+        "finish": "Finalizar"
+      },
+      "create": {
+        "help": "Ponle un nombre a tu presupuesto para empezar.",
+        "name": "Nombre del presupuesto",
+        "submit": "Crear"
+      },
+      "people": {
+        "help": "Agrega a las otras personas que comparten este presupuesto. Tú ya estás incluido.",
+        "existing": "YA EN ESTE PRESUPUESTO",
+        "you": "Tú",
+        "name": "Nombre",
+        "namePlaceholder": "p. ej. Ana",
+        "email": "Correo electrónico (opcional)",
+        "emailHelp": "Agrega un correo para invitar a esta persona al presupuesto.",
+        "invalidEmail": "Eso no parece un correo electrónico.",
+        "role": "Podrá",
+        "roleHelp": {
+          "collaborator": "Agregar y editar transacciones, ingresos y ahorros, pero no gestionar personas.",
+          "viewer": "Ver todo el presupuesto sin cambiar nada."
+        },
+        "inviteSent": "Invitación enviada a {email}.",
+        "remove": "Quitar"
+      },
+      "paymentMethods": {
+        "help": "Agrega tus métodos de pago (p. ej. Visa, Efectivo). Los usarás al registrar transacciones.",
+        "name": "Nombre del método de pago",
+        "namePlaceholder": "p. ej. Visa Santander",
+        "type": "Tipo",
+        "belongsTo": "Pertenece a"
+      },
+      "income": {
+        "name": "Nombre de la fuente",
+        "namePlaceholder": "p. ej. Sueldo",
+        "amount": "Monto mensual",
+        "recurring": "Se repite cada mes",
+        "beforeTax": "Ingreso antes de impuestos (se usa para estimar la reserva de impuestos)",
+        "attributedTo": "Atribuido a"
+      },
+      "savings": {
+        "help": "Aparta dinero cada período: un fondo de emergencia, unas vacaciones, lo que quieras mantener separado del gasto."
+      },
+      "cancelDialog": {
+        "title": "¿Cancelar la configuración?",
+        "bodyWithBudget": "Esto elimina “{name}” y todo lo que le agregaste: personas, métodos de pago, ingresos y ahorros. Cualquier invitación ya enviada dejará de funcionar.",
+        "bodyNoBudget": "Todavía no se creó nada, así que no se perderá nada.",
+        "keep": "Seguir configurando",
+        "confirmDelete": "Eliminar presupuesto",
+        "confirmDiscard": "Descartar"
       }
     },
     "invites": {

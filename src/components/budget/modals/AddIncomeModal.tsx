@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { IncomeType } from '@/gen/wellspent/v1/common_pb'
@@ -26,13 +27,14 @@ import Divider from '@mui/material/Divider'
 
 interface Props {
   budgetProfileId: string
-  embedded?: boolean
   showBeforeTax?: boolean
   onSkip: () => void
   onDone: () => void
 }
 
 export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone }: Props) {
+  const t = useTranslations('budget.setup.income')
+  const tActions = useTranslations('budget.setup.actions')
   const { showError } = useSnackbar()
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
@@ -109,15 +111,15 @@ export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone 
       )}
 
       <TextField
-        label="Source name"
+        label={t('name')}
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
         fullWidth
-        placeholder="e.g. Salary"
+        placeholder={t('namePlaceholder')}
       />
       <TextField
-        label="Monthly amount"
+        label={t('amount')}
         type="number"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
@@ -128,19 +130,19 @@ export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone 
       />
       <FormControlLabel
         control={<Checkbox checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />}
-        label="Recurring monthly"
+        label={t('recurring')}
       />
       {showBeforeTax && (
         <FormControlLabel
           control={<Checkbox checked={beforeTax} onChange={(e) => setBeforeTax(e.target.checked)} />}
-          label="Before-tax income (used for tax reserve estimate)"
+          label={t('beforeTax')}
         />
       )}
       {people.length > 0 && (
         <FormControl fullWidth size="small">
-          <InputLabel>Attributed to</InputLabel>
+          <InputLabel>{t('attributedTo')}</InputLabel>
           <Select
-            label="Attributed to"
+            label={t('attributedTo')}
             value={budgetPersonId.toString()}
             onChange={(e) => setBudgetPersonId(BigInt(e.target.value))}
           >
@@ -155,10 +157,10 @@ export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone 
 
       <Stack direction="row" spacing={1} justifyContent="flex-end">
         <Button variant="outlined" onClick={handleDone} disabled={isPending}>
-          {savedSources.length === 0 ? 'Skip' : 'Continue'}
+          {savedSources.length === 0 ? tActions('skip') : tActions('continue')}
         </Button>
         <LoadingButton variant="contained" onClick={handleAdd} disabled={!name.trim() || !amount || !!amountError} loading={isPending}>
-          Add
+          {tActions('add')}
         </LoadingButton>
       </Stack>
     </Stack>
