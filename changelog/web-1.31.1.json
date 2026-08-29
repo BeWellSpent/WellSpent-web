@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "1.31.1",
+  "items": [
+    {
+      "changeType": "fixed",
+      "summaryEn": "The notification bell no longer checks for new alerts every 30 seconds while the app sits idle in the background. It now updates whenever you come back to the tab.",
+      "summaryEs": "La campana de notificaciones ya no revisa alertas nuevas cada 30 segundos mientras la app está inactiva en segundo plano. Ahora se actualiza cuando vuelves a la pestaña."
+    }
+  ]
+}
