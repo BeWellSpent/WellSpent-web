@@ -28,10 +28,17 @@ export function NotificationBell({ budgetId }: Props) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
   const open = Boolean(anchorEl)
 
+  // No refetchInterval: this used to poll every 30s unconditionally, which
+  // defeats Neon's scale-to-zero — one forgotten open tab keeps the compute
+  // active around the clock, well past what a budgeting app's unread badge
+  // is worth in real-time freshness. Refetching on window focus (the
+  // TanStack Query default, not overridden anywhere in this app) plus the
+  // app-wide 30s staleTime (AuthContext) already updates the badge whenever
+  // someone actually returns to the tab — which is the only time anyone
+  // looks at it.
   const { data: countData } = useQuery({
     queryKey: ['notification-unread-count'],
     queryFn: () => client.getUnreadCount({}),
-    refetchInterval: 30_000,
   })
   const unreadCount = countData?.count ?? 0
 
