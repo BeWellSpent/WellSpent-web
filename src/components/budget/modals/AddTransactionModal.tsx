@@ -10,6 +10,7 @@ import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
 import { ScrollNumberPicker } from '@/components/ui/ScrollNumberPicker'
+import { AmountHeroField } from '@/components/budget/modals/AmountHeroField'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -273,6 +274,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
 
   const form = (
     <Stack spacing={2}>
+      <AmountHeroField value={amount} onChange={setAmount} autoFocus={!!open} />
       <TextField label="Description" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
       <Stack direction="row" spacing={1} alignItems="flex-start">
         {!isFixed && (
@@ -385,14 +387,6 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
         label="Payment method"
         required={!isFixed}
         size="medium"
-      />
-      <TextField
-        label="Amount"
-        type="number"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        fullWidth
-        inputProps={{ min: 0, step: '0.01', inputMode: 'decimal' }}
       />
     </Stack>
   )

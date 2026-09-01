@@ -12,6 +12,7 @@ import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
 import { ScrollNumberPicker } from '@/components/ui/ScrollNumberPicker'
+import { AmountHeroField } from '@/components/budget/modals/AmountHeroField'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -254,15 +255,8 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
       <DialogTitle>{t('editTitle')}</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
         <Stack spacing={2} sx={{ pt: 1 }}>
+          <AmountHeroField value={amount} onChange={setAmount} />
           <TextField label={t('fields.name')} value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-          <TextField
-            label={t('fields.amount')}
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            fullWidth
-            inputProps={{ min: 0, step: '0.01', inputMode: 'decimal' }}
-          />
           <TextField
             label={t('fields.startDate')}
             type="date"
