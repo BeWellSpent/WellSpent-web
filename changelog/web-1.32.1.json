@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "1.32.1",
+  "items": [
+    {
+      "changeType": "fixed",
+      "summaryEn": "Expanding a fixed expense's linked transactions now works by clicking anywhere on the row, not just the small arrow icon.",
+      "summaryEs": "Ahora puedes expandir las transacciones vinculadas de un gasto fijo haciendo clic en cualquier parte de la fila, no solo en la pequeña flecha."
+    }
+  ]
+}

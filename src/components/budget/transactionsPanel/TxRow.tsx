@@ -70,8 +70,11 @@ export function TxRow({
     && !!tx.fixedExpenseId
     && txAmount(tx) !== txPlannedAmount(tx)
 
+  // Row-level toggle below is the primary target; this button stays only so
+  // the icon itself still works and to stop that click from also bubbling up
+  // to the row (which would immediately toggle back).
   const expandBtn = hasLinked ? (
-    <IconButton size="small" onClick={() => setExpanded((v) => !v)} sx={{ p: 0 }}>
+    <IconButton size="small" onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v) }} sx={{ p: 0 }}>
       {expanded ? <KeyboardArrowUpIcon sx={{ fontSize: 16 }} /> : <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
     </IconButton>
   ) : null
@@ -112,7 +115,11 @@ export function TxRow({
   if (isMobile) {
     return (
       <Fragment>
-        <TableRow hover>
+        <TableRow
+          hover
+          sx={{ cursor: hasLinked ? 'pointer' : undefined }}
+          onClick={hasLinked ? () => setExpanded((v) => !v) : undefined}
+        >
           <TableCell>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -193,7 +200,11 @@ export function TxRow({
             </Box>
           </TableCell>
           {actions && (
-            <TableCell align="right" sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 0.5 }}>
+            <TableCell
+              align="right"
+              sx={{ whiteSpace: 'nowrap', verticalAlign: 'top', pt: 0.5 }}
+              onClick={(e) => e.stopPropagation()}
+            >
               {actions}
             </TableCell>
           )}
@@ -206,7 +217,11 @@ export function TxRow({
   // Desktop
   return (
     <Fragment>
-      <TableRow hover>
+      <TableRow
+        hover
+        sx={{ cursor: hasLinked ? 'pointer' : undefined }}
+        onClick={hasLinked ? () => setExpanded((v) => !v) : undefined}
+      >
         <TableCell>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {expandBtn}
@@ -283,7 +298,11 @@ export function TxRow({
             })()}
           </TableCell>
         )}
-        {actions && <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{actions}</TableCell>}
+        {actions && (
+          <TableCell align="right" sx={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+            {actions}
+          </TableCell>
+        )}
       </TableRow>
       {linkedSubRows}
     </Fragment>
