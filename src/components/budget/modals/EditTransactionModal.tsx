@@ -10,6 +10,7 @@ import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
+import { AmountHeroField } from '@/components/budget/modals/AmountHeroField'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -197,6 +198,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
               {t('lockedNotice')}
             </Typography>
           )}
+          <AmountHeroField value={amount} onChange={setAmount} disabled={isLocked} />
           <TextField
             label="Description"
             value={name}
@@ -278,15 +280,6 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
             required
             size="medium"
             disabled={isLocked}
-          />
-          <TextField
-            label="Amount"
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            fullWidth
-            disabled={isLocked}
-            inputProps={{ min: 0, step: '0.01', inputMode: 'decimal' }}
           />
         </Stack>
       </DialogContent>

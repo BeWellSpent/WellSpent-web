@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "1.32.0",
+  "items": [
+    {
+      "changeType": "changed",
+      "summaryEn": "Adding or editing a transaction now leads with a big, centered amount field instead of burying it in a list of small inputs. Adding one focuses that field immediately; editing doesn't.",
+      "summaryEs": "Agregar o editar una transacción ahora empieza con un campo de monto grande y centrado en lugar de esconderlo entre campos pequeños. Al agregar, ese campo se enfoca de inmediato; al editar, no."
+    }
+  ]
+}
