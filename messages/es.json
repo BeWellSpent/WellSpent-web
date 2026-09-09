@@ -593,8 +593,8 @@
       "saveFailed": "No se pudo guardar esta configuración."
     },
     "plannedAmountSync": {
-      "title": "Actualizar el plan cuando una factura cuesta más",
-      "description": "Cuando marcas una factura como pagada por un importe distinto, planifica los períodos futuros con ese nuevo importe. El período que estás pagando conserva su plan original; solo cambian los siguientes. Desactívalo para mantener tus importes planificados tal como los definiste.",
+      "title": "Mantener los gastos fijos alineados con la realidad",
+      "description": "Cuando un gasto fijo se paga de forma distinta a lo planificado, actualiza su plantilla para los períodos futuros: el importe realmente pagado, el día en que realmente se pagó (no el día de vencimiento original) y, cuando coincidir con una transacción bancaria revela una distinta, su categoría y método de pago. El período que estás pagando conserva sus propios valores; solo cambian los siguientes. Desactívalo para mantener tus plantillas de gastos fijos tal como las definiste.",
       "adminOnly": "Solo un administrador del presupuesto puede cambiar esto.",
       "saveFailed": "No se pudo guardar esta configuración."
     },
