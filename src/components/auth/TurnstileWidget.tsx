@@ -42,7 +42,10 @@ interface Props {
  *
  * Loading pattern mirrors `ads/AdBanner.tsx`: a `next/script` tag plus a
  * guarded render-once effect, so it works whether the script finishes
- * loading before or after this component mounts.
+ * loading before or after this component mounts. One deliberate difference:
+ * `afterInteractive`, not `lazyOnload` — an ad is decorative and can wait for
+ * browser idle time, but this widget has to actually resolve before the form
+ * can be submitted, so it loads promptly instead.
  */
 export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, Props>(function TurnstileWidget(
   { onToken },
@@ -83,7 +86,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, Props>(function
     <>
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
         onLoad={render}
       />
       <Box ref={containerRef} />
