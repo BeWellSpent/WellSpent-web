@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
@@ -12,6 +12,7 @@ import { US_STATES, FILING_STATUS_OPTIONS } from '@/lib/profile/usProfileOptions
 import { publicTransport, createTransport } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
+import { TurnstileWidget, type TurnstileWidgetHandle } from './TurnstileWidget'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
@@ -63,6 +64,8 @@ export function RegisterForm() {
   const { countries, isLoading: countriesLoading } = useCountries()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState('')
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null)
 
   async function handleGoogleSignIn() {
     const state = crypto.randomUUID()
@@ -85,7 +88,7 @@ export function RegisterForm() {
     setLoading(true)
     try {
       const res = await authClient.register({
-        firstName, lastName, email, password, countryCode, stateCode, language, currency,
+        firstName, lastName, email, password, countryCode, stateCode, language, currency, captchaToken,
       })
 
       // Persist filing status before setting the cookie so profile is complete on first load
@@ -122,6 +125,11 @@ export function RegisterForm() {
       const message = err instanceof Error ? err.message : 'Registration failed'
       setError(message)
       logger.error('auth.register.failed', { error: message })
+      // A Turnstile token is single-use — whether this failure was the
+      // captcha itself or something else (duplicate email, etc.), the token
+      // that was just sent is spent either way, so the next attempt needs a
+      // fresh one.
+      turnstileRef.current?.reset()
     } finally {
       setLoading(false)
     }
@@ -245,6 +253,8 @@ export function RegisterForm() {
           </Select>
         </FormControl>
       )}
+
+      <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
 
       {error && (
         <Typography variant="body2" color="error">
