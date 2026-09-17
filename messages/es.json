@@ -584,7 +584,10 @@
       "unavailable": "Las preferencias están disponibles cuando estés vinculado a este presupuesto.",
       "saveFailed": "No se pudieron guardar tus preferencias.",
       "planChartHint": "Se muestra en la pestaña Plan de gastos, encima de tus montos planificados.",
-      "overviewChartHint": "Se muestra en la pestaña Resumen de gastos, encima de lo que gastaste realmente."
+      "overviewChartHint": "Se muestra en la pestaña Resumen de gastos, encima de lo que gastaste realmente.",
+      "matchReview": "Coincidir mis transacciones con gastos fijos",
+      "matchReviewHint": "Al agregar o editar una transacción, verifica si coincide con tus gastos fijos, igual que las transacciones sincronizadas del banco.",
+      "matchReviewHintFree": "Disponible en Pro y Lifetime. Tus transacciones no se compararán en el plan gratuito, aunque esto esté activado."
     },
     "carryover": {
       "title": "Trasladar el saldo",

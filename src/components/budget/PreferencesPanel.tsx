@@ -6,6 +6,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import Switch from '@mui/material/Switch'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import PieChartIcon from '@mui/icons-material/PieChart'
@@ -15,6 +17,7 @@ import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
+import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { type ChartMode, chartTypeToMode, modeToChartType } from '@/hooks/useChartPreference'
 
 interface Props {
@@ -33,14 +36,34 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
   const { person, isLoading } = useMyBudgetPerson(budgetProfileId)
+  const isFree = useIsFreeTier()
 
   // Seeded from the server row, then held locally so the toggle responds
   // immediately rather than waiting on the refetch.
   const [plan, setPlan] = useState<ChartMode | null>(null)
   const [overview, setOverview] = useState<ChartMode | null>(null)
+  const [matchReview, setMatchReview] = useState<boolean | null>(null)
 
   const planValue = plan ?? chartTypeToMode(person?.planChartType)
   const overviewValue = overview ?? chartTypeToMode(person?.overviewChartType)
+  const matchReviewValue = matchReview ?? person?.manualMatchReviewEnabled ?? true
+
+  const { mutateAsync: saveMatchReview, isPending: matchReviewPending } = useMutation({
+    mutationFn: (enabled: boolean) => client.updateMyManualMatchReviewPreference({ budgetProfileId, enabled }),
+  })
+
+  async function updateMatchReview(enabled: boolean) {
+    const previous = matchReviewValue
+    setMatchReview(enabled)
+    try {
+      await saveMatchReview(enabled)
+      await queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+      logger.info('budget.preferences.matchReview.update', { budgetProfileId, enabled })
+    } catch (err) {
+      setMatchReview(previous)
+      showError(err instanceof Error ? err.message : t('saveFailed'))
+    }
+  }
 
   const { mutateAsync: save, isPending } = useMutation({
     mutationFn: (next: { plan: ChartMode; overview: ChartMode }) =>
@@ -107,6 +130,23 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
         barLabel={t('bar')}
         identifier="overviewChartPreference"
       />
+
+      <Box>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={matchReviewValue}
+              disabled={matchReviewPending}
+              onChange={(e) => updateMatchReview(e.target.checked)}
+              data-testid="manualMatchReviewPreference"
+            />
+          }
+          label={t('matchReview')}
+        />
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+          {isFree ? t('matchReviewHintFree') : t('matchReviewHint')}
+        </Typography>
+      </Box>
     </Stack>
   )
 }

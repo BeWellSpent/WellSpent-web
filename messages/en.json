@@ -584,7 +584,10 @@
       "unavailable": "Preferences are available once you're linked to this budget.",
       "saveFailed": "Couldn't save your preferences.",
       "planChartHint": "Shown on the Expense Plan tab, above your planned amounts.",
-      "overviewChartHint": "Shown on the Expense Overview tab, above what you actually spent."
+      "overviewChartHint": "Shown on the Expense Overview tab, above what you actually spent.",
+      "matchReview": "Match my transactions to fixed expenses",
+      "matchReviewHint": "When you add or edit a transaction, check it against your fixed expenses for a possible match, same as bank-synced transactions.",
+      "matchReviewHintFree": "Available on Pro and Lifetime. Your own transactions won't be matched on the free plan, even with this on."
     },
     "carryover": {
       "title": "Carry balance forward",
