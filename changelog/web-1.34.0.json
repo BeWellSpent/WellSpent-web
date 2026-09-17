@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "1.34.0",
+  "items": [
+    {
+      "changeType": "added",
+      "summaryEn": "A new Preferences setting lets Pro and Lifetime members turn automatic fixed-expense matching on or off for their own transactions.",
+      "summaryEs": "Un nuevo ajuste en Preferencias permite a los miembros Pro y Lifetime activar o desactivar la coincidencia automática con gastos fijos para sus propias transacciones."
+    }
+  ]
+}
