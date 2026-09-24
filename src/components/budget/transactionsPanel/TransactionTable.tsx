@@ -16,8 +16,10 @@ import { MarkForReviewDialog } from '../modals/MarkForReviewDialog'
 import { SortHeader } from './SortHeader'
 import { MobileRowActions } from './MobileRowActions'
 import { InstallmentPlanDialog } from './InstallmentPlanDialog'
+import { CreateFixedFromTransactionDialog } from './CreateFixedFromTransactionDialog'
 import { UnsplitInstallmentPlanDialog } from './UnsplitInstallmentPlanDialog'
 import { canSplitIntoInstallments } from './installmentPlan'
+import { canCreateFixedFromTransaction } from './fixedFromTransaction'
 import { TxRow } from './TxRow'
 import { FixedExpenseSections } from './FixedExpenseSections'
 import {
@@ -56,6 +58,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import CallSplitIcon from '@mui/icons-material/CallSplit'
+import EventRepeatIcon from '@mui/icons-material/EventRepeat'
 import UndoIcon from '@mui/icons-material/Undo'
 import { useCategoryName } from '@/hooks/useCategoryName'
 
@@ -118,6 +121,7 @@ export function TransactionTable({
   const [markPaidTarget, setMarkPaidTarget] = useState<Transaction | null>(null)
   const [markReviewTarget, setMarkReviewTarget] = useState<Transaction | null>(null)
   const [installmentTarget, setInstallmentTarget] = useState<Transaction | null>(null)
+  const [fixedFromTxTarget, setFixedFromTxTarget] = useState<Transaction | null>(null)
   const [unsplitTarget, setUnsplitTarget] = useState<Transaction | null>(null)
 
   const queryClient = useQueryClient()
@@ -238,6 +242,8 @@ export function TransactionTable({
           isIncomeRow={isIncomeRow(tx)}
           canSplitIntoInstallments={canSplitIntoInstallments(tx, txAmount(tx))}
           onSplitIntoInstallments={() => setInstallmentTarget(tx)}
+          canCreateFixedFromTransaction={canCreateFixedFromTransaction(tx, txAmount(tx))}
+          onCreateFixedFromTransaction={() => setFixedFromTxTarget(tx)}
           onUnsplitInstallments={() => setUnsplitTarget(tx)}
           isInstallmentPlan={!!tx.installmentFixedExpenseId}
           canExclude={canMutate}
@@ -288,6 +294,13 @@ export function TransactionTable({
           <Tooltip title={t('installments.action')}>
             <IconButton size="small" onClick={() => setInstallmentTarget(tx)}>
               <CallSplitIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+        {canCreateFixedFromTransaction(tx, txAmount(tx)) && (
+          <Tooltip title={t('fixedFromTransaction.action')}>
+            <IconButton size="small" onClick={() => setFixedFromTxTarget(tx)}>
+              <EventRepeatIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         )}
@@ -608,6 +621,13 @@ export function TransactionTable({
           tx={installmentTarget}
           budgetPeriodId={budgetPeriodId}
           onClose={() => setInstallmentTarget(null)}
+        />
+      )}
+      {fixedFromTxTarget && (
+        <CreateFixedFromTransactionDialog
+          tx={fixedFromTxTarget}
+          budgetPeriodId={budgetPeriodId}
+          onClose={() => setFixedFromTxTarget(null)}
         />
       )}
     </>

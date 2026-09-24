@@ -374,6 +374,18 @@
       },
       "plannedAmountSync": {
         "rowTooltip": "Paid at a different amount than planned. From the next period on, this bill will be planned at what you actually paid."
+      },
+      "fixedFromTransaction": {
+        "action": "Create a fixed expense",
+        "title": "Create a fixed expense",
+        "name": "Name",
+        "explainer": "{name} ({amount}) will become a recurring fixed expense on the schedule below, and this transaction will be matched to it and marked paid.",
+        "startDate": "First due date",
+        "startDateHelp": "When this expense is first due on the new schedule.",
+        "willMatch": "The original transaction stays visible but stops counting toward totals — it is matched to the new fixed expense, same as a bank-synced match.",
+        "confirm": "Create",
+        "cancel": "Cancel",
+        "error": "Couldn't create the fixed expense."
       }
     },
     "markForReview": {

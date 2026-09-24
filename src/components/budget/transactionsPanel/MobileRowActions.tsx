@@ -12,6 +12,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import FlagIcon from '@mui/icons-material/Flag'
 import CallSplitIcon from '@mui/icons-material/CallSplit'
+import EventRepeatIcon from '@mui/icons-material/EventRepeat'
 import UndoIcon from '@mui/icons-material/Undo'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
@@ -29,6 +30,7 @@ export interface MobileRowActionsProps {
   isExcluded: boolean
   canSplitIntoInstallments: boolean
   isInstallmentPlan: boolean
+  canCreateFixedFromTransaction: boolean
   isIncomeRow: boolean
   /** False when full mutation is blocked (archived period). */
   canExclude: boolean
@@ -46,6 +48,7 @@ export interface MobileRowActionsProps {
   onToggleExcluded: () => void
   onSplitIntoInstallments: () => void
   onUnsplitInstallments: () => void
+  onCreateFixedFromTransaction: () => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -57,6 +60,7 @@ export interface MobileRowActionsProps {
 export function MobileRowActions({
   canMarkPaid, isAlreadyPaid, canUnmark, unmarkPending, canFlagForReview, isExcluded, isIncomeRow, canExclude, excludePending,
   canSplitIntoInstallments, isInstallmentPlan, onSplitIntoInstallments, onUnsplitInstallments,
+  canCreateFixedFromTransaction, onCreateFixedFromTransaction,
   isRowEditable, canDelete, isPlaidImported, onMarkPaid, onUnmark, onFlagForReview, onToggleExcluded, onEdit, onDelete,
 }: MobileRowActionsProps) {
   const t = useTranslations('budget.transactions')
@@ -104,6 +108,12 @@ export function MobileRowActions({
           <MenuItem onClick={() => run(onSplitIntoInstallments)}>
             <ListItemIcon><CallSplitIcon fontSize="small" /></ListItemIcon>
             <ListItemText>{t('installments.action')}</ListItemText>
+          </MenuItem>
+        )}
+        {canCreateFixedFromTransaction && (
+          <MenuItem onClick={() => run(onCreateFixedFromTransaction)}>
+            <ListItemIcon><EventRepeatIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>{t('fixedFromTransaction.action')}</ListItemText>
           </MenuItem>
         )}
         {canExclude && (isIncomeRow || isInstallmentPlan ? (
