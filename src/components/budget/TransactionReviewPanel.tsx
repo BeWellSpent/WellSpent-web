@@ -17,6 +17,8 @@ import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import BlockIcon from '@mui/icons-material/Block'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
 
 interface Props {
   budgetProfileId: string
@@ -29,6 +31,7 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
   const client = useClient(BudgetService)
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
+  const { person: myPerson } = useMyBudgetPerson(budgetProfileId)
 
   const { data, isLoading } = useQuery({
     queryKey: ['transaction-reviews', budgetProfileId],
@@ -96,6 +99,10 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
           ? `${(Number(review.transactionAmount.units) + review.transactionAmount.nanos / 1e9).toFixed(2)}`
           : '—'
         const score = Math.round(review.matchScore)
+        const involvesSomeoneElse = (id: bigint) => id !== 0n && id !== myPerson?.id
+        const spansOutsideMyView =
+          !!myPerson?.focusedViewEnabled &&
+          (involvesSomeoneElse(review.transactionPersonId) || involvesSomeoneElse(review.matchedTransactionPersonId))
 
         return (
           <Card key={review.id} variant="outlined">
@@ -117,6 +124,14 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
                   />
                 </Stack>
               </Stack>
+              {spansOutsideMyView && (
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 1 }}>
+                  <VisibilityIcon fontSize="inherit" color="action" />
+                  <Typography variant="caption" color="text.secondary">
+                    {t('spansOutsideView')}
+                  </Typography>
+                </Stack>
+              )}
             </CardContent>
             {isEditable && (
               <CardActions sx={{ pt: 0, justifyContent: 'flex-end' }}>

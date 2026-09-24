@@ -39,6 +39,7 @@ import type { ViewMode } from '@/hooks/useViewPreference'
 import { isSystemCategory } from '@/lib/categories/systemCategory'
 import { SystemCategory } from '@/gen/wellspent/v1/common_pb'
 import { expenseSummaryQueryKey } from '@/hooks/useExpenseSummary'
+import { useFocusedView } from '@/hooks/useFocusedView'
 
 interface Props {
   budgetPeriodId: string
@@ -107,13 +108,14 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     else if (direction === 'left') setTabIndex(Math.min(1, tabIndex + 1))
   }
 
+  const focusedView = useFocusedView(budgetProfileId)
   const { data: fixedData, isLoading: fixedLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId, 1],
-    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 1 }),
+    queryKey: ['transactions', budgetPeriodId, 1, focusedView],
+    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 1, focusedView }),
   })
   const { data: variableData, isLoading: variableLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId, 2],
-    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 2 }),
+    queryKey: ['transactions', budgetPeriodId, 2, focusedView],
+    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 2, focusedView }),
   })
   const { data: categoriesData } = useQuery({
     queryKey: ['categories', budgetProfileId],
@@ -134,7 +136,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     queryKey: ['budget-profile', budgetProfileId],
     queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
   })
-  const { summary } = useExpenseSummary(budgetPeriodId)
+  const { summary } = useExpenseSummary(budgetPeriodId, budgetProfileId)
   const { data: reviewsData } = useQuery({
     queryKey: ['transaction-reviews', budgetProfileId],
     queryFn: () => client.listTransactionReviews({ budgetProfileId }),

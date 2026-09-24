@@ -43,10 +43,12 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
   const [plan, setPlan] = useState<ChartMode | null>(null)
   const [overview, setOverview] = useState<ChartMode | null>(null)
   const [matchReview, setMatchReview] = useState<boolean | null>(null)
+  const [focusedView, setFocusedView] = useState<boolean | null>(null)
 
   const planValue = plan ?? chartTypeToMode(person?.planChartType)
   const overviewValue = overview ?? chartTypeToMode(person?.overviewChartType)
   const matchReviewValue = matchReview ?? person?.manualMatchReviewEnabled ?? true
+  const focusedViewValue = focusedView ?? person?.focusedViewEnabled ?? false
 
   const { mutateAsync: saveMatchReview, isPending: matchReviewPending } = useMutation({
     mutationFn: (enabled: boolean) => client.updateMyManualMatchReviewPreference({ budgetProfileId, enabled }),
@@ -61,6 +63,23 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
       logger.info('budget.preferences.matchReview.update', { budgetProfileId, enabled })
     } catch (err) {
       setMatchReview(previous)
+      showError(err instanceof Error ? err.message : t('saveFailed'))
+    }
+  }
+
+  const { mutateAsync: saveFocusedView, isPending: focusedViewPending } = useMutation({
+    mutationFn: (enabled: boolean) => client.updateMyFocusedViewPreference({ budgetProfileId, enabled }),
+  })
+
+  async function updateFocusedView(enabled: boolean) {
+    const previous = focusedViewValue
+    setFocusedView(enabled)
+    try {
+      await saveFocusedView(enabled)
+      await queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+      logger.info('budget.preferences.focusedView.update', { budgetProfileId, enabled })
+    } catch (err) {
+      setFocusedView(previous)
       showError(err instanceof Error ? err.message : t('saveFailed'))
     }
   }
@@ -145,6 +164,23 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
         />
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
           {isFree ? t('matchReviewHintFree') : t('matchReviewHint')}
+        </Typography>
+      </Box>
+
+      <Box>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={focusedViewValue}
+              disabled={focusedViewPending}
+              onChange={(e) => updateFocusedView(e.target.checked)}
+              data-testid="focusedViewPreference"
+            />
+          }
+          label={t('focusedView')}
+        />
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+          {t('focusedViewHint')}
         </Typography>
       </Box>
     </Stack>

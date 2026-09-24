@@ -10,6 +10,7 @@ import type { Category, PaymentMethod, BudgetPerson, Transaction, CategoryExpens
 import { useClient } from '@/hooks/useClient'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
+import { useFocusedView } from '@/hooks/useFocusedView'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { parseMoney } from './expensesPanel/helpers'
@@ -72,9 +73,10 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
     queryKey: ['budget-people', budgetProfileId],
     queryFn: () => client.listBudgetPeople({ budgetProfileId }),
   })
+  const focusedView = useFocusedView(budgetProfileId)
   const { data: transactionsData, isLoading: txnsLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId],
-    queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId! }),
+    queryKey: ['transactions', budgetPeriodId, focusedView],
+    queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId!, focusedView }),
     enabled: !!budgetPeriodId,
   })
   const { methods: paymentMethods, isLoading: pmLoading } = usePaymentMethods(budgetProfileId)
@@ -82,7 +84,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   // the single source of truth both web and iOS consume, replacing the
   // local re-derivation that previously drifted between the two clients
   // (see docs/features/expense-summary.md, issue #35).
-  const { summary: summaryData, isLoading: summaryLoading } = useExpenseSummary(budgetPeriodId)
+  const { summary: summaryData, isLoading: summaryLoading } = useExpenseSummary(budgetPeriodId, budgetProfileId)
 
   const isLoading = catsLoading || peopleLoading || txnsLoading || pmLoading || summaryLoading
   if (isLoading || !summaryData) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
