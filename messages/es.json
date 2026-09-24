@@ -374,6 +374,18 @@
       },
       "plannedAmountSync": {
         "rowTooltip": "Pagada por un importe distinto al planificado. A partir del próximo período, esta factura se planificará con lo que realmente pagaste."
+      },
+      "fixedFromTransaction": {
+        "action": "Crear un gasto fijo",
+        "title": "Crear un gasto fijo",
+        "name": "Nombre",
+        "explainer": "{name} ({amount}) se convertirá en un gasto fijo recurrente según el horario indicado abajo, y esta transacción se emparejará con él y se marcará como pagada.",
+        "startDate": "Primera fecha de vencimiento",
+        "startDateHelp": "Cuándo vence por primera vez este gasto en el nuevo horario.",
+        "willMatch": "La transacción original sigue visible pero deja de contar en los totales — se empareja con el nuevo gasto fijo, igual que una coincidencia sincronizada con el banco.",
+        "confirm": "Crear",
+        "cancel": "Cancelar",
+        "error": "No se pudo crear el gasto fijo."
       }
     },
     "markForReview": {

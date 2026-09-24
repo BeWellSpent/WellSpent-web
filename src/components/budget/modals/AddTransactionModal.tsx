@@ -9,8 +9,9 @@ import { useClient } from '@/hooks/useClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
-import { ScrollNumberPicker } from '@/components/ui/ScrollNumberPicker'
 import { AmountHeroField } from '@/components/budget/modals/AmountHeroField'
+import { FixedExpenseFrequencyFields } from '@/components/budget/FixedExpenseFrequencyFields'
+import { type FrequencyUnitUI, frequencyFieldsFor } from '@/components/budget/fixedExpenseFrequency'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -48,16 +49,6 @@ function dateStringToTimestamp(str: string): { seconds: bigint; nanos: number } 
   return { seconds: BigInt(Math.floor(Date.UTC(year, month - 1, day) / 1000)), nanos: 0 }
 }
 
-type FrequencyUnitUI = 'week' | 'month' | 'year'
-
-const FREQUENCY_COUNT_RANGE: Record<FrequencyUnitUI, { min: number; max: number }> = {
-  week: { min: 1, max: 52 },
-  month: { min: 1, max: 24 },
-  year: { min: 1, max: 10 },
-}
-
-// frequencyUnit wire values: 1 = MONTH (default, also covers YEAR client-side
-// via interval_months = years * 12), 2 = WEEK.
 function parseUTCDate(str: string): Date {
   const [y, m, d] = str.split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d))
@@ -83,13 +74,6 @@ function weeksBetween(from: Date, to: Date): number {
 
 function dateToString(d: Date): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
-}
-
-function frequencyFieldsFor(unit: FrequencyUnitUI, count: number, dayOfWeek: number) {
-  if (unit === 'week') {
-    return { frequencyUnit: 2, intervalMonths: 1, intervalWeeks: count, dayOfWeek }
-  }
-  return { frequencyUnit: 1, intervalMonths: unit === 'year' ? count * 12 : count, intervalWeeks: 1, dayOfWeek: 1 }
 }
 
 type Flow = 'spent' | 'received'
@@ -312,29 +296,12 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
             InputLabelProps={{ shrink: true }}
             helperText="First payment date — past dates backdate the plan, future dates start it later"
           />
-          <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="flex-start">
-            <TextField
-              select
-              label="Repeats every"
-              value={frequencyUnitUI}
-              onChange={(e) => handleFrequencyUnitChange(e.target.value as FrequencyUnitUI)}
-              sx={{ minWidth: 140 }}
-            >
-              <MenuItem value="week">Week(s)</MenuItem>
-              <MenuItem value="month">Month(s)</MenuItem>
-              <MenuItem value="year">Year(s)</MenuItem>
-            </TextField>
-            <Stack spacing={0.5} alignItems="center">
-              <ScrollNumberPicker
-                value={frequencyCount}
-                onChange={(v) => { setFrequencyCount(v); if (paymentsInput) recalcEndDate(paymentsInput, frequencyUnitUI, v) }}
-                min={FREQUENCY_COUNT_RANGE[frequencyUnitUI].min}
-                max={FREQUENCY_COUNT_RANGE[frequencyUnitUI].max}
-                aria-label="Repeat count"
-              />
-              <Typography variant="caption" color="text.secondary">How often this expense is due</Typography>
-            </Stack>
-          </Stack>
+          <FixedExpenseFrequencyFields
+            unit={frequencyUnitUI}
+            count={frequencyCount}
+            onUnitChange={handleFrequencyUnitChange}
+            onCountChange={(v) => { setFrequencyCount(v); if (paymentsInput) recalcEndDate(paymentsInput, frequencyUnitUI, v) }}
+          />
           <Divider />
           <Typography variant="body2" color="text.secondary">Payment plan (optional)</Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
