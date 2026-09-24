@@ -160,7 +160,8 @@
       "matchedTo": "Coincide con:",
       "confirm": "Confirmar",
       "dismiss": "Descartar",
-      "empty": "No hay transacciones por revisar."
+      "empty": "No hay transacciones por revisar.",
+      "spansOutsideView": "Incluye datos de otra persona — cambia a Vista completa para revisarlo."
     },
     "sidebar": {
       "alerts": "Configuración de alertas",
@@ -587,7 +588,9 @@
       "overviewChartHint": "Se muestra en la pestaña Resumen de gastos, encima de lo que gastaste realmente.",
       "matchReview": "Coincidir mis transacciones con gastos fijos",
       "matchReviewHint": "Al agregar o editar una transacción, verifica si coincide con tus gastos fijos, igual que las transacciones sincronizadas del banco.",
-      "matchReviewHintFree": "Disponible en Pro y Lifetime. Tus transacciones no se compararán en el plan gratuito, aunque esto esté activado."
+      "matchReviewHintFree": "Disponible en Pro y Lifetime. Tus transacciones no se compararán en el plan gratuito, aunque esto esté activado.",
+      "focusedView": "Vista enfocada — mostrar solo mis datos",
+      "focusedViewHint": "Limita Plan, Resumen, Transacciones, Ingresos y Ahorros a tus propios números más lo que no esté atribuido a nadie. Las revisiones pendientes siempre muestran a todos, marcadas cuando involucran a otra persona."
     },
     "carryover": {
       "title": "Trasladar el saldo",

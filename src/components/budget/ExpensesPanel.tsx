@@ -11,6 +11,7 @@ import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpen
 import { useClient } from '@/hooks/useClient'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
+import { useFocusedView } from '@/hooks/useFocusedView'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -98,9 +99,10 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     queryFn: () => client.listExpenseAllocations({ budgetProfileId }),
   })
 
+  const focusedView = useFocusedView(budgetProfileId)
   const { data: transactionsData, isLoading: txnsLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId],
-    queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId! }),
+    queryKey: ['transactions', budgetPeriodId, focusedView],
+    queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId!, focusedView }),
     enabled: !!budgetPeriodId,
   })
 
@@ -123,7 +125,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   // editable values (allocMap, fixedPlannedByCat, notDueFixedByCat below)
   // stay client-side since editing needs the raw, mutable allocation
   // entities, not a read-only computed summary.
-  const { summary: summaryData, isLoading: summaryLoading } = useExpenseSummary(budgetPeriodId)
+  const { summary: summaryData, isLoading: summaryLoading } = useExpenseSummary(budgetPeriodId, budgetProfileId)
 
   const { mutateAsync: upsertAlloc } = useMutation({
     mutationFn: (req: Parameters<typeof client.upsertExpenseAllocation>[0]) =>

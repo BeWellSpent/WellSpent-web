@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "1.35.0",
+  "items": [
+    {
+      "changeType": "added",
+      "summaryEn": "Added a Focused View preference in Preferences that scopes Plan, Overview, Transactions, Income, and Savings to your own data plus anything unattributed.",
+      "summaryEs": "Se agregó una preferencia de Vista Enfocada en Preferencias que limita Plan, Resumen, Transacciones, Ingresos y Ahorros a tus propios datos más lo que no esté atribuido a nadie."
+    }
+  ]
+}

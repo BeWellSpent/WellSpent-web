@@ -160,7 +160,8 @@
       "matchedTo": "Matched to:",
       "confirm": "Confirm",
       "dismiss": "Dismiss",
-      "empty": "No transactions to review."
+      "empty": "No transactions to review.",
+      "spansOutsideView": "Involves someone else's data — switch to Full View to review it."
     },
     "sidebar": {
       "alerts": "Alert Settings",
@@ -587,7 +588,9 @@
       "overviewChartHint": "Shown on the Expense Overview tab, above what you actually spent.",
       "matchReview": "Match my transactions to fixed expenses",
       "matchReviewHint": "When you add or edit a transaction, check it against your fixed expenses for a possible match, same as bank-synced transactions.",
-      "matchReviewHintFree": "Available on Pro and Lifetime. Your own transactions won't be matched on the free plan, even with this on."
+      "matchReviewHintFree": "Available on Pro and Lifetime. Your own transactions won't be matched on the free plan, even with this on.",
+      "focusedView": "Focused View — show only my own data",
+      "focusedViewHint": "Scopes Plan, Overview, Transactions, Income, and Savings to your own numbers plus anything unattributed. Pending reviews always show everyone, flagged when they involve someone else."
     },
     "carryover": {
       "title": "Carry balance forward",

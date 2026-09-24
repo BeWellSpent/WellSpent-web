@@ -11,6 +11,8 @@ import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { formatMoney, formatMoneyFromNumber } from '@/lib/format'
+import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
+import { isMineOrUnattributed } from '@/lib/focusedView'
 import { EditIncomeModal } from './modals/EditIncomeModal'
 import { AddIncomeDialog } from './modals/AddIncomeDialog'
 import Box from '@mui/material/Box'
@@ -72,7 +74,11 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
     }
   }
 
-  const sources = data?.sources ?? []
+  const { person: myPerson } = useMyBudgetPerson(budgetProfileId)
+  const allSources = data?.sources ?? []
+  const sources = myPerson?.focusedViewEnabled
+    ? allSources.filter((s) => isMineOrUnattributed(s.budgetPersonId, myPerson.id))
+    : allSources
   const people = peopleData?.people ?? []
   const personMap = new Map(people.map((p) => [p.id.toString(), p.userName]))
   const total = sources.reduce(
