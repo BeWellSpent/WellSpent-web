@@ -161,7 +161,8 @@
       "confirm": "Confirm",
       "dismiss": "Dismiss",
       "empty": "No transactions to review.",
-      "spansOutsideView": "Involves someone else's data — switch to Full View to review it."
+      "spansOutsideView": "Involves someone else's data — switch to Full View to review it.",
+      "total": "Total"
     },
     "sidebar": {
       "alerts": "Alert Settings",

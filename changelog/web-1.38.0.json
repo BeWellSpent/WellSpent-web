@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "1.38.0",
+  "items": [
+    {
+      "changeType": "changed",
+      "summaryEn": "A split match now shows as one row in Review, with a single Confirm instead of one per transaction.",
+      "summaryEs": "Una coincidencia dividida ahora se muestra en una sola fila en Revisión, con un único botón Confirmar en lugar de uno por transacción."
+    }
+  ]
+}
