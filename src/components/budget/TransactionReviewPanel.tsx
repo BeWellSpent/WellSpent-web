@@ -19,6 +19,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import BlockIcon from '@mui/icons-material/Block'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
+import { groupPendingReviews, type ReviewGroup } from './transactionReviewGrouping'
 
 interface Props {
   budgetProfileId: string
@@ -59,23 +60,29 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
     },
   })
 
-  async function handleConfirm(reviewId: string) {
+  // Sequential, not Promise.all — each confirm must see the last one's write.
+  async function handleConfirmGroup(group: ReviewGroup) {
     try {
-      await confirmMutation.mutateAsync(reviewId)
+      for (const review of group.reviews) {
+        await confirmMutation.mutateAsync(review.id)
+      }
     } catch (err) {
       showError(err)
     }
   }
 
-  async function handleDismiss(reviewId: string) {
+  async function handleDismissGroup(group: ReviewGroup) {
     try {
-      await dismissMutation.mutateAsync(reviewId)
+      for (const review of group.reviews) {
+        await dismissMutation.mutateAsync(review.id)
+      }
     } catch (err) {
       showError(err)
     }
   }
 
   const reviews = (data?.reviews ?? []).filter((r) => r.status === 'pending')
+  const groups = groupPendingReviews(reviews)
 
   if (isLoading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}><CircularProgress /></Box>
@@ -93,36 +100,45 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
   return (
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">{t('description')}</Typography>
-      {reviews.map((review) => {
+      {groups.map((group) => {
         const isPending = confirmMutation.isPending || dismissMutation.isPending
-        const amount = review.transactionAmount
-          ? `${(Number(review.transactionAmount.units) + review.transactionAmount.nanos / 1e9).toFixed(2)}`
-          : '—'
-        const score = Math.round(review.matchScore)
+        const isSplit = group.reviews.length > 1
         const involvesSomeoneElse = (id: bigint) => id !== 0n && id !== myPerson?.id
         const spansOutsideMyView =
           !!myPerson?.focusedViewEnabled &&
-          (involvesSomeoneElse(review.transactionPersonId) || involvesSomeoneElse(review.matchedTransactionPersonId))
+          (involvesSomeoneElse(group.matchedTransactionPersonId) || group.reviews.some((r) => involvesSomeoneElse(r.transactionPersonId)))
+        const total = group.reviews.reduce((sum, r) => sum + reviewAmount(r), 0)
 
         return (
-          <Card key={review.id} variant="outlined">
+          <Card key={group.matchedTransactionId} variant="outlined">
             <CardContent sx={{ pb: 0 }}>
               <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="subtitle2" noWrap>{review.transactionName}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {t('matchedTo')} <strong>{review.matchedTransactionName}</strong>
-                  </Typography>
+                  <Typography variant="caption" color="text.secondary">{t('matchedTo')}</Typography>
+                  <Typography variant="subtitle2" noWrap>{group.matchedTransactionName}</Typography>
                 </Box>
-                <Stack direction="row" spacing={0.5} alignItems="center" flexShrink={0}>
-                  <Typography variant="body2" fontWeight={600}>${amount}</Typography>
+                {!isSplit && (
                   <Chip
-                    label={`${score}%`}
+                    label={`${Math.round(group.reviews[0].matchScore)}%`}
                     size="small"
-                    color={score >= 90 ? 'success' : 'warning'}
+                    color={group.reviews[0].matchScore >= 90 ? 'success' : 'warning'}
                     sx={{ height: 20, fontSize: 11 }}
                   />
-                </Stack>
+                )}
+              </Stack>
+              <Stack spacing={0.5} sx={{ mt: 1 }}>
+                {group.reviews.map((review) => (
+                  <Stack key={review.id} direction="row" justifyContent="space-between">
+                    <Typography variant="body2" noWrap sx={{ minWidth: 0 }}>{review.transactionName}</Typography>
+                    <Typography variant="body2">${reviewAmount(review).toFixed(2)}</Typography>
+                  </Stack>
+                ))}
+                {isSplit && (
+                  <Stack direction="row" justifyContent="space-between" sx={{ borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
+                    <Typography variant="body2" fontWeight={600}>{t('total')}</Typography>
+                    <Typography variant="body2" fontWeight={600}>${total.toFixed(2)}</Typography>
+                  </Stack>
+                )}
               </Stack>
               {spansOutsideMyView && (
                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 1 }}>
@@ -138,7 +154,7 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
                 <LoadingButton
                   size="small"
                   startIcon={<BlockIcon />}
-                  onClick={() => handleDismiss(review.id)}
+                  onClick={() => handleDismissGroup(group)}
                   disabled={isPending}
                   loading={dismissMutation.isPending}
                   color="inherit"
@@ -148,7 +164,7 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
                 <LoadingButton
                   size="small"
                   startIcon={<CheckCircleOutlineIcon />}
-                  onClick={() => handleConfirm(review.id)}
+                  onClick={() => handleConfirmGroup(group)}
                   disabled={isPending}
                   loading={confirmMutation.isPending}
                   color="primary"
@@ -163,6 +179,11 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
       })}
     </Stack>
   )
+}
+
+function reviewAmount(review: { transactionAmount?: { units: bigint; nanos: number } }): number {
+  if (!review.transactionAmount) return 0
+  return Number(review.transactionAmount.units) + review.transactionAmount.nanos / 1e9
 }
 
 export function transactionReviewCount(reviews: { status: string }[]): number {

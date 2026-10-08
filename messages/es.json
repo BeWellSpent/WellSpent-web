@@ -161,7 +161,8 @@
       "confirm": "Confirmar",
       "dismiss": "Descartar",
       "empty": "No hay transacciones por revisar.",
-      "spansOutsideView": "Incluye datos de otra persona — cambia a Vista completa para revisarlo."
+      "spansOutsideView": "Incluye datos de otra persona — cambia a Vista completa para revisarlo.",
+      "total": "Total"
     },
     "sidebar": {
       "alerts": "Configuración de alertas",
