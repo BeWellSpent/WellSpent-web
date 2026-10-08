@@ -386,6 +386,9 @@
         "confirm": "Crear",
         "cancel": "Cancelar",
         "error": "No se pudo crear el gasto fijo."
+      },
+      "matchTransactions": {
+        "action": "Emparejar transacciones"
       }
     },
     "markForReview": {
@@ -400,6 +403,16 @@
       "noResults": "Ninguna transacción coincide con tu búsqueda.",
       "unpaidSection": "Sin pagar ({count})",
       "paidSection": "Pagado ({count})",
+      "confirm": "Marcar",
+      "cancel": "Cancelar"
+    },
+    "matchTransactions": {
+      "title": "Emparejar transacciones",
+      "plannedAmount": "Planificado: {amount}",
+      "filterPlaceholder": "Filtrar transacciones…",
+      "noVariable": "No hay transacciones variables este período para emparejar.",
+      "noResults": "Ninguna transacción coincide con tu búsqueda.",
+      "selectedTotal": "Seleccionado: {amount}",
       "confirm": "Marcar",
       "cancel": "Cancelar"
     },
