@@ -13,6 +13,7 @@ import {
   splitByPaidStatus,
   notDueFixedExpenses,
   needsPaymentMethodSetup,
+  exactNanos,
 } from '../helpers'
 import type { Transaction, Category, PaymentMethod, BudgetPerson, TransactionReview, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 
@@ -232,6 +233,25 @@ describe('isTransactionExcluded', () => {
   it('returns false when incomeCategoryId is not provided', () => {
     const tx = makeTransaction({ isExcluded: false, categoryId: 1 })
     expect(isTransactionExcluded(tx, undefined)).toBe(false)
+  })
+})
+
+describe('exactNanos', () => {
+  it('returns 0n for undefined', () => {
+    expect(exactNanos(undefined)).toBe(0n)
+  })
+
+  it('scales units and adds nanos exactly', () => {
+    expect(exactNanos({ units: 5n, nanos: 990000000 })).toBe(5_990_000_000n)
+  })
+
+  it('sums several values with no floating-point drift', () => {
+    const total = [
+      { units: 166n, nanos: 670000000 },
+      { units: 166n, nanos: 670000000 },
+      { units: 166n, nanos: 660000000 },
+    ].reduce((sum, m) => sum + exactNanos(m), 0n)
+    expect(total).toBe(exactNanos({ units: 500n, nanos: 0 }))
   })
 })
 

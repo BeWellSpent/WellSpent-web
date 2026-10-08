@@ -413,6 +413,7 @@
       "noVariable": "No hay transacciones variables este período para emparejar.",
       "noResults": "Ninguna transacción coincide con tu búsqueda.",
       "selectedTotal": "Seleccionado: {amount}",
+      "totalMustMatch": "Seleccionado {selected} — debe sumar exactamente {planned} para emparejar",
       "confirm": "Marcar",
       "cancel": "Cancelar"
     },
