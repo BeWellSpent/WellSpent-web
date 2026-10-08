@@ -33,6 +33,12 @@ export function txAmount(t: Transaction): number {
   return Number(t.amount?.units ?? 0n) + (t.amount?.nanos ?? 0) / 1e9
 }
 
+/** Exact nanos-scaled Money value (BigInt) — safe for equality checks, unlike txAmount's float. */
+export function exactNanos(money: { units: bigint; nanos: number } | undefined): bigint {
+  if (!money) return 0n
+  return money.units * 1_000_000_000n + BigInt(money.nanos)
+}
+
 // Maps a variable transaction's ID to the name of the fixed-type transaction
 // it's pending review against. Only pending reviews are included — a
 // confirmed review's transaction is excluded from totals (is_excluded, same

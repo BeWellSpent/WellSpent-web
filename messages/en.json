@@ -413,6 +413,7 @@
       "noVariable": "No variable transactions this period to match.",
       "noResults": "No transactions match your search.",
       "selectedTotal": "Selected: {amount}",
+      "totalMustMatch": "Selected {selected} — must total {planned} exactly to match",
       "confirm": "Flag",
       "cancel": "Cancel"
     },

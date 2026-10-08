@@ -10,7 +10,7 @@ import { useClient } from '@/hooks/useClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
-import { txAmount, txPlannedAmount, formatVariableAmount } from './helpers'
+import { txAmount, txPlannedAmount, formatVariableAmount, exactNanos } from './helpers'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -43,12 +43,7 @@ interface Props {
   personMap: Map<string, BudgetPerson>
 }
 
-// Fixed-row-initiated counterpart to MarkForReviewDialog (Variable-row,
-// single candidate) — lets several Variable transactions (e.g. a savings
-// payment split across bank transfers) all match the same Fixed one. Each
-// selection becomes its own transaction_review via the same
-// markTransactionForReview RPC the single-select dialog already uses — the
-// backend sums every confirmed match on that fixed transaction.
+// Fixed-row counterpart to MarkForReviewDialog — multi-select instead of one.
 export function MatchTransactionsDialog({
   open, onClose, matchedTransaction, budgetProfileId, budgetPeriodId,
   categoryMap, methodMap, personMap,
@@ -115,9 +110,12 @@ export function MatchTransactionsDialog({
   const candidates = (variableTxData?.transactions ?? []).filter(
     (tx) => !filterLower || tx.name.toLowerCase().includes(filterLower),
   )
-  const selectedTotal = candidates
-    .filter((tx) => selectedIds.has(tx.id))
-    .reduce((sum, tx) => sum + txAmount(tx), 0)
+  const selectedCandidates = candidates.filter((tx) => selectedIds.has(tx.id))
+  const selectedTotal = selectedCandidates.reduce((sum, tx) => sum + txAmount(tx), 0)
+  // Must sum to the full planned amount before confirming is allowed.
+  const plannedExact = matchedTransaction ? exactNanos(matchedTransaction.plannedAmount) : 0n
+  const selectedExact = selectedCandidates.reduce((sum, tx) => sum + exactNanos(tx.amount), 0n)
+  const matchesExactly = selectedIds.size > 0 && selectedExact === plannedExact
 
   return (
     <Dialog open={open} onClose={handleClose} fullScreen={isMobile} maxWidth="sm" fullWidth>
@@ -183,15 +181,19 @@ export function MatchTransactionsDialog({
         )}
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'space-between', px: 2 }}>
-        <Typography variant="body2" color="text.secondary">
-          {selectedIds.size > 0 && t('selectedTotal', { amount: formatMoney(selectedTotal) })}
+        <Typography variant="body2" color={matchesExactly ? 'success.main' : 'text.secondary'}>
+          {selectedIds.size > 0 && (
+            matchesExactly
+              ? t('selectedTotal', { amount: formatMoney(selectedTotal) })
+              : t('totalMustMatch', { selected: formatMoney(selectedTotal), planned: formatMoney(txPlannedAmount(matchedTransaction!)) })
+          )}
         </Typography>
         <Box>
           <Button onClick={handleClose} disabled={isPending}>{t('cancel')}</Button>
           <LoadingButton
             onClick={handleConfirm}
             variant="contained"
-            disabled={selectedIds.size === 0}
+            disabled={!matchesExactly}
             loading={isPending}
           >
             {t('confirm')}
