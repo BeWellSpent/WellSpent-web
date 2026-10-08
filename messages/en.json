@@ -386,6 +386,9 @@
         "confirm": "Create",
         "cancel": "Cancel",
         "error": "Couldn't create the fixed expense."
+      },
+      "matchTransactions": {
+        "action": "Match transactions"
       }
     },
     "markForReview": {
@@ -400,6 +403,16 @@
       "noResults": "No transactions match your search.",
       "unpaidSection": "Unpaid ({count})",
       "paidSection": "Paid ({count})",
+      "confirm": "Flag",
+      "cancel": "Cancel"
+    },
+    "matchTransactions": {
+      "title": "Match transactions",
+      "plannedAmount": "Planned: {amount}",
+      "filterPlaceholder": "Filter transactions…",
+      "noVariable": "No variable transactions this period to match.",
+      "noResults": "No transactions match your search.",
+      "selectedTotal": "Selected: {amount}",
       "confirm": "Flag",
       "cancel": "Cancel"
     },

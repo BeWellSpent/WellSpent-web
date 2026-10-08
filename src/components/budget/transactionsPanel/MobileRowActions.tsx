@@ -14,6 +14,7 @@ import FlagIcon from '@mui/icons-material/Flag'
 import CallSplitIcon from '@mui/icons-material/CallSplit'
 import EventRepeatIcon from '@mui/icons-material/EventRepeat'
 import UndoIcon from '@mui/icons-material/Undo'
+import JoinFullIcon from '@mui/icons-material/JoinFull'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import EditIcon from '@mui/icons-material/Edit'
@@ -27,6 +28,7 @@ export interface MobileRowActionsProps {
   canUnmark: boolean
   unmarkPending: boolean
   canFlagForReview: boolean
+  canMatchTransactions: boolean
   isExcluded: boolean
   canSplitIntoInstallments: boolean
   isInstallmentPlan: boolean
@@ -45,6 +47,7 @@ export interface MobileRowActionsProps {
   onMarkPaid: () => void
   onUnmark: () => void
   onFlagForReview: () => void
+  onMatchTransactions: () => void
   onToggleExcluded: () => void
   onSplitIntoInstallments: () => void
   onUnsplitInstallments: () => void
@@ -58,10 +61,10 @@ export interface MobileRowActionsProps {
 // Consolidating them behind a single "more" menu keeps every mobile row
 // within the viewport.
 export function MobileRowActions({
-  canMarkPaid, isAlreadyPaid, canUnmark, unmarkPending, canFlagForReview, isExcluded, isIncomeRow, canExclude, excludePending,
+  canMarkPaid, isAlreadyPaid, canUnmark, unmarkPending, canFlagForReview, canMatchTransactions, isExcluded, isIncomeRow, canExclude, excludePending,
   canSplitIntoInstallments, isInstallmentPlan, onSplitIntoInstallments, onUnsplitInstallments,
   canCreateFixedFromTransaction, onCreateFixedFromTransaction,
-  isRowEditable, canDelete, isPlaidImported, onMarkPaid, onUnmark, onFlagForReview, onToggleExcluded, onEdit, onDelete,
+  isRowEditable, canDelete, isPlaidImported, onMarkPaid, onUnmark, onFlagForReview, onMatchTransactions, onToggleExcluded, onEdit, onDelete,
 }: MobileRowActionsProps) {
   const t = useTranslations('budget.transactions')
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
@@ -96,6 +99,12 @@ export function MobileRowActions({
           <MenuItem onClick={() => run(onFlagForReview)}>
             <ListItemIcon><FlagIcon fontSize="small" /></ListItemIcon>
             <ListItemText>{t('markForReview')}</ListItemText>
+          </MenuItem>
+        )}
+        {canMatchTransactions && (
+          <MenuItem onClick={() => run(onMatchTransactions)}>
+            <ListItemIcon><JoinFullIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>{t('matchTransactions.action')}</ListItemText>
           </MenuItem>
         )}
         {isInstallmentPlan && (
