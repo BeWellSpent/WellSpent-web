@@ -1,12 +1,15 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient, ConnectError, Code } from '@connectrpc/connect'
 import { InviteService } from '@/gen/wellspent/v1/invite_connect'
 import { InviteStatus } from '@/gen/wellspent/v1/invite_pb'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { publicTransport, createTransport } from '@/lib/api/client'
+import { publicDotnetRestClient, createDotnetRestClient, unwrap, RestRequestError } from '@/lib/api/rest'
+import { inviteFromRest } from '@/lib/invites/inviteTransport'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -43,11 +46,6 @@ export function InviteAcceptContent({ inviteToken, locale, isLoggedIn, authToken
   const t = useTranslations()
   const tInvite = useTranslations('invite')
 
-  const authedClient = useMemo(
-    () => (authToken ? createClient(InviteService, createTransport(authToken)) : null),
-    [authToken]
-  )
-
   const [invite, setInvite] = useState<{
     budgetProfileId: string
     budgetName: string
@@ -64,7 +62,12 @@ export function InviteAcceptContent({ inviteToken, locale, isLoggedIn, authToken
   const [acceptError, setAcceptError] = useState('')
 
   useEffect(() => {
-    publicClient.getBudgetInvite({ token: inviteToken })
+    const fetchInvite = isEnabled('csharpInvite')
+      ? publicDotnetRestClient.GET('/rest/v1/invite-tokens/{token}', { params: { path: { token: inviteToken } } })
+          .then((res) => ({ invite: inviteFromRest(unwrap(res).invite) }))
+      : publicClient.getBudgetInvite({ token: inviteToken })
+
+    fetchInvite
       .then((res) => {
         const inv = res.invite
         if (!inv) { setLoadError('notFound'); return }
@@ -100,11 +103,13 @@ export function InviteAcceptContent({ inviteToken, locale, isLoggedIn, authToken
   }, [inviteToken])
 
   async function handleAccept() {
-    if (!authedClient || !invite) return
+    if (!authToken || !invite) return
     setAccepting(true)
     setAcceptError('')
     try {
-      const res = await authedClient.acceptBudgetInvite({ token: inviteToken })
+      const res = isEnabled('csharpInvite')
+        ? unwrap(await createDotnetRestClient(authToken).POST('/rest/v1/invite-tokens/{token}/accept', { params: { path: { token: inviteToken } } }))
+        : await createClient(InviteService, createTransport(authToken)).acceptBudgetInvite({ token: inviteToken })
       logger.info('invite.accept', { budgetProfileId: res.budgetProfileId })
       setAcceptSuccess(true)
       setTimeout(() => {
@@ -113,7 +118,9 @@ export function InviteAcceptContent({ inviteToken, locale, isLoggedIn, authToken
     } catch (err) {
       // If the account no longer exists the JWT is stale — clear it and reload
       // so the page falls back to the sign-in / register flow.
-      if (err instanceof ConnectError && err.code === Code.NotFound) {
+      const isStaleAccount = (err instanceof ConnectError && err.code === Code.NotFound)
+        || (err instanceof RestRequestError && err.status === 404)
+      if (isStaleAccount) {
         await fetch('/api/auth/logout', { method: 'POST' })
         window.location.reload()
         return

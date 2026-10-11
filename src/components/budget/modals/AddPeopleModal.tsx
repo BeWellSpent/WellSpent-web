@@ -7,6 +7,10 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { InviteService } from '@/gen/wellspent/v1/invite_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { unwrap } from '@/lib/api/rest'
+import { inviteRoleToRest } from '@/lib/invites/inviteTransport'
+import { isEnabled } from '@/lib/config/features'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { INVITABLE_ROLES, isValidInviteEmail, type PendingPerson } from './addPeople/pendingPerson'
@@ -47,6 +51,7 @@ export function AddPeopleModal({ budgetProfileId, onSkip, onDone }: Props) {
 
   const client = useClient(BudgetService)
   const inviteClient = useClient(InviteService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
 
   const { data: existingData, isLoading } = useQuery({
@@ -100,12 +105,14 @@ export function AddPeopleModal({ budgetProfileId, onSkip, onDone }: Props) {
 
       for (const { person, created: createdPerson } of invitable) {
         try {
-          await inviteClient.sendBudgetInvite({
-            budgetProfileId,
-            email: person.email,
-            role: person.role,
-            budgetPersonId: createdPerson?.id ?? 0n,
-          })
+          const personId = createdPerson?.id ?? 0n
+          if (isEnabled('csharpInvite')) {
+            unwrap(await dotnetClient.POST('/rest/v1/invites', {
+              body: { budgetProfileId, email: person.email, role: inviteRoleToRest(person.role), budgetPersonId: personId > 0n ? Number(personId) : null },
+            }))
+          } else {
+            await inviteClient.sendBudgetInvite({ budgetProfileId, email: person.email, role: person.role, budgetPersonId: personId })
+          }
           logger.info('invite.send', { budgetProfileId, email: person.email, role: person.role })
           showSuccess(t('inviteSent', { email: person.email }))
         } catch (err) {

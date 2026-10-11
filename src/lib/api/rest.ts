@@ -37,11 +37,11 @@ export type RestError = { code: string; message: string }
  * which is better for exhaustive handling but would mean rewriting every call
  * site's control flow for no benefit.
  *
- * Not exported: nothing narrows on it yet, and an export nothing imports is
- * what `npx knip` exists to catch. Export it when a call site needs to tell a
- * 404 from a 500.
+ * Exported so a call site can narrow a 404 from a 500 — e.g. the invite
+ * accept flow, whose Connect equivalent checks `Code.NotFound` for "the
+ * account was deleted mid-flow."
  */
-class RestRequestError extends Error {
+export class RestRequestError extends Error {
   readonly status: number
   readonly code: string
 
