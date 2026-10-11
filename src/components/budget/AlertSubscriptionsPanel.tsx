@@ -5,7 +5,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { NotificationService } from '@/gen/wellspent/v1/notification_connect'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
+import { unwrap } from '@/lib/api/rest'
+import { alertSubscriptionFromRest } from '@/lib/notifications/notificationTransport'
+import { isEnabled as isFeatureEnabled } from '@/lib/config/features'
 import { AlertTypeRow } from './alertSubscriptionsPanel/AlertTypeRow'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -27,12 +31,19 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
   const t = useTranslations('notifications.alerts')
   const isFree = useIsFreeTier()
   const client = useClient(NotificationService)
+  const dotnetClient = useDotnetRestClient()
   const budgetClient = useClient(BudgetService)
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['alert-subscriptions', budgetProfileId],
-    queryFn: () => client.listAlertSubscriptions({ budgetProfileId }),
+    queryFn: async () => {
+      if (isFeatureEnabled('csharpNotification')) {
+        const res = unwrap(await dotnetClient.GET('/rest/v1/notifications/alert-subscriptions', { params: { query: { budgetProfileId } } }))
+        return { subscriptions: res.subscriptions.map(alertSubscriptionFromRest) }
+      }
+      return client.listAlertSubscriptions({ budgetProfileId })
+    },
   })
 
   const { data: categoriesData } = useQuery({
@@ -42,14 +53,27 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
   const categories = categoriesData?.categories ?? []
 
   const upsertMutation = useMutation({
-    mutationFn: (vars: {
+    mutationFn: async (vars: {
       alertType: string
       channel: string
       thresholdPct?: number
       thresholdScope?: string
       categoryId?: number
-    }) =>
-      client.upsertAlertSubscription({
+    }) => {
+      if (isFeatureEnabled('csharpNotification')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/notifications/alert-subscriptions', {
+          body: {
+            budgetProfileId,
+            alertType: vars.alertType,
+            channel: vars.channel,
+            thresholdPct: vars.thresholdPct ?? 0,
+            thresholdScope: vars.thresholdScope ?? '',
+            categoryId: vars.categoryId ?? null,
+            notifyAllMembers: false,
+          },
+        }))
+      }
+      return client.upsertAlertSubscription({
         budgetProfileId,
         alertType: vars.alertType,
         channel: vars.channel,
@@ -57,12 +81,20 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
         thresholdScope: vars.thresholdScope ?? '',
         categoryId: vars.categoryId ?? 0,
         notifyAllMembers: false,
-      }),
+      })
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['alert-subscriptions', budgetProfileId] }),
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => client.deleteAlertSubscription({ id }),
+    mutationFn: async (id: string) => {
+      if (isFeatureEnabled('csharpNotification')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/notifications/alert-subscriptions/{id}', { params: { path: { id } } })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteAlertSubscription({ id })
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['alert-subscriptions', budgetProfileId] }),
   })
 
