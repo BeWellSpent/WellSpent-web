@@ -6,7 +6,9 @@ import { useRouter } from '@/i18n/navigation'
 import { useMutation } from '@tanstack/react-query'
 import { UserService } from '@/gen/wellspent/v1/user_connect'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -22,13 +24,20 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 export function AccountManagement() {
   const t = useTranslations('settings.accountManagement')
   const client = useClient(UserService)
+  const dotnetClient = useDotnetRestClient()
   const router = useRouter()
   const { showError } = useSnackbar()
   const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: () => client.deleteMe({}),
+    mutationFn: async () => {
+      if (!isEnabled('csharpUser')) return client.deleteMe({})
+      // No response body on success — unwrap() assumes a body is always
+      // present on 2xx, so check the error field directly.
+      const { error } = await dotnetClient.DELETE('/rest/v1/users/me')
+      if (error) throw new Error(error.message)
+    },
   })
 
   async function handleDelete() {

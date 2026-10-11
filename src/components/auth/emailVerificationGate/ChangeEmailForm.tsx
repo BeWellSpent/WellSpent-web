@@ -6,6 +6,9 @@ import { useTranslations } from 'next-intl'
 import { useQueryClient } from '@tanstack/react-query'
 import { UserService } from '@/gen/wellspent/v1/user_connect'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { canSubmitEmailChange } from '@/lib/auth/verification'
 import Box from '@mui/material/Box'
@@ -30,6 +33,7 @@ export function ChangeEmailForm({
 }) {
   const t = useTranslations('auth.verifyGate')
   const userClient = useClient(UserService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
 
   const [email, setEmail] = useState('')
@@ -41,7 +45,11 @@ export function ChangeEmailForm({
     setSaving(true)
     setError('')
     try {
-      await userClient.changeEmail({ newEmail: email })
+      if (isEnabled('csharpUser')) {
+        unwrap(await dotnetClient.POST('/rest/v1/users/me/change-email', { body: { newEmail: email } }))
+      } else {
+        await userClient.changeEmail({ newEmail: email })
+      }
       logger.info('auth.verification.emailChanged')
       // The gate keys off GetMe, so refreshing it is what swaps the dialog
       // over to the new address.

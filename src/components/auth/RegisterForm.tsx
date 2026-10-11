@@ -10,7 +10,7 @@ import { UserService } from '@/gen/wellspent/v1/user_connect'
 import { FilingStatus } from '@/gen/wellspent/v1/common_pb'
 import { US_STATES, FILING_STATUS_OPTIONS } from '@/lib/profile/usProfileOptions'
 import { publicTransport, createTransport } from '@/lib/api/client'
-import { publicDotnetRestClient, unwrap } from '@/lib/api/rest'
+import { publicDotnetRestClient, createDotnetRestClient, unwrap } from '@/lib/api/rest'
 import { getGoogleAuthUrl } from '@/lib/auth/authTransport'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
@@ -98,19 +98,16 @@ export function RegisterForm() {
 
       // Persist filing status before setting the cookie so profile is complete on first load
       if (countryCode === 'US' && filingStatus !== FilingStatus.UNSPECIFIED) {
-        const authedUserClient = createClient(UserService, createTransport(res.accessToken))
-        await authedUserClient.updateMe({
-          firstName,
-          lastName,
-          countryCode,
-          stateCode,
-          filingStatus,
-          taxPaymentFrequency: 0,
-          language,
-          currency,
-        }).catch((err) => {
+        const body = { firstName, lastName, countryCode, stateCode, filingStatus, taxPaymentFrequency: 0, language, currency }
+        try {
+          if (isEnabled('csharpUser')) {
+            unwrap(await createDotnetRestClient(res.accessToken).PUT('/rest/v1/users/me', { body }))
+          } else {
+            await createClient(UserService, createTransport(res.accessToken)).updateMe(body)
+          }
+        } catch (err) {
           logger.error('register.updateFilingStatus.failed', { error: err instanceof Error ? err.message : String(err) })
-        })
+        }
       }
 
       await fetch('/api/auth/set-token', {
