@@ -9,7 +9,10 @@ import { UserService } from '@/gen/wellspent/v1/user_connect'
 import { AccountPlan, FilingStatus, TaxPaymentFrequency } from '@/gen/wellspent/v1/common_pb'
 import { US_STATES, FILING_STATUS_OPTIONS } from '@/lib/profile/usProfileOptions'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useMe } from '@/hooks/useMe'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
@@ -61,6 +64,7 @@ export function ProfileSettings() {
   const searchParams = useSearchParams()
   const fromBudgetId = searchParams.get('from')
   const client = useClient(UserService)
+  const dotnetClient = useDotnetRestClient()
   const { showError } = useSnackbar()
   const [saved, setSaved] = useState(false)
 
@@ -90,8 +94,12 @@ export function ProfileSettings() {
   }, [user])
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: () =>
-      client.updateMe({ firstName, lastName, countryCode, stateCode, filingStatus, taxPaymentFrequency: taxFrequency, language, currency }),
+    mutationFn: async () => {
+      const body = { firstName, lastName, countryCode, stateCode, filingStatus, taxPaymentFrequency: taxFrequency, language, currency }
+      return isEnabled('csharpUser')
+        ? unwrap(await dotnetClient.PUT('/rest/v1/users/me', { body }))
+        : client.updateMe(body)
+    },
   })
 
   async function handleSave() {

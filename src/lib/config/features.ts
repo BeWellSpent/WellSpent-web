@@ -4,6 +4,7 @@ const flags = {
   // merging a flip doesn't break production, where no C# backend is deployed.
   csharpAuth: process.env.NEXT_PUBLIC_FEATURE_CSHARP_AUTH === 'true',
   csharpStatusChangelog: process.env.NEXT_PUBLIC_FEATURE_CSHARP_STATUS_CHANGELOG === 'true',
+  csharpUser: process.env.NEXT_PUBLIC_FEATURE_CSHARP_USER === 'true',
 } as const
 
 export type FeatureFlag = keyof typeof flags
