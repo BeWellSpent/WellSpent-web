@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { publicRestClient, unwrap } from '@/lib/api/rest'
+import { publicDotnetRestClient, publicRestClient, unwrap } from '@/lib/api/rest'
 import type { StatusBanner } from '@/lib/api/restModels'
+import { isEnabled } from '@/lib/config/features'
 import { browserStorage, isDismissed, markDismissed } from './dismissal'
 
 /**
@@ -30,7 +31,8 @@ export function useStatusBanner() {
 
   const load = useCallback(async () => {
     try {
-      const res = unwrap(await publicRestClient.GET('/rest/v1/status/banner'))
+      const client = isEnabled('csharpStatusChangelog') ? publicDotnetRestClient : publicRestClient
+      const res = unwrap(await client.GET('/rest/v1/status/banner'))
       setBanner(res.banner ?? null)
     } catch {
       // Swallowed on purpose. This is decoration on top of every page,
