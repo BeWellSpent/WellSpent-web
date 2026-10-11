@@ -10,6 +10,11 @@ import type { paths } from '@/gen/rest/schema'
  * for everything above the auth boundary. Everything else in the API is still
  * ConnectRPC; see WellSpent-proto's `openapi/README.md` for what belongs here.
  *
+ * `createDotnetRestClient`/`publicDotnetRestClient` are the same shape again,
+ * pointed at the new C# backend (issue #78) instead — the strangler-fig
+ * cutover target for domains as they flip one at a time. Once every domain
+ * has moved, the `baseUrl`/`dotnetBaseUrl` split collapses back to one.
+ *
  * Note that `fetch` handles the caching itself. These responses carry
  * `Cache-Control` and `ETag`, so the browser revalidates and serves 304s
  * without any of it being visible in this file — which is the entire reason
@@ -17,6 +22,11 @@ import type { paths } from '@/gen/rest/schema'
  */
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+// The new C# backend (issue #78) — only reachable when run locally; see
+// `.env.local.example`. Domains flip to it one at a time behind a feature
+// flag (e.g. `isEnabled('csharpAuth')`), never unconditionally, so merging a
+// flip can't break production before a real deployment exists.
+const dotnetBaseUrl = process.env.NEXT_PUBLIC_CSHARP_API_URL ?? 'http://localhost:5021'
 
 /** The error body every non-2xx response carries, per the contract. */
 export type RestError = { code: string; message: string }
@@ -86,3 +96,12 @@ export function createRestClient(token: string) {
  * registration form.
  */
 export const publicRestClient = createClient<paths>({ baseUrl })
+
+/** Same shape as `createRestClient`/`publicRestClient`, pointed at the new C# backend instead. */
+export function createDotnetRestClient(token: string) {
+  const client = createClient<paths>({ baseUrl: dotnetBaseUrl })
+  client.use(authMiddleware(token))
+  return client
+}
+
+export const publicDotnetRestClient = createClient<paths>({ baseUrl: dotnetBaseUrl })

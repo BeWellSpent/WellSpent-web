@@ -45,11 +45,29 @@ jest.mock('@/lib/api/client', () => ({
 jest.mock('@/gen/wellspent/v1/auth_connect', () => ({ AuthService: {} }))
 jest.mock('@/gen/wellspent/v1/user_connect', () => ({ UserService: {} }))
 
+// csharpAuth defaults false, matching production until a domain actually
+// flips — individual tests override it to exercise the REST branch.
+const mockIsEnabled = jest.fn().mockReturnValue(false)
+jest.mock('@/lib/config/features', () => ({ isEnabled: (flag: string) => mockIsEnabled(flag) }))
+
+let mockRegisterPost: jest.Mock
+jest.mock('@/lib/api/rest', () => ({
+  publicDotnetRestClient: { POST: (...args: unknown[]) => mockRegisterPost?.(...args) },
+  unwrap: (result: { data?: unknown; error?: { message?: string } }) => {
+    if (result.error !== undefined || result.data === undefined) {
+      throw new Error(result.error?.message ?? 'rest request failed')
+    }
+    return result.data
+  },
+}))
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
   jest.clearAllMocks()
   mockRegister = jest.fn()
+  mockRegisterPost = jest.fn()
+  mockIsEnabled.mockReturnValue(false)
   mockCountries = [{ code: 'US', name: 'United States' }]
   global.fetch = jest.fn().mockResolvedValue({ ok: true })
   localStorage.clear()
@@ -126,5 +144,39 @@ describe('RegisterForm', () => {
     await fillAndSubmit()
     await screen.findByText('Email already in use')
     expect(mockPush).not.toHaveBeenCalled()
+  })
+
+  describe('with csharpAuth enabled', () => {
+    beforeEach(() => {
+      mockIsEnabled.mockReturnValue(true)
+    })
+
+    it('calls the REST register endpoint instead of the register RPC', async () => {
+      mockRegisterPost.mockResolvedValueOnce({ data: { accessToken: 'tok', expiresIn: 3600 } })
+      render(<RegisterForm />)
+      await fillAndSubmit()
+      await waitFor(() => {
+        expect(mockRegisterPost).toHaveBeenCalledWith('/rest/v1/auth/register', {
+          body: expect.objectContaining({ firstName: 'Jane', email: 'jane@example.com', password: 'Secret1!' }),
+        })
+      })
+      expect(mockRegister).not.toHaveBeenCalled()
+    })
+
+    it('redirects to /budgets after a successful REST registration', async () => {
+      mockRegisterPost.mockResolvedValueOnce({ data: { accessToken: 'tok', expiresIn: 3600 } })
+      render(<RegisterForm />)
+      await fillAndSubmit()
+      await waitFor(() =>
+        expect(mockPush).toHaveBeenCalledWith('/budgets', expect.objectContaining({ locale: 'en' }))
+      )
+    })
+
+    it('shows an error message when the REST registration fails', async () => {
+      mockRegisterPost.mockResolvedValueOnce({ error: { code: 'already_exists', message: 'Email already in use' } })
+      render(<RegisterForm />)
+      await fillAndSubmit()
+      expect(await screen.findByText('Email already in use')).toBeInTheDocument()
+    })
   })
 })

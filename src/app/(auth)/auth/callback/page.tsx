@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@connectrpc/connect'
 import { AuthService } from '@/gen/wellspent/v1/auth_connect'
 import { publicTransport } from '@/lib/api/client'
+import { publicDotnetRestClient, unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -40,7 +42,11 @@ function CallbackContent() {
     const language = localStorage.getItem('wellspent_locale') || 'en'
     const currency = localStorage.getItem('wellspent_currency') || 'USD'
 
-    authClient.exchangeGoogleCode({ code, redirectUri, language, currency })
+    const exchange = isEnabled('csharpAuth')
+      ? publicDotnetRestClient.POST('/rest/v1/auth/google/exchange', { body: { code, redirectUri, language, currency } }).then(unwrap)
+      : authClient.exchangeGoogleCode({ code, redirectUri, language, currency })
+
+    exchange
       .then(async (res) => {
         await fetch('/api/auth/set-token', {
           method: 'POST',

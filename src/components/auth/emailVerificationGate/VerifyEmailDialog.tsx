@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { AuthService } from '@/gen/wellspent/v1/auth_connect'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { RESEND_COOLDOWN_MS } from '@/lib/auth/verification'
 import { ChangeEmailForm } from './ChangeEmailForm'
@@ -27,6 +29,7 @@ import Typography from '@mui/material/Typography'
 export function VerifyEmailDialog({ email }: { email: string }) {
   const t = useTranslations('auth.verifyGate')
   const authClient = useClient(AuthService)
+  const dotnetRestClient = useDotnetRestClient()
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -42,7 +45,14 @@ export function VerifyEmailDialog({ email }: { email: string }) {
     setSending(true)
     setError('')
     try {
-      await authClient.resendVerificationEmail({ email })
+      if (isEnabled('csharpAuth')) {
+        // No response body on success (`Results.Ok()`) — unwrap() assumes a
+        // body is always present on 2xx, so check the error field directly.
+        const { error } = await dotnetRestClient.POST('/rest/v1/auth/resend-verification-email', { body: { email } })
+        if (error) throw new Error(error.message)
+      } else {
+        await authClient.resendVerificationEmail({ email })
+      }
       setSent(true)
       logger.info('auth.verification.resend')
       cooldownTimer.current = setTimeout(() => setSent(false), RESEND_COOLDOWN_MS)

@@ -7,6 +7,8 @@ import { useSearchParams } from 'next/navigation'
 import { createClient } from '@connectrpc/connect'
 import { AuthService } from '@/gen/wellspent/v1/auth_connect'
 import { publicTransport } from '@/lib/api/client'
+import { publicDotnetRestClient, unwrap } from '@/lib/api/rest'
+import { getGoogleAuthUrl } from '@/lib/auth/authTransport'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
 import TextField from '@mui/material/TextField'
@@ -58,8 +60,7 @@ export function LoginForm() {
     // Preserve the post-auth redirect (e.g. invite acceptance) across the OAuth round-trip.
     if (redirect) sessionStorage.setItem('google_oauth_redirect', redirect)
     try {
-      const res = await authClient.getGoogleAuthURL({ state })
-      window.location.href = res.url
+      window.location.href = await getGoogleAuthUrl(state)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to initiate Google sign-in'
       setError(message)
@@ -72,7 +73,9 @@ export function LoginForm() {
     setError('')
     setLoading(true)
     try {
-      const res = await authClient.login({ email, password, rememberMe })
+      const res = isEnabled('csharpAuth')
+        ? unwrap(await publicDotnetRestClient.POST('/rest/v1/auth/login', { body: { email, password, rememberMe } }))
+        : await authClient.login({ email, password, rememberMe })
       await fetch('/api/auth/set-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
