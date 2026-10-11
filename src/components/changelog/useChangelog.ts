@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import type { ChangelogComponent, ChangelogRelease } from '@/lib/api/restModels'
 import { unwrap } from '@/lib/api/rest'
 import { useRestClient } from '@/hooks/useRestClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { isEnabled } from '@/lib/config/features'
 
 /** The web bundle's own version, as package.json spells it. */
 export const WEB_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '0.0.0'
@@ -30,7 +32,9 @@ export function useChangelog(components: ChangelogComponent[], enabled = true): 
   serverVersion: string
   isLoading: boolean
 } {
-  const client = useRestClient()
+  const goClient = useRestClient()
+  const dotnetClient = useDotnetRestClient()
+  const client = isEnabled('csharpStatusChangelog') ? dotnetClient : goClient
 
   const { data, isLoading } = useQuery({
     queryKey: changelogQueryKey(components),

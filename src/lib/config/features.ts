@@ -1,8 +1,9 @@
 const flags = {
   googleAuth: process.env.NEXT_PUBLIC_FEATURE_GOOGLE_AUTH === 'true',
-  // Strangler-fig cutover switch (C# rewrite, issue #86): off by default so
-  // merging this doesn't break production, where no C# backend is deployed.
+  // Strangler-fig cutover switches (C# rewrite, issue #86): off by default so
+  // merging a flip doesn't break production, where no C# backend is deployed.
   csharpAuth: process.env.NEXT_PUBLIC_FEATURE_CSHARP_AUTH === 'true',
+  csharpStatusChangelog: process.env.NEXT_PUBLIC_FEATURE_CSHARP_STATUS_CHANGELOG === 'true',
 } as const
 
 export type FeatureFlag = keyof typeof flags
