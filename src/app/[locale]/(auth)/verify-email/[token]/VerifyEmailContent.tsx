@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@connectrpc/connect'
 import { AuthService } from '@/gen/wellspent/v1/auth_connect'
 import { publicTransport } from '@/lib/api/client'
+import { publicDotnetRestClient, unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -31,7 +33,11 @@ export function VerifyEmailContent({ verificationToken, locale, isLoggedIn }: Pr
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying')
 
   useEffect(() => {
-    publicClient.verifyEmail({ token: verificationToken })
+    const verify = isEnabled('csharpAuth')
+      ? publicDotnetRestClient.POST('/rest/v1/auth/verify-email', { body: { token: verificationToken } }).then(unwrap)
+      : publicClient.verifyEmail({ token: verificationToken })
+
+    verify
       .then(() => {
         setStatus('success')
         logger.info('auth.verifyEmail')

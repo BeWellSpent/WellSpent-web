@@ -33,11 +33,29 @@ jest.mock('@connectrpc/connect', () => ({
 jest.mock('@/lib/api/client', () => ({ publicTransport: {} }))
 jest.mock('@/gen/wellspent/v1/auth_connect', () => ({ AuthService: {} }))
 
+// csharpAuth defaults false, matching production until a domain actually
+// flips — individual tests override it to exercise the REST branch.
+const mockIsEnabled = jest.fn().mockReturnValue(false)
+jest.mock('@/lib/config/features', () => ({ isEnabled: (flag: string) => mockIsEnabled(flag) }))
+
+let mockLoginPost: jest.Mock
+jest.mock('@/lib/api/rest', () => ({
+  publicDotnetRestClient: { POST: (...args: unknown[]) => mockLoginPost?.(...args) },
+  unwrap: (result: { data?: unknown; error?: { message?: string } }) => {
+    if (result.error !== undefined || result.data === undefined) {
+      throw new Error(result.error?.message ?? 'rest request failed')
+    }
+    return result.data
+  },
+}))
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
   jest.clearAllMocks()
   mockLogin = jest.fn()
+  mockLoginPost = jest.fn()
+  mockIsEnabled.mockReturnValue(false)
   global.fetch = jest.fn().mockResolvedValue({ ok: true })
   localStorage.clear()
 })
@@ -109,5 +127,45 @@ describe('LoginForm', () => {
     await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
     await screen.findByText('Invalid credentials')
     expect(mockPush).not.toHaveBeenCalled()
+  })
+
+  describe('with csharpAuth enabled', () => {
+    beforeEach(() => {
+      mockIsEnabled.mockReturnValue(true)
+    })
+
+    it('calls the REST login endpoint instead of the login RPC', async () => {
+      mockLoginPost.mockResolvedValueOnce({ data: { accessToken: 'tok', expiresIn: 86400, language: 'en', currency: 'USD' } })
+      render(<LoginForm />)
+      await userEvent.type(screen.getByLabelText(/email/i), 'user@example.com')
+      await userEvent.type(screen.getByLabelText(/password/i), 'secret123')
+      await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+      await waitFor(() => {
+        expect(mockLoginPost).toHaveBeenCalledWith('/rest/v1/auth/login', {
+          body: { email: 'user@example.com', password: 'secret123', rememberMe: false },
+        })
+      })
+      expect(mockLogin).not.toHaveBeenCalled()
+    })
+
+    it('redirects to /budgets after a successful REST login', async () => {
+      mockLoginPost.mockResolvedValueOnce({ data: { accessToken: 'tok', expiresIn: 86400, language: 'en', currency: 'USD' } })
+      render(<LoginForm />)
+      await userEvent.type(screen.getByLabelText(/email/i), 'user@example.com')
+      await userEvent.type(screen.getByLabelText(/password/i), 'secret123')
+      await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+      await waitFor(() =>
+        expect(mockPush).toHaveBeenCalledWith('/budgets', expect.objectContaining({ locale: 'en' }))
+      )
+    })
+
+    it('shows an error message when the REST login fails', async () => {
+      mockLoginPost.mockResolvedValueOnce({ error: { code: 'invalid_argument', message: 'Invalid credentials' } })
+      render(<LoginForm />)
+      await userEvent.type(screen.getByLabelText(/email/i), 'user@example.com')
+      await userEvent.type(screen.getByLabelText(/password/i), 'wrong')
+      await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+      expect(await screen.findByText('Invalid credentials')).toBeInTheDocument()
+    })
   })
 })

@@ -10,6 +10,8 @@ import { UserService } from '@/gen/wellspent/v1/user_connect'
 import { FilingStatus } from '@/gen/wellspent/v1/common_pb'
 import { US_STATES, FILING_STATUS_OPTIONS } from '@/lib/profile/usProfileOptions'
 import { publicTransport, createTransport } from '@/lib/api/client'
+import { publicDotnetRestClient, unwrap } from '@/lib/api/rest'
+import { getGoogleAuthUrl } from '@/lib/auth/authTransport'
 import { logger } from '@/lib/logger'
 import { isEnabled } from '@/lib/config/features'
 import { TurnstileWidget, type TurnstileWidgetHandle } from './TurnstileWidget'
@@ -73,8 +75,7 @@ export function RegisterForm() {
     localStorage.setItem('wellspent_locale', language)
     localStorage.setItem('wellspent_currency', currency)
     try {
-      const res = await authClient.getGoogleAuthURL({ state })
-      window.location.href = res.url
+      window.location.href = await getGoogleAuthUrl(state)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to initiate Google sign-in'
       setError(message)
@@ -87,9 +88,13 @@ export function RegisterForm() {
     setError('')
     setLoading(true)
     try {
-      const res = await authClient.register({
-        firstName, lastName, email, password, countryCode, stateCode, language, currency, captchaToken,
-      })
+      const res = isEnabled('csharpAuth')
+        ? unwrap(await publicDotnetRestClient.POST('/rest/v1/auth/register', {
+            body: { firstName, lastName, email, password, countryCode, stateCode, language, currency, captchaToken },
+          }))
+        : await authClient.register({
+            firstName, lastName, email, password, countryCode, stateCode, language, currency, captchaToken,
+          })
 
       // Persist filing status before setting the cookie so profile is complete on first load
       if (countryCode === 'US' && filingStatus !== FilingStatus.UNSPECIFIED) {
