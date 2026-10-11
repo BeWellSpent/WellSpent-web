@@ -11,6 +11,10 @@ import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useRoleLabel } from './peoplePanel/useRoleLabel'
 import { INVITABLE_ROLES } from './modals/addPeople/pendingPerson'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { unwrap } from '@/lib/api/rest'
+import { inviteFromRest, inviteRoleToRest } from '@/lib/invites/inviteTransport'
+import { isEnabled } from '@/lib/config/features'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
@@ -55,6 +59,7 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
   const roleLabel = useRoleLabel()
   const { showError, showSuccess } = useSnackbar()
   const inviteClient = useClient(InviteService)
+  const dotnetClient = useDotnetRestClient()
   const budgetClient = useClient(BudgetService)
   const queryClient = useQueryClient()
 
@@ -66,7 +71,13 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
 
   const { data: invitesData, isLoading } = useQuery({
     queryKey: ['budget-invites', budgetProfileId],
-    queryFn: () => inviteClient.listBudgetInvites({ budgetProfileId }),
+    queryFn: async () => {
+      if (isEnabled('csharpInvite')) {
+        const res = unwrap(await dotnetClient.GET('/rest/v1/invites', { params: { query: { budgetProfileId } } }))
+        return { invites: res.invites.map(inviteFromRest) }
+      }
+      return inviteClient.listBudgetInvites({ budgetProfileId })
+    },
   })
 
   const { data: peopleData } = useQuery({
@@ -75,21 +86,29 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
   })
 
   const { mutateAsync: doSend, isPending: isSending } = useMutation({
-    mutationFn: () =>
-      inviteClient.sendBudgetInvite({
-        budgetProfileId,
-        email: email.trim(),
-        role,
-        budgetPersonId: budgetPersonId > 0n ? budgetPersonId : 0n,
-      }),
+    mutationFn: async () => {
+      const linkedPersonId = budgetPersonId > 0n ? budgetPersonId : 0n
+      if (isEnabled('csharpInvite')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/invites', {
+          body: { budgetProfileId, email: email.trim(), role: inviteRoleToRest(role), budgetPersonId: linkedPersonId > 0n ? Number(linkedPersonId) : null },
+        }))
+      }
+      return inviteClient.sendBudgetInvite({ budgetProfileId, email: email.trim(), role, budgetPersonId: linkedPersonId })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budget-invites', budgetProfileId] })
     },
   })
 
   const { mutateAsync: doCancel } = useMutation({
-    mutationFn: (id: string) =>
-      inviteClient.cancelBudgetInvite({ id, budgetProfileId }),
+    mutationFn: async (id: string) => {
+      if (isEnabled('csharpInvite')) {
+        const { error } = await dotnetClient.POST('/rest/v1/invites/{id}/cancel', { params: { path: { id } } })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await inviteClient.cancelBudgetInvite({ id, budgetProfileId })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budget-invites', budgetProfileId] })
     },
@@ -127,14 +146,20 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
     try {
       // Cancel the old invite first to avoid duplicate pending invites for the same email.
       if (inv.status === InviteStatus.PENDING) {
-        await inviteClient.cancelBudgetInvite({ id: inv.id, budgetProfileId })
+        if (isEnabled('csharpInvite')) {
+          const { error } = await dotnetClient.POST('/rest/v1/invites/{id}/cancel', { params: { path: { id: inv.id } } })
+          if (error) throw new Error(error.message)
+        } else {
+          await inviteClient.cancelBudgetInvite({ id: inv.id, budgetProfileId })
+        }
       }
-      await inviteClient.sendBudgetInvite({
-        budgetProfileId,
-        email: inv.email,
-        role: inv.role,
-        budgetPersonId: inv.budgetPersonId,
-      })
+      if (isEnabled('csharpInvite')) {
+        unwrap(await dotnetClient.POST('/rest/v1/invites', {
+          body: { budgetProfileId, email: inv.email, role: inviteRoleToRest(inv.role), budgetPersonId: inv.budgetPersonId > 0n ? Number(inv.budgetPersonId) : null },
+        }))
+      } else {
+        await inviteClient.sendBudgetInvite({ budgetProfileId, email: inv.email, role: inv.role, budgetPersonId: inv.budgetPersonId })
+      }
       queryClient.invalidateQueries({ queryKey: ['budget-invites', budgetProfileId] })
       logger.info('invite.resend', { budgetProfileId, email: inv.email })
       showSuccess(tInvites('send.success', { email: inv.email }))

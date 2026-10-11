@@ -6,6 +6,7 @@ const flags = {
   csharpStatusChangelog: process.env.NEXT_PUBLIC_FEATURE_CSHARP_STATUS_CHANGELOG === 'true',
   csharpUser: process.env.NEXT_PUBLIC_FEATURE_CSHARP_USER === 'true',
   csharpNotification: process.env.NEXT_PUBLIC_FEATURE_CSHARP_NOTIFICATION === 'true',
+  csharpInvite: process.env.NEXT_PUBLIC_FEATURE_CSHARP_INVITE === 'true',
 } as const
 
 export type FeatureFlag = keyof typeof flags
