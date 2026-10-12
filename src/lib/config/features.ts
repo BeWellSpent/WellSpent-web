@@ -7,6 +7,7 @@ const flags = {
   csharpUser: process.env.NEXT_PUBLIC_FEATURE_CSHARP_USER === 'true',
   csharpNotification: process.env.NEXT_PUBLIC_FEATURE_CSHARP_NOTIFICATION === 'true',
   csharpInvite: process.env.NEXT_PUBLIC_FEATURE_CSHARP_INVITE === 'true',
+  csharpPlaid: process.env.NEXT_PUBLIC_FEATURE_CSHARP_PLAID === 'true',
 } as const
 
 export type FeatureFlag = keyof typeof flags

@@ -5,7 +5,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PlaidService } from '@/gen/wellspent/v1/plaid_connect'
 import type { PlaidConnection } from '@/gen/wellspent/v1/plaid_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
+import { unwrap } from '@/lib/api/rest'
+import { plaidConnectionFromRest, syncWarningFromRest } from '@/lib/plaid/plaidTransport'
+import { isEnabled } from '@/lib/config/features'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 
@@ -34,6 +38,7 @@ export function usePlaidConnections(budgetProfileId?: string) {
   const { showError } = useSnackbar()
   const queryClient = useQueryClient()
   const plaidClient = useClient(PlaidService)
+  const dotnetClient = useDotnetRestClient()
 
   const [linkSession, setLinkSession] = useState<LinkSession | null>(null)
   const [managingAccountsId, setManagingAccountsId] = useState<string | null>(null)
@@ -44,7 +49,13 @@ export function usePlaidConnections(budgetProfileId?: string) {
 
   const { data, isLoading } = useQuery({
     queryKey,
-    queryFn: () => plaidClient.getPlaidConnections(budgetProfileId ? { budgetProfileId } : {}),
+    queryFn: async () => {
+      if (isEnabled('csharpPlaid')) {
+        const res = unwrap(await dotnetClient.GET('/rest/v1/plaid/connections', { params: { query: { budgetProfileId } } }))
+        return { connections: res.connections.map(plaidConnectionFromRest), warnings: res.warnings.map(syncWarningFromRest) }
+      }
+      return plaidClient.getPlaidConnections(budgetProfileId ? { budgetProfileId } : {})
+    },
   })
 
   /**
@@ -57,18 +68,31 @@ export function usePlaidConnections(budgetProfileId?: string) {
   }, [queryClient])
 
   const createTokenMutation = useMutation({
-    mutationFn: (targetBudgetId: string) =>
-      plaidClient.createLinkToken({ budgetProfileId: targetBudgetId }),
+    mutationFn: async (targetBudgetId: string) => {
+      if (isEnabled('csharpPlaid')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/plaid/link-token', { body: { budgetProfileId: targetBudgetId } }))
+      }
+      return plaidClient.createLinkToken({ budgetProfileId: targetBudgetId })
+    },
   })
 
   const createUpdateTokenMutation = useMutation({
-    mutationFn: (args: { budgetProfileId: string; connectionId: string }) =>
-      plaidClient.createLinkToken(args),
+    mutationFn: async (args: { budgetProfileId: string; connectionId: string }) => {
+      if (isEnabled('csharpPlaid')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/plaid/link-token', { body: args }))
+      }
+      return plaidClient.createLinkToken(args)
+    },
   })
 
   const exchangeMutation = useMutation({
-    mutationFn: ({ publicToken, budgetProfileId: target }: { publicToken: string; budgetProfileId: string }) =>
-      plaidClient.exchangePublicToken({ publicToken, budgetProfileId: target }),
+    mutationFn: async ({ publicToken, budgetProfileId: target }: { publicToken: string; budgetProfileId: string }) => {
+      if (isEnabled('csharpPlaid')) {
+        const res = unwrap(await dotnetClient.POST('/rest/v1/plaid/connections', { body: { publicToken, budgetProfileId: target } }))
+        return { connection: plaidConnectionFromRest(res.connection) }
+      }
+      return plaidClient.exchangePublicToken({ publicToken, budgetProfileId: target })
+    },
     onSuccess: () => {
       invalidate()
       logger.info('plaid.connect.success')
@@ -76,7 +100,13 @@ export function usePlaidConnections(budgetProfileId?: string) {
   })
 
   const refreshAccountsMutation = useMutation({
-    mutationFn: (connectionId: string) => plaidClient.refreshPlaidAccounts({ connectionId }),
+    mutationFn: async (connectionId: string) => {
+      if (isEnabled('csharpPlaid')) {
+        const res = unwrap(await dotnetClient.POST('/rest/v1/plaid/connections/{id}/refresh-accounts', { params: { path: { id: connectionId } } }))
+        return { connection: plaidConnectionFromRest(res.connection) }
+      }
+      return plaidClient.refreshPlaidAccounts({ connectionId })
+    },
     onSuccess: (res) => {
       invalidate()
       if (res.connection?.budgetProfileId) {
@@ -87,7 +117,16 @@ export function usePlaidConnections(budgetProfileId?: string) {
   })
 
   const disconnectMutation = useMutation({
-    mutationFn: (connectionId: string) => plaidClient.disconnectPlaid({ connectionId }),
+    mutationFn: async (connectionId: string) => {
+      if (isEnabled('csharpPlaid')) {
+        // No response body on success — unwrap() assumes a body is always
+        // present on 2xx, so check the error field directly.
+        const { error } = await dotnetClient.DELETE('/rest/v1/plaid/connections/{id}', { params: { path: { id: connectionId } } })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await plaidClient.disconnectPlaid({ connectionId })
+    },
     onSuccess: () => {
       invalidate()
       logger.info('plaid.disconnect.success')
@@ -95,7 +134,13 @@ export function usePlaidConnections(budgetProfileId?: string) {
   })
 
   const resyncMutation = useMutation({
-    mutationFn: (connectionId: string) => plaidClient.resyncPlaidConnection({ connectionId }),
+    mutationFn: async (connectionId: string) => {
+      if (isEnabled('csharpPlaid')) {
+        unwrap(await dotnetClient.POST('/rest/v1/plaid/connections/{id}/resync', { params: { path: { id: connectionId } } }))
+        return
+      }
+      await plaidClient.resyncPlaidConnection({ connectionId })
+    },
     onSuccess: () => {
       invalidate()
       logger.info('plaid.resync.success')
