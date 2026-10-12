@@ -2,11 +2,16 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useClient } from '@/hooks/useClient'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
-import { useClient } from '@/hooks/useClient'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
+import { useBudgetProfile, budgetProfileQueryKey } from '@/hooks/useBudgetProfile'
+import { useBudgetPeriods, budgetPeriodsQueryKey } from '@/hooks/useBudgetPeriods'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { isEnabled } from '@/lib/config/features'
+import { budgetProfilesQueryKey } from '@/hooks/useBudgetProfiles'
 import { useRouter } from '@/i18n/navigation'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -41,6 +46,7 @@ interface Props {
 export function PeriodListPanel({ budgetId }: Props) {
   const t = useTranslations('budget.list')
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const router = useRouter()
   const queryClient = useQueryClient()
   const { showError, showSuccess } = useSnackbar()
@@ -50,21 +56,19 @@ export function PeriodListPanel({ budgetId }: Props) {
   const myRole = useBudgetRole(budgetId)
   const canManageUsers = myRole === BudgetRole.ADMIN
 
-  const { data: profileData } = useQuery({
-    queryKey: ['budget-profile', budgetId],
-    queryFn: () => client.getBudgetProfile({ id: budgetId }),
-  })
-
-  const { data: periodsData, isLoading } = useQuery({
-    queryKey: ['budget-periods', budgetId],
-    queryFn: () => client.listBudgetPeriods({ budgetProfileId: budgetId }),
-  })
+  const { profile } = useBudgetProfile(budgetId)
+  const { periods, isLoading } = useBudgetPeriods(budgetId)
 
   const { mutateAsync: doDelete, isPending: isDeleting } = useMutation({
-    mutationFn: (id: string) => client.deleteBudgetProfile({ id }),
+    mutationFn: async (id: string) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/budgets/{id}', { params: { path: { id } } })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteBudgetProfile({ id })
+    },
   })
-
-  const profile = profileData?.profile
 
   async function handleDelete() {
     if (!profile) return
@@ -73,14 +77,16 @@ export function PeriodListPanel({ budgetId }: Props) {
       logger.info('budget.delete', { budgetId: profile.id, name: profile.name })
       showSuccess(`"${profile.name}" deleted.`)
       setDeleteOpen(false)
-      queryClient.invalidateQueries({ queryKey: ['budgets', 'list'] })
+      queryClient.invalidateQueries({ queryKey: budgetProfilesQueryKey() })
+      queryClient.invalidateQueries({ queryKey: budgetProfileQueryKey(profile.id) })
+      queryClient.invalidateQueries({ queryKey: budgetPeriodsQueryKey(profile.id) })
       router.push('/budgets')
     } catch (err) {
       showError(err)
     }
   }
 
-  const yearGroups = groupPeriodsByYear(periodsData?.periods ?? [])
+  const yearGroups = groupPeriodsByYear(periods)
   const years = yearGroups.map((g) => g.year)
   const effectiveYear = selectedYear !== null && years.includes(selectedYear) ? selectedYear : years[0]
   const periodsForYear = yearGroups.find((g) => g.year === effectiveYear)?.periods ?? []

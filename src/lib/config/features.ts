@@ -8,6 +8,10 @@ const flags = {
   csharpNotification: process.env.NEXT_PUBLIC_FEATURE_CSHARP_NOTIFICATION === 'true',
   csharpInvite: process.env.NEXT_PUBLIC_FEATURE_CSHARP_INVITE === 'true',
   csharpPlaid: process.env.NEXT_PUBLIC_FEATURE_CSHARP_PLAID === 'true',
+  // Covers the whole Budget/Transactions/Categories/PaymentMethods cluster —
+  // one flag, not one per sub-batch, since a half-flipped Budget domain is
+  // not a state anyone would actually deploy.
+  csharpBudget: process.env.NEXT_PUBLIC_FEATURE_CSHARP_BUDGET === 'true',
 } as const
 
 export type FeatureFlag = keyof typeof flags

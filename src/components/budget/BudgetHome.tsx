@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
-import { useQuery } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
-import { useClient } from '@/hooks/useClient'
+import { useBudgetProfiles } from '@/hooks/useBudgetProfiles'
 import { useRouter } from '@/i18n/navigation'
 import { formatError, isSessionError } from '@/lib/errors'
 import { logger } from '@/lib/logger'
@@ -35,13 +33,9 @@ export function BudgetHome() {
   const tChrome = useTranslations('budget.sidebar')
   const locale = useLocale()
   const router = useRouter()
-  const client = useClient(BudgetService)
   const [setupOpen, setSetupOpen] = useState(false)
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['budgets', 'list'],
-    queryFn: () => client.listBudgetProfiles({}),
-  })
+  const { data, isLoading, isError, error, refetch } = useBudgetProfiles()
 
   const profile = data?.profiles?.[0]
 

@@ -1,9 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
-import { useClient } from '@/hooks/useClient'
+import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { useAuth } from '@/context/AuthContext'
 import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
 
@@ -14,19 +12,12 @@ import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
  */
 export function useBudgetRole(budgetProfileId: string): BudgetRole {
   const { userId } = useAuth()
-  const client = useClient(BudgetService)
-
-  const { data: profileData } = useQuery({
-    queryKey: ['budget-profile', budgetProfileId],
-    queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
-  })
-
+  const { profile } = useBudgetProfile(budgetProfileId)
   const { person: myPerson, isLoading: personLoading } = useMyBudgetPerson(budgetProfileId)
 
-  if (!profileData || personLoading) return BudgetRole.ADMIN
+  if (!profile || personLoading) return BudgetRole.ADMIN
 
-  const profile = profileData.profile
-  if (userId && profile?.userId && profile.userId === userId) return BudgetRole.ADMIN
+  if (userId && profile.userId && profile.userId === userId) return BudgetRole.ADMIN
 
   return myPerson?.role ?? BudgetRole.UNSPECIFIED
 }

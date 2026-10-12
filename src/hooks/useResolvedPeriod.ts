@@ -1,8 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
-import { useClient } from '@/hooks/useClient'
+import { useBudgetPeriods } from '@/hooks/useBudgetPeriods'
 import { resolvePeriod } from '@/hooks/resolvePeriod'
 
 /**
@@ -21,15 +19,7 @@ import { resolvePeriod } from '@/hooks/resolvePeriod'
  * independently with duplicated filter/sort logic.
  */
 export function useResolvedPeriod(budgetProfileId: string, overridePeriodId?: string | null, enabled = true) {
-  const client = useClient(BudgetService)
-
-  const { data: periodsData, isLoading } = useQuery({
-    queryKey: ['budget-periods', budgetProfileId],
-    queryFn: () => client.listBudgetPeriods({ budgetProfileId }),
-    enabled,
-  })
-
-  const periods = periodsData?.periods ?? []
+  const { periods, isLoading } = useBudgetPeriods(budgetProfileId, enabled)
   const period = resolvePeriod(periods, overridePeriodId)
 
   return {
