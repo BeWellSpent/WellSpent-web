@@ -4,13 +4,11 @@ import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
 import { useThemeMode } from '@/context/ThemeContext'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
-import { useClient } from '@/hooks/useClient'
+import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
 import { useResolvedPeriod } from '@/hooks/useResolvedPeriod'
 import { DesktopSidebar } from './sidebar/DesktopSidebar'
@@ -51,7 +49,6 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   // Sidebar collapses to a bottom bar earlier than the `sm` app-wide
   // breakpoint — there's a permanent sidebar to make room for down to `md`.
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const client = useClient(BudgetService)
   const [peopleOpen, setPeopleOpen] = useState(false)
   const [invitesOpen, setInvitesOpen] = useState(false)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
@@ -106,26 +103,23 @@ export function BudgetSidebar({ budgetId, children }: Props) {
   const canEdit = myRole === BudgetRole.ADMIN || myRole === BudgetRole.COLLABORATOR
   const canManageUsers = myRole === BudgetRole.ADMIN
 
-  const { data } = useQuery({
-    queryKey: ['budget-profile', budgetId],
-    queryFn: () => client.getBudgetProfile({ id: budgetId }),
-  })
+  const { profile } = useBudgetProfile(budgetId)
 
   // Always the true active period, never a browsed-to archived one — see
   // useResolvedPeriod's doc comment for why Manage panels don't follow
   // BudgetView's `?period=` override.
   // `periods` is already fetched here to resolve the active one — the switcher
   // reads that same copy rather than issuing its own ListBudgetPeriods.
-  const { period: activePeriod, periods } = useResolvedPeriod(budgetId, undefined, !!data)
+  const { period: activePeriod, periods } = useResolvedPeriod(budgetId, undefined, !!profile)
   // Which period the *content* is showing, which may be an archived one the
   // user browsed to; `activePeriod` above is deliberately always the live one.
   const shownPeriodId = searchParams.get('period') ?? activePeriod?.id
 
-  const budgetName = data?.profile?.name ?? '…'
+  const budgetName = profile?.name ?? '…'
   // The budget's country is propagated from its owner at creation. It gates
   // both the before-tax income fields and the bank-connections panel, since
   // Plaid is US-only and the backend refuses everyone else outright.
-  const isUS = (data?.profile?.countryCode ?? '') === 'US'
+  const isUS = (profile?.countryCode ?? '') === 'US'
   const iconSrc = themeMounted && effective === 'dark' ? '/app-icon-dark.png' : '/app-icon-light.png'
 
   const activePeriodStart = activePeriod?.startDate

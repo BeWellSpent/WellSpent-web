@@ -1,6 +1,11 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
+import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { BudgetSettingToggle } from './BudgetSettingToggle'
 
 /**
@@ -11,6 +16,19 @@ import { BudgetSettingToggle } from './BudgetSettingToggle'
  */
 export function PlannedAmountSettingsPanel({ budgetProfileId }: { budgetProfileId: string }) {
   const t = useTranslations('budget.plannedAmountSync')
+  const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
+
+  async function save(enabled: boolean) {
+    if (isEnabled('csharpBudget')) {
+      return unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/auto-update-planned-amount', {
+        params: { path: { id: budgetProfileId } },
+        body: { enabled },
+      }))
+    }
+    return client.setBudgetAutoUpdatePlannedAmount({ budgetProfileId, enabled })
+  }
+
   return (
     <BudgetSettingToggle
       budgetProfileId={budgetProfileId}
@@ -19,7 +37,7 @@ export function PlannedAmountSettingsPanel({ budgetProfileId }: { budgetProfileI
       adminOnlyLabel={t('adminOnly')}
       saveFailedLabel={t('saveFailed')}
       value={(profile) => profile?.autoUpdatePlannedAmount ?? true}
-      save={(client, enabled) => client.setBudgetAutoUpdatePlannedAmount({ budgetProfileId, enabled })}
+      save={save}
       event="budget.plannedAmountSync.update"
       testId="plannedAmountSyncToggle"
     />

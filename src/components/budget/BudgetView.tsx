@@ -11,6 +11,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
+import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useResolvedPeriod } from '@/hooks/useResolvedPeriod'
 import { TransactionsPanel } from './TransactionsPanel'
@@ -84,17 +85,14 @@ export function BudgetView({ budgetId }: Props) {
   const myRole = useBudgetRole(budgetId)
   const canEdit = myRole === BudgetRole.ADMIN || myRole === BudgetRole.COLLABORATOR
 
-  const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
-    queryKey: ['budget-profile', budgetId],
-    queryFn: () => client.getBudgetProfile({ id: budgetId }),
-  })
+  const { profile, isLoading: profileLoading, error: profileError } = useBudgetProfile(budgetId)
 
   // `?period=` lets the budget list navigate straight to a specific (possibly
   // archived) past period; absent, this resolves to the true active period.
   const { period: activePeriod, isArchived, isLoading: periodsLoading } = useResolvedPeriod(
     budgetId,
     searchParams.get('period'),
-    !!profileData
+    !!profile
   )
   const { data: reviewData } = useQuery({
     queryKey: ['transaction-reviews', budgetId],
@@ -107,8 +105,6 @@ export function BudgetView({ budgetId }: Props) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', pt: 8 }}><CircularProgress /></Box>
   }
   if (profileError) return <Typography color="error">{t('failedToLoad')}</Typography>
-
-  const profile = profileData?.profile
 
   function handleFabClick() {
     // Both Fixed and Variable need a payment method to save, so the whole

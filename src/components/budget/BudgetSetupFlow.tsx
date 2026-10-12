@@ -7,8 +7,12 @@ import { useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetCycle } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useMe } from '@/hooks/useMe'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { budgetCycleToRest } from '@/lib/budget/budgetTransport'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -49,16 +53,32 @@ export function BudgetSetupFlow({ open, onClose, onComplete }: Props) {
   const [cancelOpen, setCancelOpen] = useState(false)
 
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
 
   const { user: me } = useMe()
   const showBeforeTax = me?.countryCode === 'US'
 
   const { mutateAsync: doCreateProfile, isPending } = useMutation({
-    mutationFn: (name: string) => client.createBudgetProfile({ name, cycle: BudgetCycle.MONTHLY }),
+    mutationFn: async (name: string) => {
+      if (isEnabled('csharpBudget')) {
+        const res = unwrap(await dotnetClient.POST('/rest/v1/budgets', {
+          body: { name, cycle: budgetCycleToRest(BudgetCycle.MONTHLY) },
+        }))
+        return { profile: res.profile }
+      }
+      return client.createBudgetProfile({ name, cycle: BudgetCycle.MONTHLY })
+    },
   })
 
   const { mutateAsync: doDeleteProfile, isPending: isDeleting } = useMutation({
-    mutationFn: (id: string) => client.deleteBudgetProfile({ id }),
+    mutationFn: async (id: string) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/budgets/{id}', { params: { path: { id } } })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteBudgetProfile({ id })
+    },
   })
 
   function reset() {

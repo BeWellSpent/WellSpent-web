@@ -5,12 +5,11 @@ import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
-import { useClient } from '@/hooks/useClient'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
+import { useBudgetProfile, budgetProfileQueryKey } from '@/hooks/useBudgetProfile'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
 import type { BudgetProfile } from '@/gen/wellspent/v1/budget_pb'
 
@@ -22,8 +21,8 @@ interface Props {
   saveFailedLabel: string
   /** Reads the current value off the profile. */
   value: (profile: BudgetProfile | undefined) => boolean
-  /** Calls the RPC that persists it. */
-  save: (client: ReturnType<typeof useClient<typeof BudgetService>>, enabled: boolean) => Promise<unknown>
+  /** Persists it, transport decided by the caller. */
+  save: (enabled: boolean) => Promise<unknown>
   /** Logger event name, e.g. `budget.carryover.update`. */
   event: string
   testId: string
@@ -42,23 +41,19 @@ export function BudgetSettingToggle({
   budgetProfileId, title, description, adminOnlyLabel, saveFailedLabel,
   value, save, event, testId,
 }: Props) {
-  const client = useClient(BudgetService)
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
   const isAdmin = useBudgetRole(budgetProfileId) === BudgetRole.ADMIN
 
-  const { data } = useQuery({
-    queryKey: ['budget-profile', budgetProfileId],
-    queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
-  })
+  const { profile } = useBudgetProfile(budgetProfileId)
 
   // Held locally once touched so the switch answers immediately rather than
   // waiting on the refetch.
   const [pending, setPending] = useState<boolean | null>(null)
-  const enabled = pending ?? value(data?.profile)
+  const enabled = pending ?? value(profile)
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (next: boolean) => save(client, next),
+    mutationFn: (next: boolean) => save(next),
   })
 
   async function update(next: boolean) {
@@ -66,7 +61,7 @@ export function BudgetSettingToggle({
     setPending(next)
     try {
       await mutateAsync(next)
-      await queryClient.invalidateQueries({ queryKey: ['budget-profile', budgetProfileId] })
+      await queryClient.invalidateQueries({ queryKey: budgetProfileQueryKey(budgetProfileId) })
       logger.info(event, { budgetProfileId, enabled: next })
     } catch (err) {
       // Put the switch back, so the UI never claims a setting the server

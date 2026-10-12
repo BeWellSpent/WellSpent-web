@@ -2,10 +2,8 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { useQuery } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { PlaidConnection } from '@/gen/wellspent/v1/plaid_pb'
-import { useClient } from '@/hooks/useClient'
+import { useBudgetProfiles } from '@/hooks/useBudgetProfiles'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { usePlaidConnections } from '@/components/plaid/usePlaidConnections'
 import { PlaidLinkLauncher } from '@/components/plaid/PlaidLinkLauncher'
@@ -33,7 +31,6 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 export function PlaidSection() {
   const t = useTranslations('plaid')
   const isFree = useIsFreeTier()
-  const budgetClient = useClient(BudgetService)
 
   const [pickingBudget, setPickingBudget] = useState(false)
   const [confirmDisconnect, setConfirmDisconnect] = useState<PlaidConnection | null>(null)
@@ -41,10 +38,7 @@ export function PlaidSection() {
 
   const plaid = usePlaidConnections()
 
-  const { data: budgetsData } = useQuery({
-    queryKey: ['budgets', 'list'],
-    queryFn: () => budgetClient.listBudgetProfiles({}),
-  })
+  const { data: budgetsData } = useBudgetProfiles()
   const budgets = budgetsData?.profiles ?? []
   const budgetNameMap = Object.fromEntries(budgets.map((b) => [b.id, b.name]))
 
