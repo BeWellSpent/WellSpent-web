@@ -7,8 +7,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction, Category, PaymentMethod, BudgetPerson, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { MarkAsPaidDialog } from '../modals/MarkAsPaidDialog'
@@ -129,18 +132,42 @@ export function TransactionTable({
 
   const queryClient = useQueryClient()
 
+  const dotnetClient = useDotnetRestClient()
+
   const { mutateAsync: doDeleteTx } = useMutation({
-    mutationFn: (id: string) => client.deleteTransaction({ id }),
+    mutationFn: async (id: string) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/transactions/{id}', { params: { path: { id } } })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteTransaction({ id })
+    },
   })
   const { mutateAsync: doDeleteFixed } = useMutation({
     mutationFn: (id: string) => client.deleteFixedExpense({ id, budgetProfileId }),
   })
   const { mutateAsync: doUnmark, isPending: unmarkPending } = useMutation({
-    mutationFn: (tx: Transaction) => client.unmarkTransactionAsPaid({ id: tx.id, budgetPeriodId }),
+    mutationFn: async (tx: Transaction) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/transactions/{id}/unmark-paid', {
+          params: { path: { id: tx.id } },
+          body: { budgetPeriodId },
+        }))
+      }
+      return client.unmarkTransactionAsPaid({ id: tx.id, budgetPeriodId })
+    },
   })
   const { mutateAsync: doSetExcluded, isPending: setExcludedPending } = useMutation({
-    mutationFn: (args: { id: string; excluded: boolean }) =>
-      client.setTransactionExcluded({ id: args.id, budgetPeriodId, excluded: args.excluded }),
+    mutationFn: async (args: { id: string; excluded: boolean }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/transactions/{id}/excluded', {
+          params: { path: { id: args.id } },
+          body: { budgetPeriodId, excluded: args.excluded },
+        }))
+      }
+      return client.setTransactionExcluded({ id: args.id, budgetPeriodId, excluded: args.excluded })
+    },
   })
 
   async function handleDeleteFixedExpense(fe: FixedExpense) {

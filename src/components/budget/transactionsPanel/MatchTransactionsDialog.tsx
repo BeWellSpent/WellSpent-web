@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useTranslations } from 'next-intl'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction, Category, PaymentMethod, BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useTransactions } from '@/hooks/useTransactions'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
@@ -59,11 +60,7 @@ export function MatchTransactionsDialog({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [filter, setFilter] = useState('')
 
-  const { data: variableTxData, isLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId, 2],
-    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 2 }),
-    enabled: open,
-  })
+  const { transactions: variableTxs, isLoading } = useTransactions(budgetPeriodId, { transactionTypeId: 2, enabled: open })
 
   const { mutateAsync: doMatch, isPending } = useMutation({
     mutationFn: () =>
@@ -107,7 +104,7 @@ export function MatchTransactionsDialog({
   }
 
   const filterLower = filter.toLowerCase()
-  const candidates = (variableTxData?.transactions ?? []).filter(
+  const candidates = variableTxs.filter(
     (tx) => !filterLower || tx.name.toLowerCase().includes(filterLower),
   )
   const selectedCandidates = candidates.filter((tx) => selectedIds.has(tx.id))

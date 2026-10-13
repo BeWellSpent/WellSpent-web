@@ -6,7 +6,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -45,18 +48,30 @@ export function MarkAsPaidDialog({ transaction: tx, budgetPeriodId, isSavings = 
   const t = useTranslations('budget.transactions.markAsPaid')
   const { showError } = useSnackbar()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const [amount, setAmount] = useState(numericAmount(tx.plannedAmount))
   const [date, setDate] = useState(tsToDateString(tx.date))
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const units = BigInt(Math.floor(parseFloat(amount)))
       const nanos = Math.round((parseFloat(amount) - Number(units)) * 1e9)
+      const currency = tx.plannedAmount?.currency ?? 'USD'
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/transactions/{id}/mark-paid', {
+          params: { path: { id: tx.id } },
+          body: {
+            budgetPeriodId,
+            paidAmount: { units: Number(units), nanos, currency },
+            paidDate: date,
+          },
+        }))
+      }
       return client.markTransactionAsPaid({
         id: tx.id,
         budgetPeriodId,
-        paidAmount: { units, nanos, currency: tx.plannedAmount?.currency ?? 'USD' },
+        paidAmount: { units, nanos, currency },
         paidAt: dateStringToTs(date),
       })
     },
