@@ -9,10 +9,14 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Category, ExpenseAllocation, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpenseModal'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactions } from '@/hooks/useTransactions'
 import { useFixedExpenses, fixedExpensesQueryKey } from '@/hooks/useFixedExpenses'
+import { useExpenseAllocations, expenseAllocationsQueryKey } from '@/hooks/useExpenseAllocations'
 import { useSavingsSources } from '@/hooks/useSavingsSources'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
@@ -67,6 +71,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     [currency, locale],
   )
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
 
   const [pinnedCategoryIds, setPinnedCategoryIds] = useState<Set<number>>(new Set())
@@ -94,10 +99,11 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
 
   const { people, isLoading: peopleLoading } = useBudgetPeople(budgetProfileId)
 
-  const { data: allocationsData, isLoading: allocsLoading, refetch: refetchAllocs } = useQuery({
-    queryKey: ['expense-allocations', budgetProfileId],
-    queryFn: () => client.listExpenseAllocations({ budgetProfileId }),
-  })
+  const { allocations, isLoading: allocsLoading } = useExpenseAllocations(budgetProfileId)
+  const refetchAllocs = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: expenseAllocationsQueryKey(budgetProfileId) }),
+    [queryClient, budgetProfileId],
+  )
 
   const focusedView = useFocusedView(budgetProfileId)
   const { transactions: allTransactions, isLoading: txnsLoading } = useTransactions(budgetPeriodId, { focusedView })
@@ -119,13 +125,32 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   const { summary: summaryData, isLoading: summaryLoading } = useExpenseSummary(budgetPeriodId, budgetProfileId)
 
   const { mutateAsync: upsertAlloc } = useMutation({
-    mutationFn: (req: Parameters<typeof client.upsertExpenseAllocation>[0]) =>
-      client.upsertExpenseAllocation(req),
+    mutationFn: async (req: Parameters<typeof client.upsertExpenseAllocation>[0]) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/expense-allocations', {
+          params: { path: { id: req.budgetProfileId! } },
+          body: {
+            categoryId: req.categoryId!,
+            budgetPersonId: req.budgetPersonId && req.budgetPersonId !== 0n ? Number(req.budgetPersonId) : null,
+            plannedAmount: { units: Number(req.plannedAmount?.units ?? 0n), nanos: req.plannedAmount?.nanos ?? 0, currency: '' },
+          },
+        }))
+      }
+      return client.upsertExpenseAllocation(req)
+    },
   })
 
   const { mutateAsync: deleteAlloc } = useMutation({
-    mutationFn: (req: Parameters<typeof client.deleteExpenseAllocation>[0]) =>
-      client.deleteExpenseAllocation(req),
+    mutationFn: async (req: Parameters<typeof client.deleteExpenseAllocation>[0]) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/budgets/{id}/expense-allocations/{allocationId}', {
+          params: { path: { id: req.budgetProfileId!, allocationId: Number(req.id) } },
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteExpenseAllocation(req)
+    },
   })
 
   const handleUpsert = useCallback(async (
@@ -153,7 +178,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
 
   const handleRemoveCategory = useCallback(async (categoryId: number) => {
     try {
-      const catAllocs = (allocationsData?.allocations ?? []).filter((a) => a.categoryId === categoryId)
+      const catAllocs = allocations.filter((a) => a.categoryId === categoryId)
       await Promise.all(catAllocs.map((a) => deleteAlloc({ id: a.id, budgetProfileId })))
       setPinnedCategoryIds((prev) => { const next = new Set(prev); next.delete(categoryId); return next })
       if (catAllocs.length > 0) {
@@ -163,7 +188,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     } catch (err) {
       showError(err)
     }
-  }, [allocationsData, deleteAlloc, budgetProfileId, refetchAllocs, showError])
+  }, [allocations, deleteAlloc, budgetProfileId, refetchAllocs, showError])
 
   function openEditDialog(
     cat: Category,
@@ -187,7 +212,6 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   if (isLoading || !summaryData) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
 
   const categoryMap = new Map<number, Category>(categories.map((c) => [c.id, c]))
-  const allocations = allocationsData?.allocations ?? []
   // Income-category (e.g. payroll) and manually-excluded transactions never
   // belong in an expense plan — same "excluded from totals" rule as the
   // Transactions view, applied here at the source so every downstream
