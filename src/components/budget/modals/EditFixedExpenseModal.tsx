@@ -8,6 +8,7 @@ import { Timestamp } from '@bufbuild/protobuf'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useCategories } from '@/hooks/useCategories'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
@@ -186,11 +187,8 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
     }
   }
 
-  const { data: categoriesData } = useQuery({
-    queryKey: ['categories', budgetProfileId],
-    queryFn: () => client.listCategories({ budgetProfileId }),
-  })
-  const sortedCategories = useSortedCategories(categoriesData?.categories ?? [])
+  const { categories } = useCategories(budgetProfileId)
+  const sortedCategories = useSortedCategories(categories)
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {

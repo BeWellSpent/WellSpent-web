@@ -10,6 +10,7 @@ import type { Category, ExpenseAllocation, FixedExpense } from '@/gen/wellspent/
 import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpenseModal'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
+import { useCategories } from '@/hooks/useCategories'
 import { useSavingsSources } from '@/hooks/useSavingsSources'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
@@ -86,10 +87,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   const [editDraft, setEditDraft] = useState('')
   const [editFixedExpense, setEditFixedExpense] = useState<FixedExpense | null>(null)
 
-  const { data: categoriesData, isLoading: catsLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => client.listCategories({ budgetProfileId }),
-  })
+  const { categories, isLoading: catsLoading } = useCategories(budgetProfileId)
 
   const { people, isLoading: peopleLoading } = useBudgetPeople(budgetProfileId)
 
@@ -191,7 +189,6 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   const isLoading = catsLoading || peopleLoading || allocsLoading || txnsLoading || pmLoading || savingsLoading || fixedExpensesLoading || summaryLoading
   if (isLoading || !summaryData) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
 
-  const categories = categoriesData?.categories ?? []
   const categoryMap = new Map<number, Category>(categories.map((c) => [c.id, c]))
   const allocations = allocationsData?.allocations ?? []
   // Income-category (e.g. payroll) and manually-excluded transactions never

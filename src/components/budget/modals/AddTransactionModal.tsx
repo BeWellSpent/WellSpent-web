@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
+import { useCategories } from '@/hooks/useCategories'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
@@ -107,11 +108,8 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
     }
   }, [open, defaultTypeId])
 
-  const { data: categoriesData } = useQuery({
-    queryKey: ['categories', budgetProfileId],
-    queryFn: () => client.listCategories({ budgetProfileId }),
-  })
-  const sortedCategories = useSortedCategories(categoriesData?.categories ?? [])
+  const { categories } = useCategories(budgetProfileId)
+  const sortedCategories = useSortedCategories(categories)
 
   const { mutateAsync: createTx, isPending: txPending } = useMutation({
     mutationFn: (vars: {

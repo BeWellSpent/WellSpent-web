@@ -11,6 +11,7 @@ import type { Transaction, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
+import { useCategories } from '@/hooks/useCategories'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
@@ -119,10 +120,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     queryKey: ['transactions', budgetPeriodId, 2, focusedView],
     queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 2, focusedView }),
   })
-  const { data: categoriesData } = useQuery({
-    queryKey: ['categories', budgetProfileId],
-    queryFn: () => client.listCategories({ budgetProfileId }),
-  })
+  const { categories } = useCategories(budgetProfileId)
   const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
   const { people } = useBudgetPeople(budgetProfileId)
   const { data: fixedExpensesData } = useQuery({
@@ -139,14 +137,14 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     enabled: !!budgetProfileId,
   })
 
-  const categoryMap = new Map((categoriesData?.categories ?? []).map((c) => [c.id, c]))
+  const categoryMap = new Map(categories.map((c) => [c.id, c]))
   const methodMap = new Map(paymentMethods.map((m) => [m.id, m]))
   const personMap = new Map(people.map((p) => [p.id.toString(), p]))
 
-  const savingsCategoryId = (categoriesData?.categories ?? []).find(
+  const savingsCategoryId = categories.find(
     (c) => isSystemCategory(c, SystemCategory.SAVINGS),
   )?.id
-  const incomeCategoryId = (categoriesData?.categories ?? []).find(
+  const incomeCategoryId = categories.find(
     (c) => isSystemCategory(c, SystemCategory.INCOME),
   )?.id
 

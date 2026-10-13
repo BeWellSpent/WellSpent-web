@@ -8,9 +8,13 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { PaymentType } from '@/gen/wellspent/v1/common_pb'
 import type { PaymentMethod } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { usePaymentMethods, paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { paymentTypeToRest } from '@/lib/budget/paymentMethodTransport'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { AddPaymentMethodDialog } from './paymentMethodsPanel/AddPaymentMethodDialog'
 import { DeactivateMethodDialog } from './paymentMethodsPanel/DeactivateMethodDialog'
@@ -44,6 +48,7 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit =
   const [deletingMethod, setDeletingMethod] = useState<PaymentMethod | null>(null)
 
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
 
   const queryClient = useQueryClient()
   const { methods, isLoading } = usePaymentMethods(budgetProfileId)
@@ -62,17 +67,39 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit =
   })
 
   const { mutateAsync: doCreate, isPending: isCreating } = useMutation({
-    mutationFn: (vars: { name: string; type: PaymentType; budgetPersonId: bigint; color: string }) =>
-      client.createPaymentMethod(vars),
+    mutationFn: async (vars: { name: string; type: PaymentType; budgetPersonId: bigint; color: string }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/payment-methods', {
+          body: { name: vars.name, type: paymentTypeToRest(vars.type), budgetPersonId: Number(vars.budgetPersonId), color: vars.color },
+        }))
+      }
+      return client.createPaymentMethod(vars)
+    },
   })
 
   const { mutateAsync: doUpdate, isPending: isUpdating } = useMutation({
-    mutationFn: (vars: { id: string; name: string; color: string; alias: string }) => client.updatePaymentMethod(vars),
+    mutationFn: async (vars: { id: string; name: string; color: string; alias: string }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/payment-methods/{id}', {
+          params: { path: { id: vars.id } },
+          body: { name: vars.name, color: vars.color, alias: vars.alias || null },
+        }))
+      }
+      return client.updatePaymentMethod(vars)
+    },
   })
 
   const { mutateAsync: doDelete, isPending: isDeleting } = useMutation({
-    mutationFn: (vars: { id: string; replacementId: string; budgetProfileId: string }) =>
-      client.deletePaymentMethod(vars),
+    mutationFn: async (vars: { id: string; replacementId: string; budgetProfileId: string }) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/payment-methods/{id}', {
+          params: { path: { id: vars.id }, query: { replacementId: vars.replacementId, budgetProfileId: vars.budgetProfileId } },
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deletePaymentMethod(vars)
+    },
   })
 
   async function handleCreate(name: string, type: PaymentType, personId: bigint, color: string) {

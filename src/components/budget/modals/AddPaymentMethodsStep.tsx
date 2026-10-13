@@ -7,8 +7,12 @@ import { PaymentType } from '@/gen/wellspent/v1/common_pb'
 import { useTranslations } from 'next-intl'
 import { PAYMENT_TYPE_KEYS } from '@/components/budget/paymentMethodsPanel/constants'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { paymentTypeToRest } from '@/lib/budget/paymentMethodTransport'
+import { isEnabled } from '@/lib/config/features'
 import { ColorPicker } from '@/components/ui/ColorPicker'
 import { logger } from '@/lib/logger'
 import Stack from '@mui/material/Stack'
@@ -43,6 +47,7 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
   const [color, setColor] = useState('')
   const [savedMethods, setSavedMethods] = useState<string[]>([])
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
 
   const { people } = useBudgetPeople(budgetProfileId)
 
@@ -54,8 +59,14 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
   }, [people, budgetPersonId])
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (vars: { name: string; type: PaymentType; budgetPersonId: bigint; color: string }) =>
-      client.createPaymentMethod(vars),
+    mutationFn: async (vars: { name: string; type: PaymentType; budgetPersonId: bigint; color: string }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/payment-methods', {
+          body: { name: vars.name, type: paymentTypeToRest(vars.type), budgetPersonId: Number(vars.budgetPersonId), color: vars.color },
+        }))
+      }
+      return client.createPaymentMethod(vars)
+    },
   })
 
   async function handleAdd() {

@@ -1,11 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Category } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { useCategories, categoriesQueryKey } from '@/hooks/useCategories'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { ColorPicker } from '@/components/ui/ColorPicker'
 import { logger } from '@/lib/logger'
 import { generateDistinctColors } from './categoriesPanel/colorUtils'
@@ -37,6 +41,7 @@ export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
   const { showError, showSuccess } = useSnackbar()
   const categoryName = useCategoryName()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
 
   const [newName, setNewName] = useState('')
@@ -47,24 +52,47 @@ export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
   const [deletingCat, setDeletingCat] = useState<Category | null>(null)
   const [isRandomizing, setIsRandomizing] = useState(false)
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => client.listCategories({}),
-  })
+  const { categories, isLoading } = useCategories()
+
+  function invalidateCategories() {
+    queryClient.invalidateQueries({ queryKey: categoriesQueryKey() })
+  }
 
   const { mutateAsync: doCreate, isPending: isCreating } = useMutation({
-    mutationFn: (vars: { name: string; color: string }) => client.createCategory(vars),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+    mutationFn: async (vars: { name: string; color: string }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/categories', { body: vars }))
+      }
+      return client.createCategory(vars)
+    },
+    onSuccess: invalidateCategories,
   })
 
   const { mutateAsync: doUpdate, isPending: isUpdating } = useMutation({
-    mutationFn: (vars: { id: number; name: string; color: string }) => client.updateCategory(vars),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+    mutationFn: async (vars: { id: number; name: string; color: string }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/categories/{id}', {
+          params: { path: { id: vars.id } },
+          body: { name: vars.name, color: vars.color },
+        }))
+      }
+      return client.updateCategory(vars)
+    },
+    onSuccess: invalidateCategories,
   })
 
   const { mutateAsync: doDelete, isPending: isDeleting } = useMutation({
-    mutationFn: (vars: { id: number; replacementId: number }) => client.deleteCategory(vars),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+    mutationFn: async (vars: { id: number; replacementId: number }) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/categories/{id}', {
+          params: { path: { id: vars.id }, query: { replacementId: vars.replacementId } },
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteCategory(vars)
+    },
+    onSuccess: invalidateCategories,
   })
 
   async function handleCreate() {
@@ -129,7 +157,6 @@ export function CategoriesPanel({ canEdit = true }: { canEdit?: boolean }) {
     }
   }
 
-  const categories = data?.categories ?? []
   // Re-sorted client-side: the server orders by the English name, which is no
   // longer what the reader sees for a system category.
   const systemCats = useSortedCategories(categories.filter((c) => c.isSystem))

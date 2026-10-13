@@ -9,6 +9,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Category, PaymentMethod, BudgetPerson, Transaction, CategoryExpenseSummary } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
+import { useCategories } from '@/hooks/useCategories'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
 import { useFocusedView } from '@/hooks/useFocusedView'
@@ -66,10 +67,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   const [chartGrouping, setChartGrouping] = useState<'person' | 'category'>('category')
   const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set())
 
-  const { data: categoriesData, isLoading: catsLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => client.listCategories({ budgetProfileId }),
-  })
+  const { categories, isLoading: catsLoading } = useCategories(budgetProfileId)
   const { people, isLoading: peopleLoading } = useBudgetPeople(budgetProfileId)
   const focusedView = useFocusedView(budgetProfileId)
   const { data: transactionsData, isLoading: txnsLoading } = useQuery({
@@ -87,7 +85,6 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   const isLoading = catsLoading || peopleLoading || txnsLoading || pmLoading || summaryLoading
   if (isLoading || !summaryData) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
 
-  const categories = categoriesData?.categories ?? []
   const incomeCategoryId = categories.find((c) => isSystemCategory(c, SystemCategory.INCOME))?.id
   const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
 

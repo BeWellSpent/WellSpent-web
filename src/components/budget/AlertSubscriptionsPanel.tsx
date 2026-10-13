@@ -3,9 +3,9 @@
 import { useTranslations } from 'next-intl'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { NotificationService } from '@/gen/wellspent/v1/notification_connect'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
 import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { useCategories } from '@/hooks/useCategories'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { unwrap } from '@/lib/api/rest'
 import { alertSubscriptionFromRest } from '@/lib/notifications/notificationTransport'
@@ -32,7 +32,6 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
   const isFree = useIsFreeTier()
   const client = useClient(NotificationService)
   const dotnetClient = useDotnetRestClient()
-  const budgetClient = useClient(BudgetService)
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -46,11 +45,7 @@ export function AlertSubscriptionsPanel({ budgetProfileId }: Props) {
     },
   })
 
-  const { data: categoriesData } = useQuery({
-    queryKey: ['categories', budgetProfileId],
-    queryFn: () => budgetClient.listCategories({ budgetProfileId }),
-  })
-  const categories = categoriesData?.categories ?? []
+  const { categories } = useCategories(budgetProfileId)
 
   const upsertMutation = useMutation({
     mutationFn: async (vars: {
