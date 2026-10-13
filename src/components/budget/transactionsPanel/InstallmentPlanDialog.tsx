@@ -7,10 +7,13 @@ import { Timestamp } from '@bufbuild/protobuf'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { txAmount } from './helpers'
 import {
@@ -48,6 +51,7 @@ export function InstallmentPlanDialog({ tx, budgetPeriodId, onClose }: Props) {
   const isMobile = useIsMobile()
   const { currency, locale } = useCurrency()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
 
@@ -83,13 +87,25 @@ export function InstallmentPlanDialog({ tx, budgetPeriodId, onClose }: Props) {
   }
 
   const mutation = useMutation({
-    mutationFn: () => client.createInstallmentPlan({
-      transactionId: tx.id,
-      budgetPeriodId,
-      firstPaymentDate: Timestamp.fromDate(firstPayment),
-      totalPayments: payments,
-      endDate: Timestamp.fromDate(endDate),
-    }),
+    mutationFn: async () => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/transactions/{id}/installment-plan', {
+          params: { path: { id: tx.id }, query: { budgetPeriodId } },
+          body: {
+            firstPaymentDate: toDateInputValue(firstPayment),
+            totalPayments: payments,
+            endDate: toDateInputValue(endDate),
+          },
+        }))
+      }
+      return client.createInstallmentPlan({
+        transactionId: tx.id,
+        budgetPeriodId,
+        firstPaymentDate: Timestamp.fromDate(firstPayment),
+        totalPayments: payments,
+        endDate: Timestamp.fromDate(endDate),
+      })
+    },
     onSuccess: () => {
       logger.info('transaction.installmentPlan.create', { transactionId: tx.id, payments })
       queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })

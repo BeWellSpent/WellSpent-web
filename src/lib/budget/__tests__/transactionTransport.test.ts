@@ -29,6 +29,18 @@ describe('transactionFromRest', () => {
     expect(tx.paymentMethodId).toBe('')
     expect(tx.isPlaidImported).toBe(true)
   })
+
+  it('maps an "unspecified" transactionFrequency to 0, not undefined — a real value a fixed-expense-spawned transaction can carry despite not being in the declared 5-value enum', () => {
+    const tx = transactionFromRest({
+      id: 't3', name: 'Rent', amount: { units: 1200, nanos: 0, currency: 'USD' },
+      plannedAmount: { units: 1200, nanos: 0, currency: 'USD' }, date: '2026-10-01', renewalDate: null,
+      budgetPeriodId: 'p1', categoryId: 0, paymentMethodId: null,
+      transactionFrequency: 'unspecified' as never, transactionType: 'fixed', isPaid: false, paidAt: null,
+      fixedExpenseId: 'fe1', isExcluded: false, isPlaidImported: false, installmentFixedExpenseId: null,
+      carriedFromBudgetPeriodId: null,
+    })
+    expect(tx.transactionFrequencyId).toBe(0)
+  })
 })
 
 describe('transactionTypeIdToRest', () => {

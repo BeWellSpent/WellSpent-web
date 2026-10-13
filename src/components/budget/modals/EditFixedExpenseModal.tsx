@@ -8,8 +8,13 @@ import { Timestamp } from '@bufbuild/protobuf'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useCategories } from '@/hooks/useCategories'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { frequencyUnitToRest } from '@/lib/budget/fixedExpenseTransport'
+import { isEnabled } from '@/lib/config/features'
+import { FrequencyUnit } from '@/gen/wellspent/v1/common_pb'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
 import { ScrollNumberPicker } from '@/components/ui/ScrollNumberPicker'
@@ -100,6 +105,7 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
   const { showError } = useSnackbar()
   const fullScreen = useIsMobile()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
 
   const [name, setName] = useState(fixedExpense.name)
   const [amount, setAmount] = useState(() =>
@@ -191,7 +197,7 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
   const sortedCategories = useSortedCategories(categories)
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (vars: {
+    mutationFn: async (vars: {
       name: string
       plannedAmount: { units: bigint; nanos: number }
       categoryId: number
@@ -204,7 +210,31 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
       anchorDate?: { seconds: bigint; nanos: number }
       endDate?: Timestamp
       totalPayments: number
-    }) => client.updateFixedExpense({ id: fixedExpense.id, budgetProfileId, ...vars }),
+      anchorDateStr: string
+      endDateStr: string
+    }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/fixed-expenses/{feId}', {
+          params: { path: { id: budgetProfileId, feId: fixedExpense.id } },
+          body: {
+            name: vars.name,
+            plannedAmount: { units: Number(vars.plannedAmount.units), nanos: vars.plannedAmount.nanos, currency: '' },
+            categoryId: vars.categoryId || null,
+            paymentMethodId: vars.paymentMethodId || null,
+            dayOfMonth: vars.dayOfMonth,
+            intervalMonths: vars.intervalMonths,
+            anchorDate: vars.anchorDateStr,
+            frequencyUnit: frequencyUnitToRest(vars.frequencyUnit as FrequencyUnit),
+            intervalWeeks: vars.intervalWeeks,
+            dayOfWeek: vars.dayOfWeek,
+            endDate: vars.endDateStr || null,
+            totalPayments: vars.totalPayments,
+          },
+        }))
+      }
+      const { anchorDateStr, endDateStr, ...connectVars } = vars
+      return client.updateFixedExpense({ id: fixedExpense.id, budgetProfileId, ...connectVars })
+    },
   })
 
   const canSave = !!name.trim() && !!amount && !!startDateStr
@@ -232,6 +262,8 @@ export function EditFixedExpenseModal({ budgetProfileId, fixedExpense, onClose, 
         anchorDate: dateStringToTimestamp(startDateStr),
         endDate,
         totalPayments,
+        anchorDateStr: startDateStr,
+        endDateStr,
       })
       logger.info('fixedExpense.update', { budgetProfileId, id: fixedExpense.id, name })
       onDone()

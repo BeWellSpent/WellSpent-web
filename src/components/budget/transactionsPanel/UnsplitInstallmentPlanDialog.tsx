@@ -5,8 +5,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -32,11 +35,19 @@ export function UnsplitInstallmentPlanDialog({ tx, budgetPeriodId, onClose }: Pr
   const t = useTranslations('budget.transactions.installments')
   const isMobile = useIsMobile()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
 
   const mutation = useMutation({
-    mutationFn: () => client.deleteInstallmentPlan({ transactionId: tx.id, budgetPeriodId }),
+    mutationFn: async () => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.DELETE('/rest/v1/transactions/{id}/installment-plan', {
+          params: { path: { id: tx.id }, query: { budgetPeriodId } },
+        }))
+      }
+      return client.deleteInstallmentPlan({ transactionId: tx.id, budgetPeriodId })
+    },
     onSuccess: () => {
       logger.info('transaction.installmentPlan.delete', { transactionId: tx.id })
       queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })

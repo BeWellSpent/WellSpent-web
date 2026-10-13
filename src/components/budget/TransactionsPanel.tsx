@@ -13,6 +13,7 @@ import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactions } from '@/hooks/useTransactions'
+import { useFixedExpenses } from '@/hooks/useFixedExpenses'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
@@ -118,10 +119,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const { categories } = useCategories(budgetProfileId)
   const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
   const { people } = useBudgetPeople(budgetProfileId)
-  const { data: fixedExpensesData } = useQuery({
-    queryKey: ['fixed-expenses', budgetProfileId],
-    queryFn: () => client.listFixedExpenses({ budgetProfileId }),
-  })
+  const { fixedExpenses } = useFixedExpenses(budgetProfileId)
   // Same hook the sidebar and useBudgetRole already populate, so this costs
   // no extra round trip.
   const { profile } = useBudgetProfile(budgetProfileId)
@@ -148,7 +146,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   // on an archived period; see the helper for why the derivation is only sound
   // for the live one.
   const futureFixedExpenses = notDueFixedExpenses(
-    fixedExpensesData?.expenses ?? [],
+    fixedExpenses,
     fixedTxs,
     isArchivedPeriod,
   )
@@ -173,7 +171,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   }
 
   const fixedExpenseMap = new Map<string, FixedExpense>(
-    (fixedExpensesData?.expenses ?? []).map((fe) => [fe.id, fe])
+    fixedExpenses.map((fe) => [fe.id, fe])
   )
 
   // Drives the re-plan marker on paid rows. Defaults true, matching the
@@ -333,7 +331,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
 
       {editTarget && (editTarget.fixedExpenseId ? (
         (() => {
-          const fe = (fixedExpensesData?.expenses ?? []).find((f) => f.id === editTarget.fixedExpenseId)
+          const fe = fixedExpenses.find((f) => f.id === editTarget.fixedExpenseId)
           if (!fe) return null
           return (
             <EditFixedExpenseModal

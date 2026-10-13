@@ -16,8 +16,13 @@ type RestRecurringFrequency = components['schemas']['RecurringFrequency']
 const TYPE_ID_FROM_REST: Record<RestExpenseType, number> = { unspecified: 0, fixed: 1, variable: 2 }
 const TYPE_TO_REST: Record<1 | 2, RestExpenseType> = { 1: 'fixed', 2: 'variable' }
 
-const FREQUENCY_ID_FROM_REST: Record<RestRecurringFrequency, number> = {
-  one_off: 1, weekly: 2, bi_weekly: 3, monthly: 4, yearly: 5,
+// Widened to `string` (not just the declared 5-value union): a transaction
+// spawned by createFixedExpense/updateFixedExpense can carry no frequency at
+// all, which the live backend serializes as "unspecified" — a real value the
+// OpenAPI contract's `RecurringFrequency` enum doesn't declare, caught during
+// this batch's live verification rather than assumed from the spec alone.
+const FREQUENCY_ID_FROM_REST: Record<string, number> = {
+  unspecified: 0, one_off: 1, weekly: 2, bi_weekly: 3, monthly: 4, yearly: 5,
 }
 
 /** `transactionTypeId` is always 1 (Fixed) or 2 (Variable) on this client — there is no "unspecified" create/edit path. */
@@ -44,7 +49,7 @@ export function transactionFromRest(dto: components['schemas']['Transaction']): 
     budgetPeriodId: dto.budgetPeriodId ?? '',
     categoryId: dto.categoryId,
     paymentMethodId: dto.paymentMethodId ?? '',
-    transactionFrequencyId: FREQUENCY_ID_FROM_REST[dto.transactionFrequency],
+    transactionFrequencyId: FREQUENCY_ID_FROM_REST[dto.transactionFrequency] ?? 0,
     transactionTypeId: TYPE_ID_FROM_REST[dto.transactionType],
     isPaid: dto.isPaid,
     paidAt: dateFromRest(dto.paidAt),
