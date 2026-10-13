@@ -7,9 +7,15 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { useBudgetProfile } from '@/hooks/useBudgetProfile'
+import { useBudgetPeople, budgetPeopleQueryKey } from '@/hooks/useBudgetPeople'
 import { usePaymentMethods, paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { budgetPersonFromRest, budgetPersonRoleToRest } from '@/lib/budget/budgetTransport'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { useRoleLabel } from './peoplePanel/useRoleLabel'
 import { EditColorDialog } from './peoplePanel/EditColorDialog'
@@ -45,22 +51,17 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
   const isFree = useIsFreeTier()
   const roleLabel = useRoleLabel()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [pendingNames, setPendingNames] = useState<string[]>([])
   const [removingPerson, setRemovingPerson] = useState<BudgetPerson | null>(null)
   const [editingPerson, setEditingPerson] = useState<BudgetPerson | null>(null)
 
-  const { data: profileData } = useQuery({
-    queryKey: ['budget-profile', budgetProfileId],
-    queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
-  })
-  const budgetOwnerId = profileData?.profile?.userId ?? ''
+  const { profile } = useBudgetProfile(budgetProfileId)
+  const budgetOwnerId = profile?.userId ?? ''
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
+  const { people, isLoading } = useBudgetPeople(budgetProfileId)
 
   const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
 
@@ -69,41 +70,77 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
     queryFn: () => client.listIncomeSources({ budgetProfileId }),
   })
 
+  function invalidatePeople() {
+    queryClient.invalidateQueries({ queryKey: budgetPeopleQueryKey(budgetProfileId) })
+  }
+
   const { mutateAsync: doAdd, isPending: isAdding } = useMutation({
-    mutationFn: (names: string[]) =>
-      client.addBudgetPeople({ budgetProfileId, people: names.map((userName) => ({ userName, userId: '' })) }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+    mutationFn: async (names: string[]) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/budgets/{id}/people', {
+          params: { path: { id: budgetProfileId } },
+          body: { people: names.map((userName) => ({ userName })) },
+        }))
+      }
+      return client.addBudgetPeople({ budgetProfileId, people: names.map((userName) => ({ userName, userId: '' })) })
     },
+    onSuccess: invalidatePeople,
   })
 
   const { mutateAsync: doRemove, isPending: isRemoving } = useMutation({
-    mutationFn: ({ personId, replacementPersonId, replacementPaymentMethodId }: {
+    mutationFn: async ({ personId, replacementPersonId, replacementPaymentMethodId }: {
       personId: bigint
       replacementPersonId: bigint
       replacementPaymentMethodId: string
-    }) => client.removeBudgetPerson({ budgetProfileId, personId, replacementPersonId, replacementPaymentMethodId }),
+    }) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/budgets/{id}/people/{personId}', {
+          params: {
+            path: { id: budgetProfileId, personId: Number(personId) },
+            query: {
+              replacementPersonId: replacementPersonId !== 0n ? Number(replacementPersonId) : undefined,
+              replacementPaymentMethodId: replacementPaymentMethodId || undefined,
+            },
+          },
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.removeBudgetPerson({ budgetProfileId, personId, replacementPersonId, replacementPaymentMethodId })
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+      invalidatePeople()
       queryClient.invalidateQueries({ queryKey: paymentMethodsQueryKey(budgetProfileId) })
       queryClient.invalidateQueries({ queryKey: ['income-sources', budgetProfileId] })
     },
   })
 
   const { mutateAsync: doUpdatePerson, isPending: isUpdatingPerson } = useMutation({
-    mutationFn: (vars: { id: bigint; budgetProfileId: string; color: string }) =>
-      client.updateBudgetPerson(vars),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+    mutationFn: async (vars: { id: bigint; budgetProfileId: string; color: string }) => {
+      if (isEnabled('csharpBudget')) {
+        const res = unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/people/{personId}', {
+          params: { path: { id: vars.budgetProfileId, personId: Number(vars.id) } },
+          body: { color: vars.color },
+        }))
+        return { person: budgetPersonFromRest(res.person) }
+      }
+      return client.updateBudgetPerson(vars)
     },
+    onSuccess: invalidatePeople,
   })
 
   const { mutateAsync: doUpdateRole } = useMutation({
-    mutationFn: (vars: { personId: bigint; role: BudgetRole }) =>
-      client.updateBudgetPersonRole({ budgetProfileId, personId: vars.personId, role: vars.role }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+    mutationFn: async (vars: { personId: bigint; role: BudgetRole }) => {
+      if (isEnabled('csharpBudget')) {
+        const res = unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/people/{personId}/role', {
+          params: { path: { id: budgetProfileId, personId: Number(vars.personId) } },
+          body: { role: budgetPersonRoleToRest(vars.role) },
+        }))
+        return { person: budgetPersonFromRest(res.person) }
+      }
+      return client.updateBudgetPersonRole({ budgetProfileId, personId: vars.personId, role: vars.role })
     },
+    onSuccess: invalidatePeople,
   })
 
   function addToList() {
@@ -167,7 +204,6 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
     }
   }
 
-  const people = data?.people ?? []
   const isAtPeopleLimit = isFree && people.length >= 2
 
   return (

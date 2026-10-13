@@ -9,6 +9,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Category, ExpenseAllocation, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpenseModal'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
 import { useFocusedView } from '@/hooks/useFocusedView'
@@ -89,10 +90,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     queryFn: () => client.listCategories({ budgetProfileId }),
   })
 
-  const { data: peopleData, isLoading: peopleLoading } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
+  const { people, isLoading: peopleLoading } = useBudgetPeople(budgetProfileId)
 
   const { data: allocationsData, isLoading: allocsLoading, refetch: refetchAllocs } = useQuery({
     queryKey: ['expense-allocations', budgetProfileId],
@@ -197,7 +195,6 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
 
   const categories = categoriesData?.categories ?? []
   const categoryMap = new Map<number, Category>(categories.map((c) => [c.id, c]))
-  const people = peopleData?.people ?? []
   const allocations = allocationsData?.allocations ?? []
   // Income-category (e.g. payroll) and manually-excluded transactions never
   // belong in an expense plan — same "excluded from totals" rule as the

@@ -14,7 +14,12 @@ import PieChartIcon from '@mui/icons-material/PieChart'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { budgetPeopleQueryKey } from '@/hooks/useBudgetPeople'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { chartTypeToRest } from '@/lib/budget/budgetTransport'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
@@ -33,6 +38,7 @@ interface Props {
 export function PreferencesPanel({ budgetProfileId }: Props) {
   const t = useTranslations('budget.preferences')
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
   const { person, isLoading } = useMyBudgetPerson(budgetProfileId)
@@ -51,7 +57,15 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
   const focusedViewValue = focusedView ?? person?.focusedViewEnabled ?? false
 
   const { mutateAsync: saveMatchReview, isPending: matchReviewPending } = useMutation({
-    mutationFn: (enabled: boolean) => client.updateMyManualMatchReviewPreference({ budgetProfileId, enabled }),
+    mutationFn: async (enabled: boolean) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/my-manual-match-review-preference', {
+          params: { path: { id: budgetProfileId } },
+          body: { enabled },
+        }))
+      }
+      return client.updateMyManualMatchReviewPreference({ budgetProfileId, enabled })
+    },
   })
 
   async function updateMatchReview(enabled: boolean) {
@@ -59,7 +73,7 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
     setMatchReview(enabled)
     try {
       await saveMatchReview(enabled)
-      await queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+      await queryClient.invalidateQueries({ queryKey: budgetPeopleQueryKey(budgetProfileId) })
       logger.info('budget.preferences.matchReview.update', { budgetProfileId, enabled })
     } catch (err) {
       setMatchReview(previous)
@@ -68,7 +82,15 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
   }
 
   const { mutateAsync: saveFocusedView, isPending: focusedViewPending } = useMutation({
-    mutationFn: (enabled: boolean) => client.updateMyFocusedViewPreference({ budgetProfileId, enabled }),
+    mutationFn: async (enabled: boolean) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/my-focused-view-preference', {
+          params: { path: { id: budgetProfileId } },
+          body: { enabled },
+        }))
+      }
+      return client.updateMyFocusedViewPreference({ budgetProfileId, enabled })
+    },
   })
 
   async function updateFocusedView(enabled: boolean) {
@@ -76,7 +98,7 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
     setFocusedView(enabled)
     try {
       await saveFocusedView(enabled)
-      await queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+      await queryClient.invalidateQueries({ queryKey: budgetPeopleQueryKey(budgetProfileId) })
       logger.info('budget.preferences.focusedView.update', { budgetProfileId, enabled })
     } catch (err) {
       setFocusedView(previous)
@@ -85,12 +107,22 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
   }
 
   const { mutateAsync: save, isPending } = useMutation({
-    mutationFn: (next: { plan: ChartMode; overview: ChartMode }) =>
-      client.updateMyBudgetPreferences({
+    mutationFn: async (next: { plan: ChartMode; overview: ChartMode }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/my-preferences', {
+          params: { path: { id: budgetProfileId } },
+          body: {
+            planChartType: chartTypeToRest(modeToChartType(next.plan)),
+            overviewChartType: chartTypeToRest(modeToChartType(next.overview)),
+          },
+        }))
+      }
+      return client.updateMyBudgetPreferences({
         budgetProfileId,
         planChartType: modeToChartType(next.plan),
         overviewChartType: modeToChartType(next.overview),
-      }),
+      })
+    },
   })
 
   async function update(next: { plan: ChartMode; overview: ChartMode }) {
@@ -99,7 +131,7 @@ export function PreferencesPanel({ budgetProfileId }: Props) {
     setOverview(next.overview)
     try {
       await save(next)
-      await queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+      await queryClient.invalidateQueries({ queryKey: budgetPeopleQueryKey(budgetProfileId) })
       logger.info('budget.preferences.update', { budgetProfileId, ...next })
     } catch (err) {
       // Put the toggle back where it was, so the UI never claims a preference

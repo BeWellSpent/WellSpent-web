@@ -1,9 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
-import { useClient } from '@/hooks/useClient'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useAuth } from '@/context/AuthContext'
 
 /**
@@ -20,16 +18,11 @@ import { useAuth } from '@/context/AuthContext'
  */
 export function useMyBudgetPerson(budgetProfileId: string): { person: BudgetPerson | undefined; isLoading: boolean } {
   const { userId } = useAuth()
-  const client = useClient(BudgetService)
+  const { people, isLoading } = useBudgetPeople(budgetProfileId)
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
-
-  if (!data || !userId) return { person: undefined, isLoading }
+  if (!userId) return { person: undefined, isLoading }
   return {
-    person: data.people.find((p) => p.userId !== '' && p.userId === userId),
+    person: people.find((p) => p.userId !== '' && p.userId === userId),
     isLoading,
   }
 }

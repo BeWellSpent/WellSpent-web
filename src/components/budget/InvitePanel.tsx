@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import type { BudgetInvite } from '@/gen/wellspent/v1/invite_pb'
 import { InviteService } from '@/gen/wellspent/v1/invite_connect'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { InviteStatus } from '@/gen/wellspent/v1/invite_pb'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useRoleLabel } from './peoplePanel/useRoleLabel'
 import { INVITABLE_ROLES } from './modals/addPeople/pendingPerson'
@@ -60,7 +60,6 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
   const { showError, showSuccess } = useSnackbar()
   const inviteClient = useClient(InviteService)
   const dotnetClient = useDotnetRestClient()
-  const budgetClient = useClient(BudgetService)
   const queryClient = useQueryClient()
 
   const [email, setEmail] = useState('')
@@ -80,10 +79,7 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
     },
   })
 
-  const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => budgetClient.listBudgetPeople({ budgetProfileId }),
-  })
+  const { people } = useBudgetPeople(budgetProfileId)
 
   const { mutateAsync: doSend, isPending: isSending } = useMutation({
     mutationFn: async () => {
@@ -182,7 +178,7 @@ export function InvitePanel({ budgetProfileId, canManageUsers = true }: Props) {
     }
     return [...byEmail.values()]
   }, [invitesData])
-  const guestPeople = (peopleData?.people ?? []).filter((p) => !p.userId)
+  const guestPeople = people.filter((p) => !p.userId)
 
   function statusLabel(status: InviteStatus): string {
     switch (status) {

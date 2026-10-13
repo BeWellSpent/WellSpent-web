@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { PaymentType } from '@/gen/wellspent/v1/common_pb'
 import { useTranslations } from 'next-intl'
 import { PAYMENT_TYPE_KEYS } from '@/components/budget/paymentMethodsPanel/constants'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { ColorPicker } from '@/components/ui/ColorPicker'
 import { logger } from '@/lib/logger'
@@ -43,11 +44,7 @@ export function AddPaymentMethodsStep({ budgetProfileId, onSkip, onDone }: Props
   const [savedMethods, setSavedMethods] = useState<string[]>([])
   const client = useClient(BudgetService)
 
-  const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
-  const people = useMemo(() => peopleData?.people ?? [], [peopleData])
+  const { people } = useBudgetPeople(budgetProfileId)
 
   // Pre-select the first person (the owner) once people load
   useEffect(() => {

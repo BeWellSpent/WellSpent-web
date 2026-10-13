@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { IncomeSource } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
@@ -50,10 +51,7 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
     queryFn: () => client.listIncomeSources({ budgetProfileId }),
   })
 
-  const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
+  const { people } = useBudgetPeople(budgetProfileId)
 
   const { mutateAsync: doDelete } = useMutation({
     mutationFn: (id: bigint) => client.deleteIncomeSource({ id, budgetProfileId }),
@@ -79,7 +77,6 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
   const sources = myPerson?.focusedViewEnabled
     ? allSources.filter((s) => isMineOrUnattributed(s.budgetPersonId, myPerson.id))
     : allSources
-  const people = peopleData?.people ?? []
   const personMap = new Map(people.map((p) => [p.id.toString(), p.userName]))
   const total = sources.reduce(
     (sum, s) => sum + Number(s.defaultAmount?.units ?? 0) + (s.defaultAmount?.nanos ?? 0) / 1e9,

@@ -1,15 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { InviteService } from '@/gen/wellspent/v1/invite_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
 import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { useBudgetPeople, budgetPeopleQueryKey } from '@/hooks/useBudgetPeople'
 import { unwrap } from '@/lib/api/rest'
 import { inviteRoleToRest } from '@/lib/invites/inviteTransport'
+import { budgetPersonFromRest } from '@/lib/budget/budgetTransport'
 import { isEnabled } from '@/lib/config/features'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -54,18 +56,22 @@ export function AddPeopleModal({ budgetProfileId, onSkip, onDone }: Props) {
   const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
 
-  const { data: existingData, isLoading } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
-  const existing = existingData?.people ?? []
+  const { people: existing, isLoading } = useBudgetPeople(budgetProfileId)
 
   const { mutateAsync: addPeople, isPending } = useMutation({
-    mutationFn: (people: PendingPerson[]) =>
-      client.addBudgetPeople({
+    mutationFn: async (people: PendingPerson[]) => {
+      if (isEnabled('csharpBudget')) {
+        const res = unwrap(await dotnetClient.POST('/rest/v1/budgets/{id}/people', {
+          params: { path: { id: budgetProfileId } },
+          body: { people: people.map((p) => ({ userName: p.name })) },
+        }))
+        return { people: res.people.map(budgetPersonFromRest) }
+      }
+      return client.addBudgetPeople({
         budgetProfileId,
         people: people.map((p) => ({ userName: p.name, userId: '' })),
-      }),
+      })
+    },
   })
 
   const emailError = email.trim() !== '' && !isValidInviteEmail(email)
@@ -121,7 +127,7 @@ export function AddPeopleModal({ budgetProfileId, onSkip, onDone }: Props) {
         }
       }
 
-      await queryClient.invalidateQueries({ queryKey: ['budget-people', budgetProfileId] })
+      await queryClient.invalidateQueries({ queryKey: budgetPeopleQueryKey(budgetProfileId) })
       onDone()
     } catch (err) {
       showError(err)

@@ -7,6 +7,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { SavingsSource } from '@/gen/wellspent/v1/budget_pb'
 import { RecurringType } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
@@ -63,10 +64,7 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
     queryFn: () => client.listSavingsSources({ budgetProfileId }),
   })
 
-  const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
+  const { people } = useBudgetPeople(budgetProfileId)
 
   const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
 
@@ -90,7 +88,6 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
   const sources = myPerson?.focusedViewEnabled
     ? allSources.filter((s) => isMineOrUnattributed(s.budgetPersonId, myPerson.id))
     : allSources
-  const people = peopleData?.people ?? []
   const personMap = new Map(people.map((p) => [p.id.toString(), p.userName]))
   const pmMap = new Map(paymentMethods.map((pm) => [pm.id, pm.alias || pm.name]))
   const savingsTotal = sources.reduce((sum, s) => sum + Number(s.amount?.units ?? 0n) + (s.amount?.nanos ?? 0) / 1e9, 0)

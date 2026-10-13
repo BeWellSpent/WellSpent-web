@@ -8,6 +8,7 @@ import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { PaymentType } from '@/gen/wellspent/v1/common_pb'
 import type { PaymentMethod } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { usePaymentMethods, paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
@@ -52,10 +53,7 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit =
   // has to see a newly added method too.
   const refetch = () => queryClient.invalidateQueries({ queryKey: paymentMethodsQueryKey(budgetProfileId) })
 
-  const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
+  const { people } = useBudgetPeople(budgetProfileId)
 
   const { data: transactionsData } = useQuery({
     queryKey: ['transactions', budgetPeriodId],
@@ -135,7 +133,6 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit =
 
   if (isLoading) return <CircularProgress size={20} />
 
-  const people = peopleData?.people ?? []
   const transactions = transactionsData?.transactions ?? []
   const personMap = new Map(people.map((p) => [p.id.toString(), p.userName]))
 
