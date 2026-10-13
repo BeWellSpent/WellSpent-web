@@ -5,9 +5,14 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { IncomeSource } from '@/gen/wellspent/v1/budget_pb'
+import { IncomeType, RecurringType } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { incomeTypeToRest, recurringTypeToRest } from '@/lib/budget/incomeTransport'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -55,17 +60,36 @@ export function EditIncomeModal({ budgetProfileId, source, showBeforeTax, onClos
   }, [source])
 
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
 
   const { people } = useBudgetPeople(budgetProfileId)
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (vars: {
+    mutationFn: async (vars: {
       name: string
       defaultAmount: { units: bigint; nanos: number }
       recurring: boolean
       beforeTax: boolean
       budgetPersonId: bigint
-    }) => client.updateIncomeSource({ id: source.id, budgetProfileId, ...vars }),
+    }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/income-sources/{sourceId}', {
+          params: { path: { id: budgetProfileId, sourceId: Number(source.id) } },
+          body: {
+            name: vars.name,
+            // Mirrors Go: this form never surfaces income type, so every edit
+            // sends UNSPECIFIED → "other" on the wire, same as today.
+            incomeType: incomeTypeToRest(IncomeType.UNSPECIFIED),
+            defaultAmount: { units: Number(vars.defaultAmount.units), nanos: vars.defaultAmount.nanos, currency: '' },
+            recurring: vars.recurring,
+            budgetPersonId: vars.budgetPersonId !== 0n ? Number(vars.budgetPersonId) : null,
+            paymentFrequency: recurringTypeToRest(RecurringType.UNSPECIFIED),
+            beforeTax: vars.beforeTax,
+          },
+        }))
+      }
+      return client.updateIncomeSource({ id: source.id, budgetProfileId, ...vars })
+    },
   })
 
   const amountError = amount !== '' && parseFloat(amount) <= 0 ? 'Amount must be greater than zero' : ''

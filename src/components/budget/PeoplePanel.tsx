@@ -10,6 +10,7 @@ import { useClient } from '@/hooks/useClient'
 import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { useBudgetPeople, budgetPeopleQueryKey } from '@/hooks/useBudgetPeople'
+import { useIncomeSources, incomeSourcesQueryKey } from '@/hooks/useIncomeSources'
 import { usePaymentMethods, paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
@@ -65,10 +66,7 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
 
   const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
 
-  const { data: incomeData } = useQuery({
-    queryKey: ['income-sources', budgetProfileId],
-    queryFn: () => client.listIncomeSources({ budgetProfileId }),
-  })
+  const { sources: incomeSources } = useIncomeSources(budgetProfileId)
 
   function invalidatePeople() {
     queryClient.invalidateQueries({ queryKey: budgetPeopleQueryKey(budgetProfileId) })
@@ -111,7 +109,7 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
     onSuccess: () => {
       invalidatePeople()
       queryClient.invalidateQueries({ queryKey: paymentMethodsQueryKey(budgetProfileId) })
-      queryClient.invalidateQueries({ queryKey: ['income-sources', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: incomeSourcesQueryKey(budgetProfileId) })
     },
   })
 
@@ -341,7 +339,7 @@ export function PeoplePanel({ budgetProfileId, canManageUsers = true }: Props) {
         person={removingPerson}
         people={people}
         paymentMethods={paymentMethods}
-        incomeSources={incomeData?.sources ?? []}
+        incomeSources={incomeSources}
         isRemoving={isRemoving}
         onCancel={() => setRemovingPerson(null)}
         onConfirm={handleRemove}

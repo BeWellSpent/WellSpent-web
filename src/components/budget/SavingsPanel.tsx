@@ -2,15 +2,19 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { SavingsSource } from '@/gen/wellspent/v1/budget_pb'
 import { RecurringType } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
+import { useSavingsSources, savingsSourcesQueryKey } from '@/hooks/useSavingsSources'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { formatMoney, formatMoneyFromNumber } from '@/lib/format'
 import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
@@ -54,29 +58,40 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
   const { showError } = useSnackbar()
   const { currency, locale } = useCurrency()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const [editingSource, setEditingSource] = useState<SavingsSource | null>(null)
   const queryClient = useQueryClient()
   const [localAddOpen, setLocalAddOpen] = useState(false)
   const isAddOpen = addOpen || localAddOpen
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['savings-sources', budgetProfileId],
-    queryFn: () => client.listSavingsSources({ budgetProfileId }),
-  })
+  const { sources: allSources, isLoading } = useSavingsSources(budgetProfileId)
 
   const { people } = useBudgetPeople(budgetProfileId)
 
   const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
 
+  function invalidateSavings() {
+    queryClient.invalidateQueries({ queryKey: savingsSourcesQueryKey(budgetProfileId) })
+  }
+
   const { mutateAsync: doDelete } = useMutation({
-    mutationFn: (id: bigint) => client.deleteSavingsSource({ id, budgetProfileId }),
+    mutationFn: async (id: bigint) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/budgets/{id}/savings-sources/{sourceId}', {
+          params: { path: { id: budgetProfileId, sourceId: Number(id) } },
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteSavingsSource({ id, budgetProfileId })
+    },
   })
 
   async function handleDelete(id: bigint) {
     try {
       await doDelete(id)
       logger.info('budget.savings.delete', { budgetProfileId, id: id.toString() })
-      refetch()
+      invalidateSavings()
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
     } catch (err) {
       showError(err)
@@ -84,7 +99,6 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
   }
 
   const { person: myPerson } = useMyBudgetPerson(budgetProfileId)
-  const allSources = data?.sources ?? []
   const sources = myPerson?.focusedViewEnabled
     ? allSources.filter((s) => isMineOrUnattributed(s.budgetPersonId, myPerson.id))
     : allSources
@@ -179,7 +193,7 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
           budgetProfileId={budgetProfileId}
           activePeriodStart={activePeriodStart}
           onClose={() => { setLocalAddOpen(false); onAddClose?.() }}
-          onDone={() => { setLocalAddOpen(false); onAddClose?.(); refetch() }}
+          onDone={() => { setLocalAddOpen(false); onAddClose?.(); invalidateSavings() }}
         />
       )}
 
@@ -191,7 +205,7 @@ export function SavingsPanel({ budgetProfileId, activePeriodStart, addOpen = fal
           onClose={() => setEditingSource(null)}
           onDone={() => {
             setEditingSource(null)
-            refetch()
+            invalidateSavings()
           }}
         />
       )}

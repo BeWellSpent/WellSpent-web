@@ -10,6 +10,7 @@ import type { Category, ExpenseAllocation, FixedExpense } from '@/gen/wellspent/
 import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpenseModal'
 import { useClient } from '@/hooks/useClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
+import { useSavingsSources } from '@/hooks/useSavingsSources'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
 import { useFocusedView } from '@/hooks/useFocusedView'
@@ -106,10 +107,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
 
   const { methods: paymentMethods, isLoading: pmLoading } = usePaymentMethods(budgetProfileId)
 
-  const { data: savingsData, isLoading: savingsLoading } = useQuery({
-    queryKey: ['savings-sources', budgetProfileId],
-    queryFn: () => client.listSavingsSources({ budgetProfileId }),
-  })
+  const { sources: savingsSources, isLoading: savingsLoading } = useSavingsSources(budgetProfileId)
 
   const { data: fixedExpensesData, isLoading: fixedExpensesLoading, refetch: refetchFixedExpenses } = useQuery({
     queryKey: ['fixed-expenses', budgetProfileId],
@@ -202,7 +200,6 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   // computation (chart, per-category actuals, plan summary) inherits it.
   const incomeCategoryId = categories.find((c) => isSystemCategory(c, SystemCategory.INCOME))?.id
   const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
-  const savingsSources = savingsData?.sources ?? []
   const fixedExpenses = (fixedExpensesData?.expenses ?? []).filter((fe) => fe.isActive)
 
   // allocation lookup: "catId:personId" → allocation

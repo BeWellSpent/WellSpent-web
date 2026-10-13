@@ -2,14 +2,18 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useClient } from '@/hooks/useClient'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { IncomeSource } from '@/gen/wellspent/v1/budget_pb'
-import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { useIncomeSources, incomeSourcesQueryKey } from '@/hooks/useIncomeSources'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useIsFreeTier } from '@/hooks/useUserPlan'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { isEnabled } from '@/lib/config/features'
+import { savingsSourcesQueryKey } from '@/hooks/useSavingsSources'
 import { logger } from '@/lib/logger'
 import { formatMoney, formatMoneyFromNumber } from '@/lib/format'
 import { useMyBudgetPerson } from '@/hooks/useMyBudgetPerson'
@@ -41,31 +45,42 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
   const isFree = useIsFreeTier()
   const { currency, locale } = useCurrency()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const [editingSource, setEditingSource] = useState<IncomeSource | null>(null)
   const [localAddOpen, setLocalAddOpen] = useState(false)
   const isAddOpen = addOpen || localAddOpen
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['income-sources', budgetProfileId],
-    queryFn: () => client.listIncomeSources({ budgetProfileId }),
-  })
+  const { sources: allSources, isLoading } = useIncomeSources(budgetProfileId)
 
   const { people } = useBudgetPeople(budgetProfileId)
 
+  function invalidateIncome() {
+    queryClient.invalidateQueries({ queryKey: incomeSourcesQueryKey(budgetProfileId) })
+  }
+
   const { mutateAsync: doDelete } = useMutation({
-    mutationFn: (id: bigint) => client.deleteIncomeSource({ id, budgetProfileId }),
+    mutationFn: async (id: bigint) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/budgets/{id}/income-sources/{sourceId}', {
+          params: { path: { id: budgetProfileId, sourceId: Number(id) } },
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteIncomeSource({ id, budgetProfileId })
+    },
   })
 
   function invalidateSavings() {
-    queryClient.invalidateQueries({ queryKey: ['savings-sources', budgetProfileId] })
+    queryClient.invalidateQueries({ queryKey: savingsSourcesQueryKey(budgetProfileId) })
   }
 
   async function handleDelete(id: bigint) {
     try {
       await doDelete(id)
       logger.info('income.delete', { budgetProfileId, id: id.toString() })
-      refetch()
+      invalidateIncome()
       invalidateSavings()
     } catch (err) {
       showError(err)
@@ -73,7 +88,6 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
   }
 
   const { person: myPerson } = useMyBudgetPerson(budgetProfileId)
-  const allSources = data?.sources ?? []
   const sources = myPerson?.focusedViewEnabled
     ? allSources.filter((s) => isMineOrUnattributed(s.budgetPersonId, myPerson.id))
     : allSources
@@ -150,7 +164,7 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
           budgetProfileId={budgetProfileId}
           showBeforeTax={showBeforeTax}
           onClose={() => { setLocalAddOpen(false); onAddClose?.() }}
-          onDone={() => { setLocalAddOpen(false); onAddClose?.(); refetch(); invalidateSavings() }}
+          onDone={() => { setLocalAddOpen(false); onAddClose?.(); invalidateIncome(); invalidateSavings() }}
         />
       )}
 
@@ -162,7 +176,7 @@ export function IncomePanel({ budgetProfileId, showBeforeTax, addOpen = false, o
           onClose={() => setEditingSource(null)}
           onDone={() => {
             setEditingSource(null)
-            refetch()
+            invalidateIncome()
             invalidateSavings()
           }}
         />
