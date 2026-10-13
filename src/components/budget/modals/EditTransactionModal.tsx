@@ -7,8 +7,12 @@ import { useTranslations } from 'next-intl'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useCategories } from '@/hooks/useCategories'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { transactionTypeIdToRest, TRANSACTION_FREQUENCY_ONE_OFF, transactionFromRest } from '@/lib/budget/transactionTransport'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
 import { AmountHeroField } from '@/components/budget/modals/AmountHeroField'
@@ -62,9 +66,13 @@ function dateStringToTimestamp(str: string): { seconds: bigint; nanos: number } 
   return { seconds: BigInt(Math.floor(Date.UTC(year, month - 1, day) / 1000)), nanos: 0 }
 }
 
-function dayOfMonthToTimestamp(day: number): { seconds: bigint; nanos: number } {
+function dayOfMonthToDateString(day: number): string {
   const now = new Date()
-  return { seconds: BigInt(Math.floor(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day) / 1000)), nanos: 0 }
+  return dateToString(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day)))
+}
+
+function dateToString(d: Date): string {
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
 }
 
 export function EditTransactionModal({ budgetProfileId, transaction, isArchivedPeriod = false, onClose, onDone }: Props) {
@@ -73,6 +81,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
   const { showError } = useSnackbar()
   const fullScreen = useIsMobile()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
 
   // Once a period has archived, or for any Plaid-imported transaction, the
   // financial record itself is frozen server-side — only the category can
@@ -113,16 +122,37 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
   const sortedCategories = useSortedCategories(categories)
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (vars: {
+    mutationFn: async (vars: {
       name: string
       amount: { units: bigint; nanos: number }
       plannedAmount: { units: bigint; nanos: number }
-      date: { seconds: bigint; nanos: number }
+      date: string
       categoryId: number
       paymentMethodId: string
       transactionTypeId: number
       transactionFrequencyId: number
-    }) => client.updateTransaction({ id: transaction.id, ...vars }),
+    }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/transactions/{id}', {
+          params: { path: { id: transaction.id } },
+          body: {
+            name: vars.name,
+            amount: { units: Number(vars.amount.units), nanos: vars.amount.nanos, currency: '' },
+            plannedAmount: { units: Number(vars.plannedAmount.units), nanos: vars.plannedAmount.nanos, currency: '' },
+            date: vars.date,
+            categoryId: vars.categoryId || null,
+            paymentMethodId: vars.paymentMethodId || null,
+            transactionFrequency: TRANSACTION_FREQUENCY_ONE_OFF,
+            transactionType: transactionTypeIdToRest(vars.transactionTypeId),
+          },
+        }))
+      }
+      return client.updateTransaction({
+        id: transaction.id,
+        ...vars,
+        date: dateStringToTimestamp(vars.date),
+      })
+    },
   })
 
   const isDateValid = isFixed ? dayOfMonth >= 1 && dayOfMonth <= 31 : !!date
@@ -142,13 +172,19 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
     // immediately before submit closes that race.
     if (isLocked) {
       try {
-        const fresh = await client.listTransactions({ budgetPeriodId: transaction.budgetPeriodId })
-        const current = fresh.transactions.find((t) => t.id === transaction.id) ?? transaction
+        let current: Transaction
+        if (isEnabled('csharpBudget')) {
+          const res = unwrap(await dotnetClient.GET('/rest/v1/transactions', { params: { query: { budgetPeriodId: transaction.budgetPeriodId } } }))
+          current = res.transactions.map(transactionFromRest).find((t) => t.id === transaction.id) ?? transaction
+        } else {
+          const fresh = await client.listTransactions({ budgetPeriodId: transaction.budgetPeriodId })
+          current = fresh.transactions.find((t) => t.id === transaction.id) ?? transaction
+        }
         await mutateAsync({
           name: current.name,
           amount: current.amount ?? { units: 0n, nanos: 0 },
           plannedAmount: current.plannedAmount ?? { units: 0n, nanos: 0 },
-          date: current.date ?? { seconds: 0n, nanos: 0 },
+          date: timestampToDateString(current.date),
           categoryId,
           paymentMethodId: current.paymentMethodId,
           transactionTypeId: current.transactionTypeId,
@@ -167,7 +203,7 @@ export function EditTransactionModal({ budgetProfileId, transaction, isArchivedP
     const signedAmt = !isFixed && flow === 'received' ? -rawAmt : rawAmt
     const units = BigInt(Math.trunc(signedAmt))
     const nanos = Math.round((signedAmt - Number(units)) * 1e9)
-    const txDate = isFixed ? dayOfMonthToTimestamp(dayOfMonth) : dateStringToTimestamp(date)
+    const txDate = isFixed ? dayOfMonthToDateString(dayOfMonth) : date
     try {
       await mutateAsync({
         name,

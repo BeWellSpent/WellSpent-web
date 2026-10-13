@@ -6,8 +6,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useCategories } from '@/hooks/useCategories'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { transactionTypeIdToRest, TRANSACTION_FREQUENCY_ONE_OFF } from '@/lib/budget/transactionTransport'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
 import { AmountHeroField } from '@/components/budget/modals/AmountHeroField'
@@ -98,6 +102,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
   const [paymentMethodId, setPaymentMethodId] = useState('')
   const [typeId, setTypeId] = useState<number>(defaultTypeId)
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
 
   const isFixed = typeId === 1
 
@@ -112,15 +117,38 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
   const sortedCategories = useSortedCategories(categories)
 
   const { mutateAsync: createTx, isPending: txPending } = useMutation({
-    mutationFn: (vars: {
+    mutationFn: async (vars: {
       name: string
       amount: { units: bigint; nanos: number }
-      date: { seconds: bigint; nanos: number }
+      date: string
       categoryId: number
       paymentMethodId: string
       transactionTypeId: number
       transactionFrequencyId: number
-    }) => client.createTransaction({ budgetPeriodId, plannedAmount: vars.amount, ...vars }),
+    }) => {
+      if (isEnabled('csharpBudget')) {
+        const amount = { units: Number(vars.amount.units), nanos: vars.amount.nanos, currency: '' }
+        return unwrap(await dotnetClient.POST('/rest/v1/transactions', {
+          body: {
+            name: vars.name,
+            amount,
+            plannedAmount: amount,
+            date: vars.date,
+            budgetPeriodId,
+            categoryId: vars.categoryId || null,
+            paymentMethodId: vars.paymentMethodId || null,
+            transactionFrequency: TRANSACTION_FREQUENCY_ONE_OFF,
+            transactionType: transactionTypeIdToRest(vars.transactionTypeId),
+          },
+        }))
+      }
+      return client.createTransaction({
+        budgetPeriodId,
+        plannedAmount: vars.amount,
+        ...vars,
+        date: dateStringToTimestamp(vars.date),
+      })
+    },
   })
 
   const { mutateAsync: createFixed, isPending: fixedPending } = useMutation({
@@ -239,7 +267,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
         await createTx({
           name,
           amount: { units, nanos },
-          date: dateStringToTimestamp(date),
+          date,
           categoryId,
           paymentMethodId,
           transactionTypeId: typeId,

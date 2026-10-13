@@ -10,6 +10,7 @@ import type { Category, PaymentMethod, BudgetPerson, Transaction, CategoryExpens
 import { useClient } from '@/hooks/useClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCategories } from '@/hooks/useCategories'
+import { useTransactions } from '@/hooks/useTransactions'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
 import { useFocusedView } from '@/hooks/useFocusedView'
@@ -70,11 +71,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   const { categories, isLoading: catsLoading } = useCategories(budgetProfileId)
   const { people, isLoading: peopleLoading } = useBudgetPeople(budgetProfileId)
   const focusedView = useFocusedView(budgetProfileId)
-  const { data: transactionsData, isLoading: txnsLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId, focusedView],
-    queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId!, focusedView }),
-    enabled: !!budgetPeriodId,
-  })
+  const { transactions: allTransactions, isLoading: txnsLoading } = useTransactions(budgetPeriodId, { focusedView })
   const { methods: paymentMethods, isLoading: pmLoading } = usePaymentMethods(budgetProfileId)
   // Server-computed planned/actual/remainder/over-budget/unplanned totals —
   // the single source of truth both web and iOS consume, replacing the
@@ -86,7 +83,7 @@ export function ExpenseOverviewPanel({ budgetProfileId, budgetPeriodId }: Props)
   if (isLoading || !summaryData) return <Box sx={{ py: 2 }}><CircularProgress size={20} /></Box>
 
   const incomeCategoryId = categories.find((c) => isSystemCategory(c, SystemCategory.INCOME))?.id
-  const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
+  const transactions = allTransactions.filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
 
   const categoryMap = new Map<number, Category>(categories.map((c) => [c.id, c]))
   const methodMap = new Map<string, PaymentMethod>(paymentMethods.map((pm) => [pm.id, pm]))

@@ -11,6 +11,7 @@ import { EditFixedExpenseModal } from '@/components/budget/modals/EditFixedExpen
 import { useClient } from '@/hooks/useClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCategories } from '@/hooks/useCategories'
+import { useTransactions } from '@/hooks/useTransactions'
 import { useSavingsSources } from '@/hooks/useSavingsSources'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
@@ -97,11 +98,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   })
 
   const focusedView = useFocusedView(budgetProfileId)
-  const { data: transactionsData, isLoading: txnsLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId, focusedView],
-    queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId!, focusedView }),
-    enabled: !!budgetPeriodId,
-  })
+  const { transactions: allTransactions, isLoading: txnsLoading } = useTransactions(budgetPeriodId, { focusedView })
 
   const { methods: paymentMethods, isLoading: pmLoading } = usePaymentMethods(budgetProfileId)
 
@@ -196,7 +193,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   // Transactions view, applied here at the source so every downstream
   // computation (chart, per-category actuals, plan summary) inherits it.
   const incomeCategoryId = categories.find((c) => isSystemCategory(c, SystemCategory.INCOME))?.id
-  const transactions = (transactionsData?.transactions ?? []).filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
+  const transactions = allTransactions.filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
   const fixedExpenses = (fixedExpensesData?.expenses ?? []).filter((fe) => fe.isActive)
 
   // allocation lookup: "catId:personId" → allocation

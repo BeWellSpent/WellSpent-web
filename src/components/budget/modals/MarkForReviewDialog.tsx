@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useTranslations } from 'next-intl'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction, Category, PaymentMethod, BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useTransactions } from '@/hooks/useTransactions'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoney } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
@@ -77,11 +78,7 @@ export function MarkForReviewDialog({
   // Candidates are the period's own Fixed-type transactions — the exact same
   // query the Fixed tab uses. Savings-derived transactions are transaction_type_id
   // 1 (Fixed) too, so they're already included with no separate lookup.
-  const { data: fixedTxData, isLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId, 1],
-    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 1 }),
-    enabled: open,
-  })
+  const { transactions: fixedTxs, isLoading } = useTransactions(budgetPeriodId, { transactionTypeId: 1, enabled: open })
 
   const { mutateAsync: doMark, isPending } = useMutation({
     mutationFn: () =>
@@ -119,7 +116,7 @@ export function MarkForReviewDialog({
     : undefined
 
   const filterLower = filter.toLowerCase()
-  const candidates = (fixedTxData?.transactions ?? []).filter(
+  const candidates = fixedTxs.filter(
     (tx) => !filterLower || tx.name.toLowerCase().includes(filterLower),
   )
   // Unpaid candidates are far more likely to be the intended match (a

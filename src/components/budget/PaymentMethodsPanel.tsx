@@ -10,6 +10,7 @@ import type { PaymentMethod } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
 import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
+import { useTransactions } from '@/hooks/useTransactions'
 import { usePaymentMethods, paymentMethodsQueryKey } from '@/hooks/usePaymentMethods'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { unwrap } from '@/lib/api/rest'
@@ -60,11 +61,7 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit =
 
   const { people } = useBudgetPeople(budgetProfileId)
 
-  const { data: transactionsData } = useQuery({
-    queryKey: ['transactions', budgetPeriodId],
-    queryFn: () => client.listTransactions({ budgetPeriodId: budgetPeriodId! }),
-    enabled: !!budgetPeriodId,
-  })
+  const { transactions } = useTransactions(budgetPeriodId)
 
   const { mutateAsync: doCreate, isPending: isCreating } = useMutation({
     mutationFn: async (vars: { name: string; type: PaymentType; budgetPersonId: bigint; color: string }) => {
@@ -160,7 +157,6 @@ export function PaymentMethodsPanel({ budgetProfileId, budgetPeriodId, canEdit =
 
   if (isLoading) return <CircularProgress size={20} />
 
-  const transactions = transactionsData?.transactions ?? []
   const personMap = new Map(people.map((p) => [p.id.toString(), p.userName]))
 
   return (

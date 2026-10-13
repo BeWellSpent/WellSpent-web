@@ -12,6 +12,7 @@ import { useClient } from '@/hooks/useClient'
 import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCategories } from '@/hooks/useCategories'
+import { useTransactions } from '@/hooks/useTransactions'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
@@ -112,14 +113,8 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   }
 
   const focusedView = useFocusedView(budgetProfileId)
-  const { data: fixedData, isLoading: fixedLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId, 1, focusedView],
-    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 1, focusedView }),
-  })
-  const { data: variableData, isLoading: variableLoading } = useQuery({
-    queryKey: ['transactions', budgetPeriodId, 2, focusedView],
-    queryFn: () => client.listTransactions({ budgetPeriodId, transactionTypeId: 2, focusedView }),
-  })
+  const { transactions: fixedTxs, isLoading: fixedLoading } = useTransactions(budgetPeriodId, { transactionTypeId: 1, focusedView })
+  const { transactions: variableTxs, isLoading: variableLoading } = useTransactions(budgetPeriodId, { transactionTypeId: 2, focusedView })
   const { categories } = useCategories(budgetProfileId)
   const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
   const { people } = useBudgetPeople(budgetProfileId)
@@ -148,8 +143,6 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     (c) => isSystemCategory(c, SystemCategory.INCOME),
   )?.id
 
-  const fixedTxs = fixedData?.transactions ?? []
-  const variableTxs = variableData?.transactions ?? []
 
   // Upcoming bills — rendered in the Fixed tab's "Future" section. Suppressed
   // on an archived period; see the helper for why the derivation is only sound
