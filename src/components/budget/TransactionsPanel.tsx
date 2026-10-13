@@ -9,6 +9,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetProfile } from '@/hooks/useBudgetProfile'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
@@ -122,20 +124,14 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
     queryFn: () => client.listCategories({ budgetProfileId }),
   })
   const { methods: paymentMethods } = usePaymentMethods(budgetProfileId)
-  const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
+  const { people } = useBudgetPeople(budgetProfileId)
   const { data: fixedExpensesData } = useQuery({
     queryKey: ['fixed-expenses', budgetProfileId],
     queryFn: () => client.listFixedExpenses({ budgetProfileId }),
   })
-  // Same key the sidebar and useBudgetRole already populate, so this costs no
-  // extra round trip.
-  const { data: profileData } = useQuery({
-    queryKey: ['budget-profile', budgetProfileId],
-    queryFn: () => client.getBudgetProfile({ id: budgetProfileId }),
-  })
+  // Same hook the sidebar and useBudgetRole already populate, so this costs
+  // no extra round trip.
+  const { profile } = useBudgetProfile(budgetProfileId)
   const { summary } = useExpenseSummary(budgetPeriodId, budgetProfileId)
   const { data: reviewsData } = useQuery({
     queryKey: ['transaction-reviews', budgetProfileId],
@@ -145,7 +141,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
 
   const categoryMap = new Map((categoriesData?.categories ?? []).map((c) => [c.id, c]))
   const methodMap = new Map(paymentMethods.map((m) => [m.id, m]))
-  const personMap = new Map((peopleData?.people ?? []).map((p) => [p.id.toString(), p]))
+  const personMap = new Map(people.map((p) => [p.id.toString(), p]))
 
   const savingsCategoryId = (categoriesData?.categories ?? []).find(
     (c) => isSystemCategory(c, SystemCategory.SAVINGS),
@@ -191,7 +187,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
 
   // Drives the re-plan marker on paid rows. Defaults true, matching the
   // column default, so the marker doesn't blink off while the profile loads.
-  const autoUpdatePlannedAmount = profileData?.profile?.autoUpdatePlannedAmount ?? true
+  const autoUpdatePlannedAmount = profile?.autoUpdatePlannedAmount ?? true
 
   const allReviews = reviewsData?.reviews ?? []
   const pendingReviewMatchByTxId = buildPendingReviewMatchMap(allReviews)

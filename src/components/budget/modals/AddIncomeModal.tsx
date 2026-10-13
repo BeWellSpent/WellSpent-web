@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { IncomeType } from '@/gen/wellspent/v1/common_pb'
 import { useClient } from '@/hooks/useClient'
+import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { logger } from '@/lib/logger'
 import Stack from '@mui/material/Stack'
@@ -44,11 +45,7 @@ export function AddIncomeModal({ budgetProfileId, showBeforeTax, onSkip, onDone 
   const [savedSources, setSavedSources] = useState<string[]>([])
   const client = useClient(BudgetService)
 
-  const { data: peopleData } = useQuery({
-    queryKey: ['budget-people', budgetProfileId],
-    queryFn: () => client.listBudgetPeople({ budgetProfileId }),
-  })
-  const people = peopleData?.people ?? []
+  const { people } = useBudgetPeople(budgetProfileId)
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: {
