@@ -5,7 +5,10 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { SavingsSourceFields } from '@/components/budget/savingsForm/SavingsSourceFields'
 import { useSavingsSourceDraft, moneyFromDecimalString } from '@/components/budget/savingsForm/useSavingsSourceDraft'
@@ -40,13 +43,27 @@ export function AddSavingsStep({ budgetProfileId, onDone }: Props) {
   const draft = useSavingsSourceDraft()
 
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (vars: {
+    mutationFn: async (vars: {
       name: string
       amount: { units: bigint; nanos: number }
       paymentMethodId: string
       paymentDays: number[]
-    }) => client.addSavingsSource({ budgetProfileId, ...vars }),
+    }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/budgets/{id}/savings-sources', {
+          params: { path: { id: budgetProfileId } },
+          body: {
+            name: vars.name,
+            amount: { units: Number(vars.amount.units), nanos: vars.amount.nanos, currency: '' },
+            paymentMethodId: vars.paymentMethodId || null,
+            paymentDays: vars.paymentDays,
+          },
+        }))
+      }
+      return client.addSavingsSource({ budgetProfileId, ...vars })
+    },
   })
 
   async function handleAdd() {

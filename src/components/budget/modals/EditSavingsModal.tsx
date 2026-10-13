@@ -7,7 +7,10 @@ import { useTranslations } from 'next-intl'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { SavingsSource } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
 import Dialog from '@mui/material/Dialog'
@@ -63,14 +66,28 @@ export function EditSavingsModal({ budgetProfileId, activePeriodStart, source, o
   }, [source])
 
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (vars: {
+    mutationFn: async (vars: {
       name: string
       amount: { units: bigint; nanos: number }
       paymentMethodId: string
       paymentDays: number[]
-    }) => client.updateSavingsSource({ id: source.id, budgetProfileId, ...vars }),
+    }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.PUT('/rest/v1/budgets/{id}/savings-sources/{sourceId}', {
+          params: { path: { id: budgetProfileId, sourceId: Number(source.id) } },
+          body: {
+            name: vars.name,
+            amount: { units: Number(vars.amount.units), nanos: vars.amount.nanos, currency: '' },
+            paymentMethodId: vars.paymentMethodId || null,
+            paymentDays: vars.paymentDays,
+          },
+        }))
+      }
+      return client.updateSavingsSource({ id: source.id, budgetProfileId, ...vars })
+    },
   })
 
   function toggleDay(day: number) {
