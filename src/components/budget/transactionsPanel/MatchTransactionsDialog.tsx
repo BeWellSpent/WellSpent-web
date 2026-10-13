@@ -7,10 +7,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction, Category, PaymentMethod, BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useTransactions } from '@/hooks/useTransactions'
+import { transactionReviewsQueryKey } from '@/hooks/useTransactionReviews'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { isEnabled } from '@/lib/config/features'
 import { txAmount, txPlannedAmount, formatVariableAmount, exactNanos } from './helpers'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -51,6 +54,7 @@ export function MatchTransactionsDialog({
 }: Props) {
   const t = useTranslations('budget.matchTransactions')
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
   const { currency, locale } = useCurrency()
@@ -65,16 +69,24 @@ export function MatchTransactionsDialog({
   const { mutateAsync: doMatch, isPending } = useMutation({
     mutationFn: () =>
       Promise.all(
-        Array.from(selectedIds).map((transactionId) =>
-          client.markTransactionForReview({
+        Array.from(selectedIds).map(async (transactionId) => {
+          if (isEnabled('csharpBudget')) {
+            const { error } = await dotnetClient.POST('/rest/v1/transactions/{id}/flag-for-review', {
+              params: { path: { id: transactionId } },
+              body: { matchedTransactionId: matchedTransaction!.id, budgetProfileId },
+            })
+            if (error) throw new Error(error.message)
+            return
+          }
+          await client.markTransactionForReview({
             transactionId,
             matchedTransactionId: matchedTransaction!.id,
             budgetProfileId,
-          }),
-        ),
+          })
+        }),
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: transactionReviewsQueryKey(budgetProfileId) })
       logger.info('review.matchTransactions', { matchedTransactionId: matchedTransaction?.id, count: selectedIds.size })
       handleClose()
     },

@@ -1,10 +1,14 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
+import { useTransactionReviews, transactionReviewsQueryKey } from '@/hooks/useTransactionReviews'
+import { fixedExpensesQueryKey } from '@/hooks/useFixedExpenses'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
@@ -30,32 +34,41 @@ interface Props {
 export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEditable }: Props) {
   const t = useTranslations('budget.review')
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
   const { person: myPerson } = useMyBudgetPerson(budgetProfileId)
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['transaction-reviews', budgetProfileId],
-    queryFn: () => client.listTransactionReviews({ budgetProfileId }),
-    enabled: !!budgetProfileId,
-  })
+  const { reviews: allReviews, isLoading } = useTransactionReviews(budgetProfileId)
 
   const confirmMutation = useMutation({
-    mutationFn: (reviewId: string) =>
-      client.confirmTransactionReview({ reviewId, budgetProfileId }),
+    mutationFn: async (reviewId: string) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.POST('/rest/v1/transaction-reviews/{id}/confirm', { params: { path: { id: reviewId } } })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.confirmTransactionReview({ reviewId, budgetProfileId })
+    },
     onSuccess: (_, reviewId) => {
-      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: transactionReviewsQueryKey(budgetProfileId) })
       queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId] })
-      queryClient.invalidateQueries({ queryKey: ['fixed-expenses', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: fixedExpensesQueryKey(budgetProfileId) })
       logger.info('review.confirm', { reviewId })
     },
   })
 
   const dismissMutation = useMutation({
-    mutationFn: (reviewId: string) =>
-      client.dismissTransactionReview({ reviewId }),
+    mutationFn: async (reviewId: string) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.POST('/rest/v1/transaction-reviews/{id}/dismiss', { params: { path: { id: reviewId } } })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.dismissTransactionReview({ reviewId })
+    },
     onSuccess: (_, reviewId) => {
-      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: transactionReviewsQueryKey(budgetProfileId) })
       logger.info('review.dismiss', { reviewId })
     },
   })
@@ -81,7 +94,7 @@ export function TransactionReviewPanel({ budgetProfileId, budgetPeriodId, isEdit
     }
   }
 
-  const reviews = (data?.reviews ?? []).filter((r) => r.status === 'pending')
+  const reviews = allReviews.filter((r) => r.status === 'pending')
   const groups = groupPendingReviews(reviews)
 
   if (isLoading) {

@@ -7,10 +7,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction, Category, PaymentMethod, BudgetPerson } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useTransactions } from '@/hooks/useTransactions'
+import { transactionReviewsQueryKey } from '@/hooks/useTransactionReviews'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatMoney } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { isEnabled } from '@/lib/config/features'
 import { splitByPaidStatus } from '../transactionsPanel/helpers'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -66,6 +69,7 @@ export function MarkForReviewDialog({
   const t = useTranslations('budget.markForReview')
   const categoryName = useCategoryName()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
   const { currency, locale } = useCurrency()
@@ -81,14 +85,23 @@ export function MarkForReviewDialog({
   const { transactions: fixedTxs, isLoading } = useTransactions(budgetPeriodId, { transactionTypeId: 1, enabled: open })
 
   const { mutateAsync: doMark, isPending } = useMutation({
-    mutationFn: () =>
-      client.markTransactionForReview({
+    mutationFn: async () => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.POST('/rest/v1/transactions/{id}/flag-for-review', {
+          params: { path: { id: transaction!.id } },
+          body: { matchedTransactionId: selectedId!, budgetProfileId },
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.markTransactionForReview({
         transactionId: transaction!.id,
         matchedTransactionId: selectedId!,
         budgetProfileId,
-      }),
+      })
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transaction-reviews', budgetProfileId] })
+      queryClient.invalidateQueries({ queryKey: transactionReviewsQueryKey(budgetProfileId) })
       logger.info('review.markForReview', { transactionId: transaction?.id, matchedTransactionId: selectedId })
       onClose()
     },
