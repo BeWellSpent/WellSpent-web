@@ -3,17 +3,15 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { usePathname, useRouter } from '@/i18n/navigation'
-import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import { BudgetRole } from '@/gen/wellspent/v1/common_pb'
-import { useClient } from '@/hooks/useClient'
 import { useBudgetRole } from '@/hooks/useBudgetRole'
 import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useResolvedPeriod } from '@/hooks/useResolvedPeriod'
+import { useTransactionReviews } from '@/hooks/useTransactionReviews'
 import { TransactionsPanel } from './TransactionsPanel'
 import { ExpensesPanel } from './ExpensesPanel'
 import { ExpenseOverviewPanel } from './ExpenseOverviewPanel'
@@ -47,7 +45,6 @@ interface Props {
 export function BudgetView({ budgetId }: Props) {
   const t = useTranslations('budget.view')
   const tFab = useTranslations('budget.fab')
-  const client = useClient(BudgetService)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const searchParams = useSearchParams()
@@ -94,12 +91,8 @@ export function BudgetView({ budgetId }: Props) {
     searchParams.get('period'),
     !!profile
   )
-  const { data: reviewData } = useQuery({
-    queryKey: ['transaction-reviews', budgetId],
-    queryFn: () => client.listTransactionReviews({ budgetProfileId: budgetId }),
-    enabled: !!budgetId,
-  })
-  const pendingReviewCount = reviewData ? transactionReviewCount(reviewData.reviews) : 0
+  const { reviews } = useTransactionReviews(budgetId)
+  const pendingReviewCount = transactionReviewCount(reviews)
 
   if (profileLoading || periodsLoading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', pt: 8 }}><CircularProgress /></Box>

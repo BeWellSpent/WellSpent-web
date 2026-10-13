@@ -7,10 +7,15 @@ import { Timestamp } from '@bufbuild/protobuf'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
 import type { Transaction } from '@/gen/wellspent/v1/budget_pb'
 import { useClient } from '@/hooks/useClient'
+import { useDotnetRestClient } from '@/hooks/useDotnetRestClient'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { formatMoneyFromNumber } from '@/lib/format'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
+import { unwrap } from '@/lib/api/rest'
+import { frequencyUnitToRest } from '@/lib/budget/fixedExpenseTransport'
+import { FrequencyUnit } from '@/gen/wellspent/v1/common_pb'
+import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { txAmount } from './helpers'
 import { toDateInputValue, fromDateInputValue } from './installmentPlan'
@@ -39,6 +44,7 @@ export function CreateFixedFromTransactionDialog({ tx, budgetPeriodId, onClose }
   const isMobile = useIsMobile()
   const { currency, locale } = useCurrency()
   const client = useClient(BudgetService)
+  const dotnetClient = useDotnetRestClient()
   const queryClient = useQueryClient()
   const { showError } = useSnackbar()
 
@@ -51,14 +57,28 @@ export function CreateFixedFromTransactionDialog({ tx, budgetPeriodId, onClose }
   const [count, setCount] = useState(1)
 
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const dayOfWeek = anchorDate.getUTCDay() || 7
+      const fields = frequencyFieldsFor(unit, count, dayOfWeek)
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/transactions/{id}/fixed-expense', {
+          params: { path: { id: tx.id }, query: { budgetPeriodId } },
+          body: {
+            name: name.trim() || null,
+            anchorDate: toDateInputValue(anchorDate),
+            frequencyUnit: frequencyUnitToRest(fields.frequencyUnit as FrequencyUnit),
+            intervalMonths: fields.intervalMonths,
+            intervalWeeks: fields.intervalWeeks,
+            dayOfWeek: fields.dayOfWeek,
+          },
+        }))
+      }
       return client.createFixedExpenseFromTransaction({
         transactionId: tx.id,
         budgetPeriodId,
         name: name.trim(),
         anchorDate: Timestamp.fromDate(anchorDate),
-        ...frequencyFieldsFor(unit, count, dayOfWeek),
+        ...fields,
       })
     },
     onSuccess: () => {

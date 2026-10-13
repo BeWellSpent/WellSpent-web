@@ -5,15 +5,14 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { useSearchParams } from 'next/navigation'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
+import { useQueryClient } from '@tanstack/react-query'
 import type { Transaction, FixedExpense } from '@/gen/wellspent/v1/budget_pb'
-import { useClient } from '@/hooks/useClient'
 import { useBudgetProfile } from '@/hooks/useBudgetProfile'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactions } from '@/hooks/useTransactions'
 import { useFixedExpenses } from '@/hooks/useFixedExpenses'
+import { useTransactionReviews } from '@/hooks/useTransactionReviews'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useViewPreference } from '@/hooks/useViewPreference'
@@ -71,7 +70,6 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   const queryClient = useQueryClient()
   const { currency, locale } = useCurrency()
   const formatMoney = (amount: number) => formatMoneyFromNumber(amount, currency, locale)
-  const client = useClient(BudgetService)
   const isMobile = useIsMobile()
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -124,11 +122,7 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   // no extra round trip.
   const { profile } = useBudgetProfile(budgetProfileId)
   const { summary } = useExpenseSummary(budgetPeriodId, budgetProfileId)
-  const { data: reviewsData } = useQuery({
-    queryKey: ['transaction-reviews', budgetProfileId],
-    queryFn: () => client.listTransactionReviews({ budgetProfileId }),
-    enabled: !!budgetProfileId,
-  })
+  const { reviews: allReviews } = useTransactionReviews(budgetProfileId)
 
   const categoryMap = new Map(categories.map((c) => [c.id, c]))
   const methodMap = new Map(paymentMethods.map((m) => [m.id, m]))
@@ -178,7 +172,6 @@ export function TransactionsPanel({ budgetPeriodId, budgetProfileId, isEditable 
   // column default, so the marker doesn't blink off while the profile loads.
   const autoUpdatePlannedAmount = profile?.autoUpdatePlannedAmount ?? true
 
-  const allReviews = reviewsData?.reviews ?? []
   const pendingReviewMatchByTxId = buildPendingReviewMatchMap(allReviews)
 
   // Variable transactions confirmed as matching a fixed expense: hidden from
