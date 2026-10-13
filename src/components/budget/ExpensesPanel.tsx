@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useChartPreference, DEFAULT_CHART } from '@/hooks/useChartPreference'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { BudgetService } from '@/gen/wellspent/v1/budget_connect'
@@ -12,6 +12,7 @@ import { useClient } from '@/hooks/useClient'
 import { useBudgetPeople } from '@/hooks/useBudgetPeople'
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactions } from '@/hooks/useTransactions'
+import { useFixedExpenses, fixedExpensesQueryKey } from '@/hooks/useFixedExpenses'
 import { useSavingsSources } from '@/hooks/useSavingsSources'
 import { usePaymentMethods } from '@/hooks/usePaymentMethods'
 import { useExpenseSummary } from '@/hooks/useExpenseSummary'
@@ -66,6 +67,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
     [currency, locale],
   )
   const client = useClient(BudgetService)
+  const queryClient = useQueryClient()
 
   const [pinnedCategoryIds, setPinnedCategoryIds] = useState<Set<number>>(new Set())
   const [autocompleteValue, setAutocompleteValue] = useState<Category | null>(null)
@@ -104,10 +106,8 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
 
   const { sources: savingsSources, isLoading: savingsLoading } = useSavingsSources(budgetProfileId)
 
-  const { data: fixedExpensesData, isLoading: fixedExpensesLoading, refetch: refetchFixedExpenses } = useQuery({
-    queryKey: ['fixed-expenses', budgetProfileId],
-    queryFn: () => client.listFixedExpenses({ budgetProfileId }),
-  })
+  const { fixedExpenses: allFixedExpenses, isLoading: fixedExpensesLoading } = useFixedExpenses(budgetProfileId)
+  const refetchFixedExpenses = () => queryClient.invalidateQueries({ queryKey: fixedExpensesQueryKey(budgetProfileId) })
 
   // Server-computed committed/remainder totals and category visibility —
   // the single source of truth both web and iOS consume for these numbers,
@@ -194,7 +194,7 @@ export function ExpensesPanel({ budgetProfileId, budgetPeriodId, canEdit = true 
   // computation (chart, per-category actuals, plan summary) inherits it.
   const incomeCategoryId = categories.find((c) => isSystemCategory(c, SystemCategory.INCOME))?.id
   const transactions = allTransactions.filter((tx) => !isTransactionExcluded(tx, incomeCategoryId))
-  const fixedExpenses = (fixedExpensesData?.expenses ?? []).filter((fe) => fe.isActive)
+  const fixedExpenses = allFixedExpenses.filter((fe) => fe.isActive)
 
   // allocation lookup: "catId:personId" → allocation
   const allocMap = new Map<string, ExpenseAllocation>()

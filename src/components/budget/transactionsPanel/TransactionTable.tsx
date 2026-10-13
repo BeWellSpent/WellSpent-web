@@ -145,7 +145,16 @@ export function TransactionTable({
     },
   })
   const { mutateAsync: doDeleteFixed } = useMutation({
-    mutationFn: (id: string) => client.deleteFixedExpense({ id, budgetProfileId }),
+    mutationFn: async (id: string) => {
+      if (isEnabled('csharpBudget')) {
+        const { error } = await dotnetClient.DELETE('/rest/v1/budgets/{id}/fixed-expenses/{feId}', {
+          params: { path: { id: budgetProfileId, feId: id } },
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
+      await client.deleteFixedExpense({ id, budgetProfileId })
+    },
   })
   const { mutateAsync: doUnmark, isPending: unmarkPending } = useMutation({
     mutationFn: async (tx: Transaction) => {

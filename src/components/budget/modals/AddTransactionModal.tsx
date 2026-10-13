@@ -11,6 +11,8 @@ import { useCategories } from '@/hooks/useCategories'
 import { useSnackbar } from '@/components/ui/ErrorSnackbar'
 import { unwrap } from '@/lib/api/rest'
 import { transactionTypeIdToRest, TRANSACTION_FREQUENCY_ONE_OFF } from '@/lib/budget/transactionTransport'
+import { frequencyUnitToRest } from '@/lib/budget/fixedExpenseTransport'
+import { FrequencyUnit } from '@/gen/wellspent/v1/common_pb'
 import { isEnabled } from '@/lib/config/features'
 import { logger } from '@/lib/logger'
 import { PaymentMethodSelect } from '@/components/budget/PaymentMethodSelect'
@@ -152,7 +154,7 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
   })
 
   const { mutateAsync: createFixed, isPending: fixedPending } = useMutation({
-    mutationFn: (vars: {
+    mutationFn: async (vars: {
       name: string
       plannedAmount: { units: bigint; nanos: number }
       categoryId: number
@@ -165,7 +167,31 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
       anchorDate?: { seconds: bigint; nanos: number }
       endDate?: Timestamp
       totalPayments: number
-    }) => client.createFixedExpense({ budgetProfileId, ...vars }),
+      anchorDateStr: string
+      endDateStr: string
+    }) => {
+      if (isEnabled('csharpBudget')) {
+        return unwrap(await dotnetClient.POST('/rest/v1/budgets/{id}/fixed-expenses', {
+          params: { path: { id: budgetProfileId } },
+          body: {
+            name: vars.name,
+            plannedAmount: { units: Number(vars.plannedAmount.units), nanos: vars.plannedAmount.nanos, currency: '' },
+            categoryId: vars.categoryId || null,
+            paymentMethodId: vars.paymentMethodId || null,
+            dayOfMonth: vars.dayOfMonth,
+            intervalMonths: vars.intervalMonths,
+            anchorDate: vars.anchorDateStr,
+            frequencyUnit: frequencyUnitToRest(vars.frequencyUnit as FrequencyUnit),
+            intervalWeeks: vars.intervalWeeks,
+            dayOfWeek: vars.dayOfWeek,
+            endDate: vars.endDateStr || null,
+            totalPayments: vars.totalPayments,
+          },
+        }))
+      }
+      const { anchorDateStr, endDateStr, ...connectVars } = vars
+      return client.createFixedExpense({ budgetProfileId, ...connectVars })
+    },
   })
 
   const isPending = txPending || fixedPending
@@ -253,6 +279,8 @@ export function AddTransactionModal({ budgetPeriodId, budgetProfileId, open, def
           anchorDate: dateStringToTimestamp(startDateStr),
           endDate,
           totalPayments,
+          anchorDateStr: startDateStr,
+          endDateStr,
         })
         logger.info('fixedExpense.create', { budgetProfileId, name, amount })
         queryClient.invalidateQueries({ queryKey: ['transactions', budgetPeriodId, 1] })
