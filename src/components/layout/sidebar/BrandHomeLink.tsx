@@ -18,9 +18,8 @@ type Props = {
  * Clicking a product logo to go "home" is the affordance people already reach
  * for, and the marketing page is otherwise unreachable from inside the app.
  *
- * This is a deliberate exit, not a bounce: the landing page no longer
- * redirects a signed-in visitor, so they stay there until they use its
- * top-right "Open app" button to come back.
+ * The landing page no longer offers a way back in — the web app is parked,
+ * so this is a one-way exit now, not a round trip.
  */
 export function BrandHomeLink({ iconSrc, size = 32 }: Props) {
   const t = useTranslations('budget.sidebar')

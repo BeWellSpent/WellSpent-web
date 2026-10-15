@@ -2,23 +2,16 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import NextLink from 'next/link'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import Fade from '@mui/material/Fade'
-import { useLocale, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import { HERO_SLIDES, SLIDE_INTERVAL_MS, scrollToSection } from '../constants'
 
-type Props = {
-  /** Signed-in visitors are sent into the app rather than to registration. */
-  isAuthenticated: boolean
-}
-
-export function HeroCarousel({ isAuthenticated }: Props) {
+export function HeroCarousel() {
   const t = useTranslations('landing')
-  const locale = useLocale()
   const isMobile = useIsMobile()
 
   const [activeSlide, setActiveSlide] = useState(0)
@@ -84,8 +77,7 @@ export function HeroCarousel({ isAuthenticated }: Props) {
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Button
-                component={NextLink}
-                href={isAuthenticated ? `/${locale}/budgets` : `/${locale}/register`}
+                onClick={() => scrollToSection('download')}
                 variant="contained"
                 size="large"
                 sx={{
@@ -97,7 +89,7 @@ export function HeroCarousel({ isAuthenticated }: Props) {
                   '&:hover': { bgcolor: 'grey.100' },
                 }}
               >
-                {isAuthenticated ? t('nav.openApp') : t('hero.cta')}
+                {t('download.title')}
               </Button>
               <Button
                 variant="outlined"

@@ -38,12 +38,7 @@ const NAV_BUTTON_SX = {
   fontSize: '0.95rem',
 } as const
 
-type Props = {
-  /** Signed-in visitors get one route back into the app instead of two ways in. */
-  isAuthenticated: boolean
-}
-
-export function LandingNav({ isAuthenticated }: Props) {
+export function LandingNav() {
   const t = useTranslations('landing')
   const locale = useLocale()
   const isMobile = useIsMobile()
@@ -194,37 +189,6 @@ export function LandingNav({ isAuthenticated }: Props) {
               ))}
             </Menu>
 
-            {isAuthenticated ? (
-              <Button
-                component={NextLink}
-                href={`/${locale}/budgets`}
-                variant="contained"
-                size={isMobile ? 'small' : 'medium'}
-                sx={{ textTransform: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}
-              >
-                {t('nav.openApp')}
-              </Button>
-            ) : (
-              <>
-                <Button
-                  component={NextLink}
-                  href={`/${locale}/login`}
-                  variant="text"
-                  sx={{ textTransform: 'none', fontWeight: 500, color: 'text.primary', whiteSpace: 'nowrap' }}
-                >
-                  {t('nav.signIn')}
-                </Button>
-                <Button
-                  component={NextLink}
-                  href={`/${locale}/register`}
-                  variant="contained"
-                  size={isMobile ? 'small' : 'medium'}
-                  sx={{ textTransform: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}
-                >
-                  {t('nav.getStarted')}
-                </Button>
-              </>
-            )}
             {isMobile && (
               <IconButton
                 onClick={() => setDrawerOpen(true)}

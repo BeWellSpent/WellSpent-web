@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
@@ -8,7 +7,6 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { getTranslations } from 'next-intl/server'
-import { TOKEN_COOKIE, isTokenExpired } from '@/lib/auth/token'
 import { AppLink, AppLinkButton } from '@/components/ui/AppLink'
 import { findFeatureGroup } from '@/components/landing/features/featureGroups'
 import { FEATURE_GROUP_ICONS } from '@/components/landing/features/featureGroupIcons'
@@ -34,8 +32,6 @@ export default async function FeatureGroupPage({ params }: PageParams) {
   if (!group) notFound()
 
   const t = await getTranslations('landing')
-  const token = (await cookies()).get(TOKEN_COOKIE)?.value
-  const isAuthenticated = token ? !isTokenExpired(token) : false
 
   const withCapture = group.items.filter((item) => item.capture)
   const withoutCapture = group.items.filter((item) => !item.capture)
@@ -99,12 +95,12 @@ export default async function FeatureGroupPage({ params }: PageParams) {
 
         <Box sx={{ textAlign: 'center', mt: { xs: 8, md: 12 } }}>
           <AppLinkButton
-            href={isAuthenticated ? `/${locale}/budgets` : `/${locale}/register`}
+            href={`/${locale}#download`}
             variant="contained"
             size="large"
             sx={{ textTransform: 'none', fontWeight: 700, px: 5 }}
           >
-            {isAuthenticated ? t('nav.openApp') : t('hero.cta')}
+            {t('download.title')}
           </AppLinkButton>
         </Box>
       </Container>

@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "1.39.0",
+  "items": [
+    {
+      "changeType": "changed",
+      "summaryEn": "WellSpent is no longer available as a web app — get it on iOS, with Android on the way.",
+      "summaryEs": "WellSpent ya no está disponible como aplicación web — consíguela en iOS, con Android en camino."
+    }
+  ]
+}

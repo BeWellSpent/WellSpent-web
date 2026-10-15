@@ -12,16 +12,11 @@ import { DownloadSection } from './sections/DownloadSection'
 import { AboutSection } from './sections/AboutSection'
 import { LandingFooter } from './sections/LandingFooter'
 
-type Props = {
-  /** Swaps the sign-in CTAs for a link back into the app. */
-  isAuthenticated: boolean
-}
-
-export function LandingPage({ isAuthenticated }: Props) {
+export function LandingPage() {
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <LandingNav isAuthenticated={isAuthenticated} />
-      <HeroCarousel isAuthenticated={isAuthenticated} />
+      <LandingNav />
+      <HeroCarousel />
       <WhatIsSection />
       {/* The root is a summary: captures and the two differentiators. Feature
           detail lives on its own routes under /features, reached from the nav

@@ -32,6 +32,7 @@ export function incomeTypeToRest(type: IncomeType): RestIncomeType {
 }
 
 const RECURRING_FROM_REST: Record<RestRecurringFrequency, RecurringType> = {
+  unspecified: RecurringType.UNSPECIFIED,
   one_off: RecurringType.ONE_OFF,
   weekly: RecurringType.WEEKLY,
   bi_weekly: RecurringType.BI_WEEKLY,
