@@ -9,7 +9,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: version,
   },
-  allowedDevOrigins: ['192.168.68.52'],
+  allowedDevOrigins: ['192.168.68.69'],
   serverExternalPackages: [],
   // extensionAlias is needed for buf-generated proto files that import .pb.js but the actual files are .ts
   webpack(config) {
