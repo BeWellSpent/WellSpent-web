@@ -9,11 +9,11 @@ const LOCALES = ['en', 'es'] as const
  * A missing key throws `MISSING_MESSAGE` at render time — it type-checks and
  * lints clean, so neither `npm run build` nor `npm run lint` catches it, and it
  * only surfaces when someone opens the page. `BudgetList` shipped a call to a
- * non-existent `auth.logout` exactly that way.
+ * non-existent key exactly that way.
  *
  * Only literal keys are checked. Keys built from template literals (the
- * feature groups, showcase items) are invisible here by construction —
- * `featureGroups.test.ts` covers those by walking the data they're built from.
+ * feature groups, pricing rows) are invisible here by construction —
+ * `landingKeys.test.ts` covers those by walking the data they're built from.
  */
 
 function loadMessages(locale: string): Record<string, unknown> {
@@ -24,8 +24,6 @@ function walkSourceFiles(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
     const path = join(dir, entry)
     if (statSync(path).isDirectory()) {
-      // Generated proto clients carry no translations.
-      if (entry === 'gen') continue
       walkSourceFiles(path, out)
     } else if (/\.tsx?$/.test(entry)) {
       out.push(path)
@@ -65,7 +63,7 @@ describe('translation keys', () => {
   )
 
   it('finds keys to check, so a broken matcher fails loudly rather than passing empty', () => {
-    expect(usages.length).toBeGreaterThan(50)
+    expect(usages.length).toBeGreaterThan(20)
   })
 
   it.each(LOCALES)('resolves every literal key in %s', (locale) => {

@@ -1,983 +1,341 @@
 {
-  "auth": {
-    "login": {
-      "title": "Sign In",
-      "email": "Email",
-      "password": "Password",
-      "rememberMe": "Remember me for 90 days",
-      "submit": "Sign in",
-      "submitting": "Signing in…",
-      "googleBtn": "Continue with Google",
-      "googleUnavailable": "Google sign-in is not available yet",
-      "noAccount": "No account?",
-      "createOne": "Create one"
-    },
-    "register": {
-      "title": "Create your WellSpent account",
-      "firstName": "First name",
-      "lastName": "Last name",
-      "email": "Email",
-      "password": "Password",
-      "passwordHint": "8+ characters with uppercase, lowercase, digit, and special character",
-      "country": "Country",
-      "preferNotToSay": "Prefer not to say",
-      "state": "State",
-      "selectState": "— Select state —",
-      "filingStatus": "Filing status",
-      "selectFilingStatus": "— Select filing status —",
-      "submit": "Create account",
-      "submitting": "Creating account…",
-      "googleBtn": "Continue with Google",
-      "googleUnavailable": "Google sign-in is not available yet",
-      "hasAccount": "Already have an account?",
-      "signIn": "Sign in"
-    },
-    "language": "Language",
-    "currency": "Currency",
-    "verifyEmail": {
-      "verifying": "Verifying your email…",
-      "success": "Your email address has been verified.",
-      "error": "This verification link is invalid or has expired.",
-      "goToBudgets": "Go to your budgets",
-      "signIn": "Go to sign in"
-    },
-    "verifyGate": {
-      "title": "Verify your email address",
-      "message": "We sent a verification link to {email}. Confirm your address to start using WellSpent. The link expires in 10 minutes.",
-      "resend": "Resend verification email",
-      "sending": "Sending…",
-      "sent": "Verification email sent. Check your inbox.",
-      "resendFailed": "Couldn't resend the verification email. Please try again.",
-      "logout": "Log out",
-      "wrongEmail": "Wrong email address? Change it",
-      "newEmail": "New email address",
-      "newEmailHint": "We'll send a new verification link to this address.",
-      "changeSubmit": "Save and resend",
-      "changing": "Saving…",
-      "changeFailed": "Couldn't change your email address. Please try again.",
-      "cancel": "Cancel"
-    },
-    "completeProfile": {
-      "title": "One more thing",
-      "body": "Signing in with Google or Apple doesn't tell us where you are, and WellSpent needs that to handle your currency and taxes correctly.",
-      "country": "Country",
-      "state": "State",
-      "filingStatus": "Filing status",
-      "notSet": "— Not set —",
-      "submit": "Continue"
-    }
-  },
-  "settings": {
-    "title": "Profile",
-    "firstName": "First name",
-    "lastName": "Last name",
-    "email": "Email",
-    "emailReadOnly": "Email cannot be changed",
-    "country": "Country",
-    "notSet": "— Not set —",
-    "state": "State",
-    "taxSettings": "Tax settings (US)",
-    "filingStatus": "Filing status",
-    "taxFrequency": "Tax payment frequency",
-    "taxNote": "These settings are used to estimate your tax reserve savings each budget period.",
-    "language": "Language",
-    "currency": "Currency",
-    "save": "Save changes",
-    "saving": "Saving…",
-    "saved": "Profile saved.",
-    "accountManagement": {
-      "title": "Account management",
-      "deleteAccount": "Delete account",
-      "deleteDescription": "Your account will be immediately deactivated. You have 30 days to contact support if you change your mind.",
-      "confirmTitle": "Delete your account?",
-      "confirmBody": "This will immediately deactivate your account. You will be signed out and will not be able to log back in. Contact support within 30 days if you want to recover it.",
-      "confirmDelete": "Yes, delete my account",
-      "cancel": "Cancel",
-      "deleting": "Deleting…"
-    },
-    "plaidTitle": "Connected bank accounts",
-    "subscription": {
-      "title": "Subscription",
-      "planLabel": "Current plan",
-      "free": "Free",
-      "pro": "Pro",
-      "lifetime": "Lifetime",
-      "freeDescription": "Upgrade to Pro for unlimited people, income sources, alerts, Plaid sync, and no ads.",
-      "upgradeButton": "Upgrade to Pro � Coming Soon"
-    }
-  },
-  "budget": {
-    "list": {
-      "aboutSite": "About WellSpent",
-      "active": "Active",
-      "allPeriods": "All periods",
-      "archived": "Archived",
-      "backToBudget": "Back to budget",
-      "createBudget": "Create Budget",
-      "deleteDialog": {
-        "title": "Delete budget?",
-        "body": "{name} and all its people, income sources, and transactions will be permanently deleted. This cannot be undone.",
-        "cancel": "Cancel",
-        "delete": "Delete",
-        "deleting": "Deleting…"
-      },
-      "empty": "No budgets yet. Create your first one to get started.",
-      "noPeriods": "No periods yet.",
-      "retry": "Retry",
-      "yearPicker": "Year"
-    },
-    "view": {
-      "archivedPeriodNotice": "You're viewing a past period. Adding, deleting, marking paid, and excluding transactions are disabled — you can still change a transaction's category.",
-      "expenseOverview": "Overview",
-      "expensePlan": "Expense Plan",
-      "failedToLoad": "Failed to load budget.",
-      "noActivePeriod": "No active period found.",
-      "plan": "Plan",
-      "planKindLabel": "Show planned or actual amounts",
-      "reports": "Reports",
-      "review": "Review",
-      "toReview": "To Review",
-      "transactions": "Transactions"
-    },
-    "overview": {
-      "title": "Expense Overview",
-      "category": "Category",
-      "actual": "Actual",
-      "planned": "Planned",
-      "total": "Total",
-      "overBudget": "Over budget",
-      "unplanned": "Unplanned",
-      "remainder": "Remainder",
-      "remainderActual": "Actual remaining",
-      "remainderPlan": "Plan remaining",
-      "global": "global",
-      "uncategorized": "Uncategorized",
-      "noData": "No spending data yet for this period.",
-      "unattributed": "Unattributed"
-    },
-    "review": {
-      "description": "These imported transactions may match a fixed expense. Confirm to mark the fixed expense as paid and remove the duplicate, or dismiss to keep it as a regular transaction.",
-      "matchedTo": "Matched to:",
-      "confirm": "Confirm",
-      "dismiss": "Dismiss",
-      "empty": "No transactions to review.",
-      "spansOutsideView": "Involves someone else's data — switch to Full View to review it.",
-      "total": "Total"
-    },
-    "sidebar": {
-      "alerts": "Alert Settings",
-      "archived": "Archived",
-      "bankConnections": "Bank connections",
-      "categories": "Categories",
-      "collapse": "Collapse sidebar",
-      "expand": "Expand sidebar",
-      "help": "Help",
-      "income": "Income",
-      "invitations": "Invitations",
-      "logout": "Logout",
-      "manage": "Manage",
-      "paymentMethods": "Payment Methods",
-      "people": "People",
-      "period": "Period",
-      "preferences": "Preferences",
-      "savings": "Savings",
-      "settings": "Settings",
-      "theme": "Theme",
-      "viewAllPeriods": "View all periods",
-      "website": "WellSpent website"
-    },
-    "income": {
-      "title": "Income",
-      "perMonth": "/ mo",
-      "empty": "No income sources yet.",
-      "freeTierNote": "max 2/person � Free"
-    },
-    "savings": {
-      "title": "Savings",
-      "perMonth": "/ mo",
-      "empty": "No savings sources yet.",
-      "taxEstimate": "tax estimate",
-      "taxTooltip": "Auto-calculated monthly set-aside for estimated tax payments. Updated each budget period.",
-      "federal": "Fed:",
-      "state": "State:",
-      "freq": {
-        "oneOff": "one-off",
-        "weekly": "weekly",
-        "biWeekly": "bi-weekly",
-        "monthly": "monthly",
-        "yearly": "yearly"
-      },
-      "addDialog": {
-        "title": "Add Savings Source",
-        "name": "Name",
-        "namePlaceholder": "e.g. Emergency fund",
-        "amount": "Amount",
-        "paymentMethod": "Payment method *",
-        "paymentDays": "Payment days",
-        "dayHint": "Select 1 day (monthly), 2 days (bi-weekly), or 4 days (weekly)",
-        "cancel": "Cancel",
-        "save": "Save",
-        "saving": "Saving…"
-      },
-      "editDialog": {
-        "title": "Edit Savings Source",
-        "name": "Name",
-        "namePlaceholder": "e.g. Emergency fund",
-        "amount": "Amount",
-        "paymentMethod": "Payment method",
-        "noPaymentMethod": "— None —",
-        "paymentDays": "Payment days",
-        "dayHint": "Select 1 day (monthly), 2 days (bi-weekly), or 4 days (weekly)",
-        "cancel": "Cancel",
-        "save": "Save",
-        "saving": "Saving…"
-      }
-    },
-    "paymentMethods": {
-      "title": "Payment Methods",
-      "empty": "No payment methods yet.",
-      "editTooltip": "Edit",
-      "deactivateTooltip": "Deactivate",
-      "addDialog": {
-        "title": "Add Payment Method",
-        "name": "Name",
-        "namePlaceholder": "e.g. Chase Visa",
-        "type": "Type",
-        "owner": "Owner *",
-        "selectPerson": "Select a person",
-        "colorOptional": "Color (optional)",
-        "cancel": "Cancel",
-        "add": "Add",
-        "adding": "Adding…"
-      },
-      "deactivateDialog": {
-        "title": "Deactivate payment method",
-        "body": "{name} will be deactivated. Transactions in this budget will be reassigned to the selected method. Historical budgets are unaffected.",
-        "reassignTo": "Reassign transactions to",
-        "cancel": "Cancel",
-        "deactivate": "Deactivate",
-        "deactivating": "Deactivating…"
-      },
-      "editDialog": {
-        "title": "Edit payment method",
-        "alias": "Display name (optional)",
-        "aliasHint": "Shown everywhere instead of the original name",
-        "name": "Original name",
-        "namePlaceholder": "e.g. Chase Visa",
-        "nameHint": "The underlying name — leave as-is to keep the imported name",
-        "colorOptional": "Color (optional)",
-        "cancel": "Cancel",
-        "save": "Save",
-        "saving": "Saving…"
-      },
-      "types": {
-        "cash": "Cash",
-        "credit": "Credit",
-        "debit": "Debit",
-        "digitalWallet": "Digital Wallet",
-        "bankTransfer": "Bank Transfer",
-        "crypto": "Crypto",
-        "investment": "Investment",
-        "other": "Other"
-      }
-    },
-    "transactions": {
-      "title": "Transactions",
-      "grandTotal": "{amount} total",
-      "add": "Add",
-      "fixed": "Fixed",
-      "variable": "Variable",
-      "paid": "Paid",
-      "unpaidSection": "Unpaid ({count})",
-      "paidSection": "Paid ({count})",
-      "futureSection": "Future ({count})",
-      "columns": {
-        "item": "Item",
-        "day": "Day",
-        "category": "Category",
-        "paymentMethod": "Payment Method",
-        "owner": "Owner",
-        "amount": "Amount",
-        "planned": "Planned",
-        "actual": "Actual"
-      },
-      "markAsPaid": {
-        "title": "Mark as Paid",
-        "alreadyPaid": "Already paid — click to unmark",
-        "unmark": "Unmark as paid",
-        "description": "Confirm payment details for \"{name}\".",
-        "amount": "Amount paid",
-        "date": "Payment date",
-        "confirm": "Confirm",
-        "cancel": "Cancel"
-      },
-      "empty": "No {label} transactions yet.",
-      "subtotal": "{label} subtotal",
-      "notDueTooltip": "Not due this period — next due {date}",
-      "sortBy": "Sort by",
-      "searchPlaceholder": "Search by name, category, or owner…",
-      "clearSearch": "Clear search",
-      "flow": {
-        "spent": "Spent",
-        "received": "Received"
-      },
-      "markForReview": "Flag for review",
-      "lockedNotice": "Only the category can be changed for this transaction — it's either from a past period or was imported from your bank.",
-      "filter": {
-        "none": "All transactions",
-        "spentOnly": "Spent only",
-        "exceededOnly": "Exceeded only",
-        "excludedOnly": "Excluded only"
-      },
-      "exclude": {
-        "exclude": "Exclude from totals",
-        "unexclude": "Include in totals",
-        "incomeAlwaysExcluded": "Income transactions are always excluded from totals"
-      },
-      "rowActions": "More actions",
-      "edit": "Edit",
-      "delete": "Delete",
-      "deletePlaidLocked": "Bank-imported transactions can't be deleted",
-      "linkedToFixed": "fixed",
-      "linkedToFixedTooltip": "Pending review — matched to \"{name}\"",
-      "paymentMethodRequired": {
-        "title": "Add a payment method first",
-        "body": "Transactions need a payment method — cash, a card, or a bank account — so you can see where the money went. Add one and you'll be able to record transactions right away.",
-        "action": "Add a payment method",
-        "cancel": "Not now"
-      },
-      "installments": {
-        "action": "Split into installments",
-        "title": "Split into installments",
-        "explainer": "{name} ({amount}) will stop counting toward this period. A fixed expense takes its place, split across the payments below.",
-        "payments": "Number of payments",
-        "firstPayment": "First payment",
-        "firstPaymentHelp": "Defaults to next month — a card bills the statement after the one you bought in.",
-        "endDate": "Last payment",
-        "preview": "{amount} × {count} payments",
-        "residue": "Rounded to the nearest cent, the plan totals {total}.",
-        "willExclude": "The original purchase stays visible but stops counting toward totals.",
-        "confirm": "Create plan",
-        "cancel": "Cancel",
-        "error": "Couldn't create the installment plan.",
-        "rowBadge": "installments",
-        "rowTooltip": "Split into installments — excluded from totals because its payments are counted instead.",
-        "excludeLocked": "Excluded because it was split into installments. Re-including it would count the purchase twice.",
-        "unsplitAction": "Undo split",
-        "unsplitTitle": "Undo installment split",
-        "unsplitBody": "The plan and its remaining payments will be deleted, and {name} will count toward its period again.",
-        "unsplitConfirm": "Undo split",
-        "unsplitError": "Couldn't undo the split."
-      },
-      "carryover": {
-        "rowBadge": "carried over",
-        "rowTooltip": "Carried from the previous period's ending balance. Edit or delete it like any other transaction — deleting it is how you say you've already settled it."
-      },
-      "plannedAmountSync": {
-        "rowTooltip": "Paid at a different amount than planned. From the next period on, this bill will be planned at what you actually paid."
-      },
-      "fixedFromTransaction": {
-        "action": "Create a fixed expense",
-        "title": "Create a fixed expense",
-        "name": "Name",
-        "explainer": "{name} ({amount}) will become a recurring fixed expense on the schedule below, and this transaction will be matched to it and marked paid.",
-        "startDate": "First due date",
-        "startDateHelp": "When this expense is first due on the new schedule.",
-        "willMatch": "The original transaction stays visible but stops counting toward totals — it is matched to the new fixed expense, same as a bank-synced match.",
-        "confirm": "Create",
-        "cancel": "Cancel",
-        "error": "Couldn't create the fixed expense."
-      },
-      "matchTransactions": {
-        "action": "Match transactions"
-      }
-    },
-    "markForReview": {
-      "title": "Flag for Review",
-      "amount": "Amount",
-      "date": "Date",
-      "category": "Category",
-      "paymentMethod": "Payment method",
-      "owner": "Owner",
-      "filterPlaceholder": "Filter transactions…",
-      "noFixed": "No fixed transactions this period to match against.",
-      "noResults": "No transactions match your search.",
-      "unpaidSection": "Unpaid ({count})",
-      "paidSection": "Paid ({count})",
-      "confirm": "Flag",
-      "cancel": "Cancel"
-    },
-    "matchTransactions": {
-      "title": "Match transactions",
-      "plannedAmount": "Planned: {amount}",
-      "filterPlaceholder": "Filter transactions…",
-      "noVariable": "No variable transactions this period to match.",
-      "noResults": "No transactions match your search.",
-      "selectedTotal": "Selected: {amount}",
-      "totalMustMatch": "Selected {selected} — must total {planned} exactly to match",
-      "confirm": "Flag",
-      "cancel": "Cancel"
-    },
-    "expenses": {
-      "title": "Expense Plan",
-      "category": "Category",
-      "plannedAmount": "Planned Amount",
-      "actual": "Actual",
-      "total": "Total",
-      "global": "global",
-      "removeRow": "Remove row",
-      "noCategories": "No categories yet — use the picker to add one.",
-      "addCategory": "Add category…",
-      "planSummary": "Plan Summary",
-      "plannedAllocations": "Planned allocations + Fixed expenses",
-      "remainder": "Remainder",
-      "spent": "Spent",
-      "notDueTooltip": "Not due this period — next due {date}. Not counted in this period's plan.",
-      "chart": {
-        "pie": "Pie",
-        "bar": "Bar",
-        "byPerson": "By Person",
-        "byCategory": "By Category",
-        "noData": "No planned amounts yet"
-      },
-      "editDialog": {
-        "title": "Edit Planned Amount",
-        "plannedAmount": "Planned amount",
-        "cancel": "Cancel",
-        "save": "Save"
-      }
-    },
-    "fixedExpense": {
-      "addTitle": "Add Fixed Expense",
-      "editTitle": "Edit Fixed Expense",
-      "cancel": "Cancel",
-      "add": "Add",
-      "save": "Save",
-      "saving": "Saving…",
-      "fields": {
-        "name": "Description",
-        "amount": "Planned amount",
-        "startDate": "Start date",
-        "startDateHint": "First payment date — past dates backdate the plan, future dates start it later",
-        "repeatsEvery": "Repeats every",
-        "repeatsHint": "How often this expense is due",
-        "repeatCount": "Repeat count",
-        "unitWeek": "Week(s)",
-        "unitMonth": "Month(s)",
-        "unitYear": "Year(s)",
-        "category": "Category",
-        "noCategory": "— None —",
-        "paymentMethod": "Payment method"
-      },
-      "days": {
-        "monday": "Monday",
-        "tuesday": "Tuesday",
-        "wednesday": "Wednesday",
-        "thursday": "Thursday",
-        "friday": "Friday",
-        "saturday": "Saturday",
-        "sunday": "Sunday"
-      },
-      "paymentPlan": {
-        "label": "Payment plan (optional)",
-        "numberOfPayments": "Number of payments",
-        "numberOfPaymentsHint": "Total payments in the plan — sets the end date automatically",
-        "endDate": "End date",
-        "endDateHint": "Last payment date — sets the number of payments automatically",
-        "paymentsMade": "{made} of {total} payments made"
-      }
-    },
-    "fab": {
-      "label": "Add",
-      "addTransaction": "Add Transaction",
-      "addSavings": "Add Savings",
-      "addIncome": "Add Income"
-    },
-    "setup": {
-      "title": "Set up your budget",
-      "finishLater": "Budget created. You can finish setting it up from the budget view.",
-      "complete": "Your budget is ready.",
-      "steps": {
-        "create": "Create Budget",
-        "addPeople": "Add People",
-        "paymentMethods": "Payment Methods",
-        "addIncome": "Add Income",
-        "addSavings": "Add Savings"
-      },
-      "actions": {
-        "cancel": "Cancel",
-        "back": "Back",
-        "skip": "Skip",
-        "continue": "Continue",
-        "saveAndContinue": "Save & Continue",
-        "add": "Add",
-        "finishLater": "Finish later",
-        "finish": "Finish"
-      },
-      "create": {
-        "help": "Give your budget a name to get started.",
-        "name": "Budget name",
-        "submit": "Create"
-      },
-      "people": {
-        "help": "Add other people who share this budget. You've already been added.",
-        "existing": "ALREADY IN THIS BUDGET",
-        "you": "You",
-        "name": "Name",
-        "namePlaceholder": "e.g. Jane",
-        "email": "Email (optional)",
-        "emailHelp": "Add an email to invite them to this budget.",
-        "invalidEmail": "That doesn't look like an email address.",
-        "role": "They can",
-        "roleHelp": {
-          "collaborator": "Add and edit transactions, income and savings — but not manage people.",
-          "viewer": "See the whole budget without changing anything."
-        },
-        "inviteSent": "Invitation sent to {email}.",
-        "remove": "Remove"
-      },
-      "paymentMethods": {
-        "help": "Add your payment methods (e.g. Chase Visa, Cash). You'll use these when recording transactions.",
-        "name": "Payment method name",
-        "namePlaceholder": "e.g. Chase Visa",
-        "type": "Type",
-        "belongsTo": "Belongs to"
-      },
-      "income": {
-        "name": "Source name",
-        "namePlaceholder": "e.g. Salary",
-        "amount": "Monthly amount",
-        "recurring": "Recurring monthly",
-        "beforeTax": "Before-tax income (used for tax reserve estimate)",
-        "attributedTo": "Attributed to"
-      },
-      "savings": {
-        "help": "Set money aside each period — an emergency fund, a holiday, anything you want kept apart from spending."
-      },
-      "cancelDialog": {
-        "title": "Cancel setup?",
-        "bodyWithBudget": "This deletes “{name}” and everything added to it — people, payment methods, income and savings. Any invitation already sent will stop working.",
-        "bodyNoBudget": "Nothing has been created yet, so nothing will be lost.",
-        "keep": "Keep setting up",
-        "confirmDelete": "Delete budget",
-        "confirmDiscard": "Discard"
-      }
-    },
-    "invites": {
-      "title": "Invitations",
-      "empty": "No invitations sent yet.",
-      "send": {
-        "title": "Send Invite",
-        "email": "Email address",
-        "role": "Role",
-        "linkPerson": "Link to existing guest (optional)",
-        "noPerson": "— Create new person on acceptance —",
-        "submit": "Send",
-        "submitting": "Sending…",
-        "success": "Invite sent to {email}"
-      },
-      "list": {
-        "status": {
-          "pending": "Pending",
-          "accepted": "Accepted",
-          "cancelled": "Cancelled",
-          "expired": "Expired"
-        },
-        "cancel": "Cancel invitation",
-        "cancelling": "Cancelling…",
-        "resend": "Resend invitation",
-        "resending": "Resending…"
-      },
-      "roles": {
-        "admin": "Admin",
-        "collaborator": "Collaborator",
-        "viewer": "Viewer",
-        "unspecified": "Guest"
-      }
-    },
-    "reports": {
-      "title": "Reports",
-      "description": "Spending analysis and trends across budget periods.",
-      "comingSoon": "Coming soon � this feature is in development"
-    },
-    "people": {
-      "freeTierLimit": "Free tier: budget is limited to 2 people. Upgrade to Pro for unlimited members."
-    },
-    "preferences": {
-      "description": "These settings are yours alone — other people on this budget keep their own.",
-      "planChart": "Expense Plan chart",
-      "overviewChart": "Expense Overview chart",
-      "pie": "Pie",
-      "bar": "Bar",
-      "unavailable": "Preferences are available once you're linked to this budget.",
-      "saveFailed": "Couldn't save your preferences.",
-      "planChartHint": "Shown on the Expense Plan tab, above your planned amounts.",
-      "overviewChartHint": "Shown on the Expense Overview tab, above what you actually spent.",
-      "matchReview": "Match my transactions to fixed expenses",
-      "matchReviewHint": "When you add or edit a transaction, check it against your fixed expenses for a possible match, same as bank-synced transactions.",
-      "matchReviewHintFree": "Available on Pro and Lifetime. Your own transactions won't be matched on the free plan, even with this on.",
-      "focusedView": "Focused View — show only my own data",
-      "focusedViewHint": "Scopes Plan, Overview, Transactions, Income, and Savings to your own numbers plus anything unattributed. Pending reviews always show everyone, flagged when they involve someone else."
-    },
-    "carryover": {
-      "title": "Carry balance forward",
-      "description": "When a period ends, roll its balance into the next one. Money left over is added to Savings; if you overspent, the shortfall is split across the payment methods you spent it on, so the debt shows where it came from.",
-      "adminOnly": "Only a budget admin can change this.",
-      "saveFailed": "Could not save this setting."
-    },
-    "plannedAmountSync": {
-      "title": "Keep fixed expenses in sync with reality",
-      "description": "When a fixed expense is paid differently than planned, update its template for future periods: the amount actually paid, the day it was actually paid (not the original due day), and — when matching a bank transaction reveals a different one — its category and payment method. The period you're paying keeps its own values; only later ones change. Turn this off to keep your fixed expense templates exactly as you set them.",
-      "adminOnly": "Only a budget admin can change this.",
-      "saveFailed": "Could not save this setting."
-    },
-    "systemCategories": {
-      "auto": "Auto",
-      "baby": "Baby",
-      "debt": "Debt",
-      "eatingOut": "Eating Out",
-      "entertainment": "Entertainment",
-      "family": "Family",
-      "gas": "Gas",
-      "groceries": "Groceries",
-      "house": "House",
-      "income": "Income",
-      "insurance": "Insurance",
-      "loan": "Loan",
-      "misc": "Misc",
-      "payment": "Payment",
-      "pet": "Pet",
-      "rent": "Rent",
-      "savings": "Savings",
-      "services": "Services",
-      "shopping": "Shopping",
-      "subscription": "Subscription",
-      "transfer": "Transfer",
-      "transportation": "Transportation",
-      "travel": "Travel",
-      "utilities": "Utilities",
-      "wellness": "Wellness"
-    }
-  },
   "landing": {
     "nav": {
+      "label": "Main",
+      "home": "WellSpent home",
+      "howItWorks": "How it works",
       "features": "Features",
-      "useCases": "Use Cases",
-      "pricing": "Pricing",
+      "pricing": "Free and Pro",
       "download": "Download",
-      "signIn": "Sign In",
-      "getStarted": "Get Started",
-      "menu": "Open menu",
-      "about": "About Us",
-      "allFeatures": "All features",
-      "openApp": "Open app"
+      "language": "Language",
+      "getApp": "Get the app"
+    },
+    "appStore": {
+      "downloadOnThe": "Download on the",
+      "comingSoonTo": "Coming soon to the",
+      "appStore": "App Store"
+    },
+    "tiers": {
+      "free": "FREE",
+      "limited": "FREE · LIMITED",
+      "pro": "PRO"
     },
     "hero": {
-      "slide1Title": "Plan Before You Spend",
-      "slide1Sub": "Know exactly where your money goes before the month begins.",
-      "slide2Title": "Budgeting Made Simple",
-      "slide2Sub": "Income-first approach that shows you what you can afford — before you commit.",
-      "slide3Title": "Share & Collaborate",
-      "slide3Sub": "Budget together with your partner, family, or household — all in one place.",
-      "cta": "Get Started Free",
-      "learnMore": "Learn more"
-    },
-    "whatIs": {
-      "title": "What is WellSpent?",
-      "body": "WellSpent is an income-first budgeting app. Declare your income, plan your fixed expenses and savings, then track your variable spending as the month unfolds. The running total always shows what you have left — no surprises at month end."
-    },
-    "showcase": {
-      "title": "See it before you sign up",
-      "subtitle": "A budget you can actually read, from the plan down to the last coffee.",
-      "items": {
-        "overview": {
-          "title": "Know where the money actually went",
-          "desc": "Every category with its real spend next to what you planned, biggest first. Anything over plan is marked in red with the amount you went over by — no hunting through rows to find the problem."
-        },
-        "plan": {
-          "title": "Decide the numbers before the month does",
-          "desc": "Set a planned amount per category and per person. That plan becomes the line everything else is measured against, so overspending is obvious the day it happens rather than at the end of the month."
-        },
-        "fixed": {
-          "title": "Rent, subscriptions, and every other bill",
-          "desc": "Recurring bills are templates: one transaction appears each period automatically, split into unpaid and paid so what's still outstanding is always at the top. Loans and instalment plans can carry an end date and stop on their own."
-        },
-        "variable": {
-          "title": "Day-to-day spending, in seconds",
-          "desc": "Add a spend with its category, payment method and who it belongs to. Search, sort, or filter down to just the categories that have gone over plan — and exclude a one-off like a reimbursement without deleting it."
-        }
+      "badge": "Free to use. No card needed.",
+      "title": "Plan your money before you spend it.",
+      "body": "WellSpent starts from what you earn, not what you already spent. Set the plan for this pay period, share it with the people you live with, and see at a glance whether you're on track.",
+      "seeInside": "See what's inside",
+      "platforms": "iPhone first. Android is next. English and Spanish.",
+      "mockup": {
+        "month": "November",
+        "daysLeft": "12 days left",
+        "home": "Home",
+        "plannedIncome": "Planned income",
+        "plannedExpenses": "Planned expenses",
+        "savings": "Savings",
+        "notPlanned": "Not planned yet",
+        "onTrack": "On track",
+        "overBy": "Over by $86",
+        "overPlan": "Dining is $82 over plan"
       }
     },
-    "highlights": {
-      "title": "Two things a spreadsheet won't do",
-      "subtitle": "The parts of WellSpent people tell us they didn't expect.",
-      "items": {
-        "shared": {
-          "tag": "Shared budgets",
-          "title": "A budget isn't a one-person job",
-          "desc": "Invite your partner or housemates by email and give each person a role — admin, collaborator, or view-only. Income, payment methods and spending are attributed per person, so everyone works from the same numbers instead of comparing notes at the end of the month."
+    "how": {
+      "eyebrow": "How it works",
+      "title": "Income first. Then the plan. Then what actually happened.",
+      "steps": {
+        "income": {
+          "title": "Start from your income",
+          "body": "Add what each person earns and when they're paid. Your periods follow your paydays."
         },
-        "matching": {
-          "tag": "Auto-matching",
-          "title": "Your bank feed, already reconciled",
-          "desc": "Connect a bank and imported transactions are scored against the fixed expenses you already planned — amount, merchant name, payment method, category. A confident match waits in a To Review tab for one tap. Confirm a merchant once and identical charges match themselves from then on."
+        "plan": {
+          "title": "Plan every dollar",
+          "body": "Give each category, bill and savings goal its amount before the period begins."
+        },
+        "track": {
+          "title": "See how it's going",
+          "body": "Spend as usual. Home shows who's on track, what's over, and how much is left."
         }
       }
     },
     "features": {
-      "title": "Features",
-      "subtitle": "Grouped the way the app is — so you know what you're getting.",
-      "explore": "Explore"
-    },
-    "featureGroups": {
-      "comingSoon": "Coming soon",
-      "plan": {
-        "title": "Plan",
-        "summary": "Set the numbers, then watch them play out.",
-        "items": {
-          "overview": {
-            "title": "Expense Overview",
-            "desc": "Actual spending per category with a chart, a collapsible per-person breakdown, and a clear marker on anything that went over plan."
-          },
-          "plan": {
-            "title": "Expense Plan",
-            "desc": "Planned amounts per category and per person, sorted so your biggest commitments are always at the top."
+      "eyebrow": "Features",
+      "title": "Everything in the app, and what each one costs.",
+      "legendFree": "everyone",
+      "legendLimited": "capped on Free",
+      "legendPro": "paid plan",
+      "groups": {
+        "home": {
+          "title": "Home",
+          "sub": "Where the money actually went",
+          "items": {
+            "glance": {
+              "name": "Plan at a glance",
+              "desc": "Planned income, expenses with and without savings, and what's still unplanned, in one card."
+            },
+            "people": {
+              "name": "A card per person",
+              "desc": "What each person spent, saved and earned against their own plan, with an on-track or over marker."
+            },
+            "categories": {
+              "name": "Categories",
+              "desc": "Spend by category as a bar or donut, every over-plan category called out, and the transactions behind each."
+            },
+            "justMe": {
+              "name": "Just me",
+              "desc": "Switch the whole app to your own numbers, plus anything not assigned to anyone."
+            }
           }
-        }
-      },
-      "transactions": {
-        "title": "Transactions",
-        "summary": "Everything you spend, fixed or variable.",
-        "items": {
-          "fixed": {
-            "title": "Fixed expenses",
-            "desc": "Recurring bill templates that spawn one transaction per period, with optional end dates so loans and instalment plans stop on their own."
-          },
-          "variable": {
-            "title": "Variable spending",
-            "desc": "Fast entry for day-to-day spending, with a spent/received toggle, per-person attribution, and the option to exclude a transaction from totals without deleting it."
-          },
-          "matching": {
-            "title": "Auto-matching",
-            "desc": "Imported bank transactions are scored against your fixed expenses and queued for a single tap of confirmation. Merchants you've confirmed before match on their own."
+        },
+        "plan": {
+          "title": "Plan",
+          "sub": "What you intend to spend and owe",
+          "items": {
+            "plans": {
+              "name": "Category and person plans",
+              "desc": "Set an amount per category and per person; everything else is measured against it."
+            },
+            "bills": {
+              "name": "Fixed bills",
+              "desc": "Rent and subscriptions as templates that appear each period, with what's still unpaid on top."
+            },
+            "paymentPlans": {
+              "name": "Payment plans and installments",
+              "desc": "Loans with an end date, and card purchases split into installments that count month by month."
+            },
+            "comingUp": {
+              "name": "Coming up",
+              "desc": "How your fixed costs drop as payment plans end, period by period."
+            }
           }
-        }
-      },
-      "reports": {
-        "title": "Reports",
-        "summary": "Historical views across budget periods. Not built yet — we'd rather say so than mock it up."
-      },
-      "budget": {
-        "title": "Your budget",
-        "summary": "The pieces a budget is built from.",
-        "items": {
-          "income": {
-            "title": "Income sources",
-            "desc": "Salary, hourly, freelance or one-off — declared up front and per person, so every plan starts from what you actually earn."
-          },
-          "savings": {
-            "title": "Savings",
-            "desc": "Recurring savings goals per person. In the US, a tax reserve is maintained for you from your filing status, income and payment frequency."
-          },
-          "categories": {
-            "title": "Categories",
-            "desc": "Sensible categories out of the box, plus your own for anything that doesn't fit. Renaming one updates every transaction that used it."
-          },
-          "paymentMethods": {
-            "title": "Payment methods",
-            "desc": "Name each card, account or wallet and attribute it to a person, so shared spending is never ambiguous."
-          },
-          "alerts": {
-            "title": "Alerts",
-            "desc": "Be told in-app or by email when someone adds a transaction, when spending crosses a threshold you chose, or when a new period begins."
-          },
-          "plaid": {
-            "title": "Bank sync",
-            "desc": "Connect a US bank through Plaid and let transactions import themselves. Available on paid plans; US accounts only for now."
+        },
+        "transactions": {
+          "title": "Transactions",
+          "sub": "Every movement, labelled for what it was",
+          "items": {
+            "entry": {
+              "name": "Fast entry",
+              "desc": "Amount first, then category, payment method and who it belongs to."
+            },
+            "flows": {
+              "name": "Spend, refund, transfer, income, payment",
+              "desc": "Each transaction says what it was, so paychecks and card payments never inflate your spending."
+            },
+            "payments": {
+              "name": "Payments tab",
+              "desc": "Card payments in their own list, both sides of a payment shown as one row."
+            },
+            "anyPeriod": {
+              "name": "Edit any period",
+              "desc": "Fix a past month as easily as this one."
+            }
+          }
+        },
+        "bank": {
+          "title": "Bank sync and matching",
+          "sub": "Your bank feed, already reconciled",
+          "items": {
+            "sync": {
+              "name": "Bank sync (US)",
+              "desc": "Connect your bank through Plaid; transactions import themselves and are categorized for you."
+            },
+            "autoMatch": {
+              "name": "Auto-matching",
+              "desc": "Imported transactions are matched to the bills you planned; confirm with one tap, and known merchants match on their own."
+            },
+            "manualMatch": {
+              "name": "Manual matching",
+              "desc": "Transactions you type in are checked against your bills too."
+            },
+            "review": {
+              "name": "Review queue",
+              "desc": "Anything that might be a duplicate waits for you instead of counting twice."
+            }
+          }
+        },
+        "reports": {
+          "title": "Reports",
+          "sub": "How the last few months really went",
+          "items": {
+            "trends": {
+              "name": "Category trends",
+              "desc": "Spending per category across periods, in dollars or as a share of income, with the biggest movers."
+            },
+            "scorecard": {
+              "name": "Plan scorecard",
+              "desc": "Which periods stayed on plan, your streak, and savings per period, judged against the plan each period actually had."
+            },
+            "history": {
+              "name": "Full history",
+              "desc": "Every past period and the 6 and 12-period views."
+            }
+          }
+        },
+        "together": {
+          "title": "Together",
+          "sub": "A budget is rarely a one-person job",
+          "items": {
+            "shared": {
+              "name": "Shared budgets",
+              "desc": "Invite your partner or housemates by email, as someone who edits or someone who only views."
+            },
+            "paydays": {
+              "name": "Periods that follow payday",
+              "desc": "Set when each person is paid and periods line up with real paydays, not the calendar."
+            },
+            "periodReview": {
+              "name": "New-period review",
+              "desc": "When a period ends, see what carried over before the next one starts."
+            },
+            "alerts": {
+              "name": "Alerts",
+              "desc": "In the app or by email, when spending crosses a line you set or a new period begins."
+            }
           }
         }
       }
     },
-    "useCases": {
-      "title": "Use Cases",
-      "subtitle": "Built for real budgeting situations.",
-      "item1Title": "Couples & Families",
-      "item1Desc": "Share one budget with different income sources and spending per person. Everyone sees the full picture.",
-      "item2Title": "Freelancers",
-      "item2Desc": "Variable income? Set aside a tax reserve automatically based on your filing status and payment frequency.",
-      "item3Title": "Anyone Who Plans Ahead",
-      "item3Desc": "Whether you're saving for a house or just trying to spend less on eating out — WellSpent helps you plan before you spend."
-    },
     "pricing": {
-      "title": "Pricing",
-      "subtitle": "Start free. Upgrade only if you outgrow it.",
+      "eyebrow": "Free and Pro",
+      "title": "Free runs a real budget. Pro gives it more room.",
+      "subtitle": "Everything you set up on Free carries over if you upgrade.",
       "free": {
         "name": "Free",
         "price": "$0",
-        "tagline": "Enough to run a real budget, not a trial.",
-        "features": {
-          "people": "Up to 2 people on a budget",
-          "income": "Up to 2 income sources per person",
-          "alerts": "Up to 2 alert subscriptions",
-          "core": "Full planning, transactions, categories and savings"
-        },
-        "cta": "Start for free"
+        "per": "forever",
+        "tagline": "Enough to run a real household budget, not a trial."
       },
       "pro": {
         "name": "Pro",
-        "price": "Coming soon",
-        "tagline": "For households that need more room.",
-        "features": {
-          "unlimited": "Unlimited people and income sources",
-          "bankSync": "Automatic bank sync through Plaid",
-          "alerts": "Unlimited alerts, including new-transaction notices",
-          "noAds": "No ads"
-        }
+        "badge": "Coming soon",
+        "price": "Soon",
+        "per": "monthly or yearly",
+        "tagline": "Everything in Free, plus:"
       },
-      "note": "Pro can't be bought yet — there's nothing to sign up for. The free plan stays free, and anything you set up now carries over."
+      "freeItems": {
+        "budget": "One budget, shared with up to 2 people",
+        "income": "Up to 2 income sources per person",
+        "planning": "Plans, fixed bills, payment plans and installments",
+        "transactions": "Every transaction type, any period editable",
+        "reports": "Reports for this period and the 3 before it",
+        "alerts": "Up to 2 alerts",
+        "taxReserve": "US tax reserve worked out for you",
+        "ads": "Shows ads"
+      },
+      "proItems": {
+        "unlimited": "Unlimited people and income sources",
+        "bankSync": "Bank sync through Plaid (US)",
+        "matching": "Automatic and manual matching to your bills",
+        "history": "Full report history, 6 and 12-period views",
+        "comingUp": "Coming up: how your fixed costs fall over time",
+        "alerts": "Unlimited alerts, including new-transaction alerts",
+        "noAds": "No ads"
+      },
+      "table": {
+        "caption": "Side by side",
+        "feature": "Feature"
+      },
+      "rows": {
+        "people": {
+          "name": "People on a budget",
+          "free": "Up to 2",
+          "pro": "Unlimited"
+        },
+        "income": {
+          "name": "Income sources per person",
+          "free": "Up to 2",
+          "pro": "Unlimited"
+        },
+        "planning": {
+          "name": "Plans, bills, payment plans, installments",
+          "free": "Included",
+          "pro": "Included"
+        },
+        "transactions": {
+          "name": "Transactions, flows, Payments tab",
+          "free": "Included",
+          "pro": "Included"
+        },
+        "bankSync": {
+          "name": "Bank sync (US)",
+          "free": "—",
+          "pro": "Included"
+        },
+        "matching": {
+          "name": "Matching to your bills",
+          "free": "—",
+          "pro": "Automatic and manual"
+        },
+        "reports": {
+          "name": "Reports history",
+          "free": "Current + 3 periods",
+          "pro": "Everything"
+        },
+        "comingUp": {
+          "name": "Coming up projection",
+          "free": "Preview",
+          "pro": "Included"
+        },
+        "alerts": {
+          "name": "Alerts",
+          "free": "Up to 2",
+          "pro": "Unlimited, plus new-transaction"
+        },
+        "ads": {
+          "name": "Ads",
+          "free": "Yes",
+          "pro": "None"
+        }
+      }
+    },
+    "audience": {
+      "title": "Made for how households actually run",
+      "items": {
+        "couples": {
+          "title": "Couples and families",
+          "body": "One budget, each person with their own income, cards and plan, and a Just me view when you want only your side."
+        },
+        "freelancers": {
+          "title": "Freelancers in the US",
+          "body": "Before-tax income gets an estimated tax reserve set aside automatically, from your filing status and how often you pay."
+        },
+        "paydays": {
+          "title": "Anyone paid on odd days",
+          "body": "Paid on the 15th and the last day, or every other Friday? Periods follow the paydays you actually have."
+        }
+      }
     },
     "download": {
-      "title": "Get the App",
-      "subtitle": "Access WellSpent from any device.",
-      "webTitle": "Web",
-      "webDesc": "WellSpent is no longer available as a web app.",
-      "noLongerAvailable": "No Longer Available",
-      "iosTitle": "iOS",
-      "iosDesc": "iPhone and iPad app — coming soon.",
-      "androidTitle": "Android",
-      "androidDesc": "Android app — coming soon.",
-      "comingSoon": "Coming Soon"
-    },
-    "about": {
-      "title": "About Us",
-      "body": "WellSpent was built by a small team that got tired of budgeting tools that only show you what happened — not what's about to happen. We believe the best time to manage your money is before you spend it."
+      "title": "A mobile app, made for your pocket.",
+      "body": "WellSpent lives on your phone, where the spending happens. There's no web app; this site is just the front door.",
+      "iphone": "iPhone",
+      "iphoneSoon": "In testing now, on the App Store soon",
+      "iphoneLive": "Available on the App Store",
+      "android": "Android",
+      "androidStatus": "Next on the list",
+      "soon": "Soon",
+      "available": "Available",
+      "later": "Later"
     },
     "footer": {
-      "tagline": "Plan before you spend.",
-      "rights": "© {year} WellSpent. All rights reserved."
+      "tagline": "Plan before you spend. © {year} WellSpent"
     }
   },
-  "invite": {
-    "loading": "Loading invite…",
-    "title": "{inviterName} invited you to join {budgetName}",
-    "role": "Your role: {role}",
-    "expires": "Expires {date}",
-    "accept": "Accept Invite",
-    "accepting": "Accepting…",
-    "success": "Invite accepted! Redirecting to your budget…",
-    "signIn": "Sign in to accept",
-    "register": "Create account",
-    "alreadyHaveAccount": "Already have an account?",
-    "noAccount": "Don't have an account yet?",
-    "error": {
-      "cancelled": "This invite has been cancelled.",
-      "accepted": "This invite has already been accepted.",
-      "expired": "This invite has expired.",
-      "notFound": "Invite not found or invalid."
-    }
-  },
-  "notifications": {
-    "title": "Notifications",
-    "empty": "No notifications yet",
-    "markAllRead": "Mark all read",
-    "alerts": {
-      "description": "Choose which budget events notify you and how.",
-      "channel": "Delivery",
-      "threshold": "Alert threshold",
-      "scope": "Alert scope",
-      "category": "Category",
-      "types": {
-        "new_transaction": {
-          "label": "New Transaction",
-          "description": "Notify when another member adds a transaction"
-        },
-        "spending_threshold": {
-          "label": "Spending Threshold",
-          "description": "Notify when spending crosses a percentage of the plan"
-        },
-        "period_created": {
-          "label": "New Budget Period",
-          "description": "Notify when a new budget period starts"
-        },
-        "review_pending": {
-          "label": "Review Pending",
-          "description": "Notify when a Plaid import is queued for review"
-        }
-      },
-      "channels": {
-        "in_app": "In-app",
-        "email": "Email",
-        "both": "Both"
-      },
-      "scopes": {
-        "budget": "Total budget",
-        "category": "Per category"
-      },
-      "freeTierNote": "Free: max 2 alert types � new_transaction requires Pro"
-    }
-  },
-  "plaid": {
-    "empty": "No bank accounts connected yet.",
-    "connect": "Connect a bank account",
-    "freeTierNote": "Only available on Pro accounts",
-    "manageAccounts": "Manage accounts",
-    "pickBudget": "Which budget should imported transactions go to?",
-    "noBudgets": "You have no budgets. Create one first.",
-    "cancel": "Cancel",
-    "disconnect": "Disconnect",
-    "disconnectTitle": "Disconnect bank account?",
-    "disconnectBody": "Transactions already imported from {name} will stay. No new transactions will be imported.",
-    "unknownBank": "Unknown bank",
-    "unknownBudget": "Unknown budget",
-    "lastSynced": "Last synced {date}",
-    "neverSynced": "Never synced",
-    "status": {
-      "active": "Active",
-      "disconnected": "Disconnected",
-      "error": "Error"
+  "standalone": {
+    "verifyEmail": {
+      "verifyingTitle": "Confirming your email",
+      "verifyingBody": "One moment.",
+      "successTitle": "Email confirmed",
+      "successBody": "You're all set. Go back to the WellSpent app and you'll go straight in.",
+      "errorTitle": "This link didn't work",
+      "errorBody": "It may have expired; links last 10 minutes. Open the WellSpent app and tap Resend to get a new one."
     },
-    "syncWarningTitle": "Some accounts aren't syncing",
-    "syncWarningMember": "{member} connected {count, plural, one {# bank} other {# banks}} to {budget}, but their account isn't on a paid plan — those transactions won't be imported. Bank sync is per person, so they'll need to upgrade.",
-    "syncWarningSelf": "You connected {count, plural, one {# bank} other {# banks}} to {budget}, but your account isn't on a paid plan, so those transactions won't be imported. Upgrade to Pro to turn bank sync on.",
-    "budgetPanelIntro": "Bank connections feeding this budget, from everyone on it. You can only change your own.",
-    "emptyForBudget": "No bank accounts are connected to this budget yet.",
-    "unknownMember": "Unknown member",
-    "notYours": "Only the person who connected this bank can change it",
-    "notSyncing": "Not syncing",
-    "resync": "Re-sync",
-    "resyncTitle": "Re-sync this bank?",
-    "resyncBody": "WellSpent will ask {name} for its full transaction history again, starting now.",
-    "resyncWarning": "Transactions you deleted will come back. Ones already imported won't be duplicated.",
-    "resyncOncePerDay": "Available once a day per bank.",
-    "resyncCooldown": "Already re-synced today — available again in {hours, plural, one {# hour} other {# hours}}",
-    "resyncSyncDisabled": "This bank won't sync until its owner is on a paid plan"
-  },
-  "statusBanner": {
-    "learnMore": "Learn more",
-    "showLess": "Show less",
-    "dismiss": "Dismiss"
-  },
-  "changelog": {
-    "whatsNew": "What's new",
-    "gotIt": "Got it",
-    "empty": "No release notes yet.",
-    "type": {
-      "added": "Added",
-      "fixed": "Fixed",
-      "changed": "Changed"
+    "invite": {
+      "title": "You've been invited to a budget",
+      "body": "Open this link on your iPhone with the WellSpent app installed to join. Sign in or create an account with the email address the invite was sent to."
     },
-    "component": {
-      "web": "This app",
-      "server": "Behind the scenes"
-    }
-  },
-  "help": {
-    "title": "Help",
-    "changelogSubtitle": "See what changed in each version",
-    "component": {
-      "web": "Web",
-      "ios": "iOS",
-      "server": "Server"
+    "callback": {
+      "title": "Back to WellSpent",
+      "body": "You can close this page and return to the app."
     }
   }
 }
