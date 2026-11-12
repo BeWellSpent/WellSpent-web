@@ -1,89 +1,59 @@
 'use client'
 
 import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
-import Typography from '@mui/material/Typography'
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Chip from '@mui/material/Chip'
-import LanguageIcon from '@mui/icons-material/Language'
-import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone'
 import AndroidIcon from '@mui/icons-material/Android'
+import AppleIcon from '@mui/icons-material/Apple'
 import { useTranslations } from 'next-intl'
-import { SECTION_SX } from '../constants'
+import { APP_STORE_URL } from '@/lib/appStore'
+import { AppStoreButton } from '../AppStoreButton'
+import { ANCHOR_SX, CONTAINER_SX, SECTION_IDS } from '../landingStyles'
 
-export function DownloadSection() {
-  const t = useTranslations('landing')
+const MUTED = '#C3CAD6'
 
+function PlatformRow({ icon, name, status, pill, live }: { icon: React.ReactNode; name: string; status: string; pill: string; live: boolean }) {
   return (
-    <Box id="download" sx={{ ...SECTION_SX, bgcolor: 'background.default' }}>
-      <Container maxWidth="md">
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Typography variant="h4" fontWeight={700} gutterBottom>
-            {t('download.title')}
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            {t('download.subtitle')}
-          </Typography>
+    <Box sx={{ p: 2, px: 2.25, bgcolor: '#1D2536', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: 1.75 }}>
+      {icon}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+        <Box component="span" sx={{ fontSize: 16, fontWeight: 600 }}>{name}</Box>
+        <Box component="span" sx={{ fontSize: 14, color: MUTED }}>{status}</Box>
+      </Box>
+      <Box
+        component="span"
+        sx={{ height: 26, px: 1.25, borderRadius: '13px', bgcolor: live ? 'rgba(76,195,138,0.18)' : '#2B3448', color: live ? '#4CC38A' : MUTED, fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center' }}
+      >
+        {pill}
+      </Box>
+    </Box>
+  )
+}
+
+/** Mobile only, and says so: there is no web app. */
+export function DownloadSection() {
+  const t = useTranslations('landing.download')
+  const live = APP_STORE_URL !== ''
+  return (
+    <Box component="section" id={SECTION_IDS.download} aria-labelledby="download-title" sx={{ ...CONTAINER_SX, ...ANCHOR_SX, mb: 9 }}>
+      <Box sx={{ p: { xs: 3, md: 7 }, bgcolor: '#101828', color: '#FFFFFF', borderRadius: '28px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4 }}>
+        <Box sx={{ flex: '1 1 380px', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Box component="img" src="/mark-color.png" alt="" sx={{ width: 64, height: 64 }} />
+          <Box component="h2" id="download-title" sx={{ m: 0, fontSize: { xs: 30, md: 40 }, lineHeight: 1.1, fontWeight: 800, letterSpacing: '-0.025em' }}>
+            {t('title')}
+          </Box>
+          <Box component="p" sx={{ m: 0, fontSize: 17, lineHeight: 1.5, color: MUTED }}>{t('body')}</Box>
+          {live && <Box sx={{ mt: 1 }}><AppStoreButton /></Box>}
         </Box>
-        <Grid container spacing={3} justifyContent="center">
-          {/* Web — retired, not just unreleased, so it reads differently from iOS/Android */}
-          <Grid item xs={12} sm={4}>
-            <Card
-              elevation={0}
-              sx={{ textAlign: 'center', p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, height: '100%', opacity: 0.6 }}
-            >
-              <CardContent>
-                <LanguageIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 1 }} />
-                <Typography variant="h6" fontWeight={700} gutterBottom>
-                  {t('download.webTitle')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {t('download.webDesc')}
-                </Typography>
-                <Chip label={t('download.noLongerAvailable')} size="small" variant="outlined" />
-              </CardContent>
-            </Card>
-          </Grid>
-          {/* iOS — the primary card now; Android still genuinely unreleased */}
-          <Grid item xs={12} sm={4}>
-            <Card
-              elevation={0}
-              sx={{ textAlign: 'center', p: 2, border: '2px solid', borderColor: 'primary.main', borderRadius: 2, height: '100%' }}
-            >
-              <CardContent>
-                <PhoneIphoneIcon sx={{ fontSize: 56, color: 'primary.main', mb: 1 }} />
-                <Typography variant="h6" fontWeight={700} gutterBottom>
-                  {t('download.iosTitle')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {t('download.iosDesc')}
-                </Typography>
-                <Chip label={t('download.comingSoon')} size="small" variant="outlined" />
-              </CardContent>
-            </Card>
-          </Grid>
-          {/* Android */}
-          <Grid item xs={12} sm={4}>
-            <Card
-              elevation={0}
-              sx={{ textAlign: 'center', p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, height: '100%', opacity: 0.75 }}
-            >
-              <CardContent>
-                <AndroidIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 1 }} />
-                <Typography variant="h6" fontWeight={700} gutterBottom>
-                  {t('download.androidTitle')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {t('download.androidDesc')}
-                </Typography>
-                <Chip label={t('download.comingSoon')} size="small" variant="outlined" />
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Container>
+        <Box sx={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <PlatformRow
+            icon={<AppleIcon aria-hidden />}
+            name={t('iphone')}
+            status={live ? t('iphoneLive') : t('iphoneSoon')}
+            pill={live ? t('available') : t('soon')}
+            live={live}
+          />
+          <PlatformRow icon={<AndroidIcon aria-hidden />} name={t('android')} status={t('androidStatus')} pill={t('later')} live={false} />
+        </Box>
+      </Box>
     </Box>
   )
 }

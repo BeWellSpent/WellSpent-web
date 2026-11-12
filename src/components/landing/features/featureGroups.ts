@@ -1,87 +1,81 @@
-import { SHOWCASE } from '../showcase/showcaseAssets'
-
 /**
- * The feature groups, each of which gets its own route under
- * `/[locale]/features/<key>`.
- *
- * The nav dropdown, the features index, and every detail page read from this
- * one array, so adding a group adds it everywhere at once.
- *
- * Order mirrors the app's own budget-view tabs (Plan, Transactions, Reports)
- * followed by the budget-management panels, so a visitor who signs up finds
- * the product laid out the way the marketing pages described it.
+ * What the app does, grouped like the app, and what each feature costs.
+ * Tiers mirror what the app enforces today (docs/features/tiered-subscriptions.md):
+ * `limited` is free but capped on the Free plan.
  */
-type FeatureItem = {
-  /** Key stem under `landing.featureGroups.<group>.items`. */
-  key: string
-  /** Capture shown alongside this item on its group page, when one exists. */
-  capture?: string
-}
+export type Tier = 'free' | 'limited' | 'pro'
 
-export type FeatureGroup = {
-  /** Key stem under `landing.featureGroups`, the route segment, and the React key. */
-  key: string
-  items: readonly FeatureItem[]
-  /** Renders muted, with a "coming soon" chip and no item list. */
-  comingSoon?: boolean
+export type FeatureGroupKey = 'home' | 'plan' | 'transactions' | 'bank' | 'reports' | 'together'
+
+type FeatureGroup = {
+  key: FeatureGroupKey
+  items: readonly { key: string; tier: Tier }[]
 }
 
 export const FEATURE_GROUPS: readonly FeatureGroup[] = [
   {
+    key: 'home',
+    items: [
+      { key: 'glance', tier: 'free' },
+      { key: 'people', tier: 'free' },
+      { key: 'categories', tier: 'free' },
+      { key: 'justMe', tier: 'free' },
+    ],
+  },
+  {
     key: 'plan',
     items: [
-      { key: 'overview', capture: SHOWCASE.overview },
-      { key: 'plan', capture: SHOWCASE.plan },
+      { key: 'plans', tier: 'free' },
+      { key: 'bills', tier: 'free' },
+      { key: 'paymentPlans', tier: 'free' },
+      { key: 'comingUp', tier: 'pro' },
     ],
   },
   {
     key: 'transactions',
     items: [
-      { key: 'fixed', capture: SHOWCASE.fixed },
-      { key: 'variable', capture: SHOWCASE.variable },
-      { key: 'matching', capture: SHOWCASE.review },
+      { key: 'entry', tier: 'free' },
+      { key: 'flows', tier: 'free' },
+      { key: 'payments', tier: 'free' },
+      { key: 'anyPeriod', tier: 'free' },
     ],
   },
-  { key: 'reports', items: [], comingSoon: true },
   {
-    key: 'budget',
+    key: 'bank',
     items: [
-      { key: 'income' },
-      { key: 'savings', capture: SHOWCASE.people },
-      { key: 'categories' },
-      { key: 'paymentMethods' },
-      { key: 'alerts' },
-      { key: 'plaid' },
+      { key: 'sync', tier: 'pro' },
+      { key: 'autoMatch', tier: 'pro' },
+      { key: 'manualMatch', tier: 'pro' },
+      { key: 'review', tier: 'free' },
     ],
   },
-] as const
+  {
+    key: 'reports',
+    items: [
+      { key: 'trends', tier: 'limited' },
+      { key: 'scorecard', tier: 'limited' },
+      { key: 'history', tier: 'pro' },
+    ],
+  },
+  {
+    key: 'together',
+    items: [
+      { key: 'shared', tier: 'limited' },
+      { key: 'paydays', tier: 'free' },
+      { key: 'periodReview', tier: 'free' },
+      { key: 'alerts', tier: 'limited' },
+    ],
+  },
+]
 
-/** Route for one group's page. Locale is explicit — this app prefixes every path. */
-export function featureGroupHref(locale: string, groupKey: string): string {
-  return `/${locale}/features/${groupKey}`
-}
-
-export function findFeatureGroup(key: string): FeatureGroup | undefined {
-  return FEATURE_GROUPS.find((group) => group.key === key)
-}
-
-/**
- * Every `landing.*` key the features pages and nav dropdown will ask for.
- *
- * A key missing from any locale file is a build failure, and the group data
- * lives far enough from the message files that adding an item and forgetting
- * its copy is easy. The unit test walks this list against every locale.
- */
+/** Every `landing.features.groups.*` key the section asks for; the unit test checks each exists. */
 export function featureGroupTranslationKeys(): string[] {
-  const keys: string[] = ['featureGroups.comingSoon']
-  for (const group of FEATURE_GROUPS) {
-    keys.push(`featureGroups.${group.key}.title`, `featureGroups.${group.key}.summary`)
-    for (const item of group.items) {
-      keys.push(
-        `featureGroups.${group.key}.items.${item.key}.title`,
-        `featureGroups.${group.key}.items.${item.key}.desc`,
-      )
-    }
-  }
-  return keys
+  return FEATURE_GROUPS.flatMap((group) => [
+    `features.groups.${group.key}.title`,
+    `features.groups.${group.key}.sub`,
+    ...group.items.flatMap((item) => [
+      `features.groups.${group.key}.items.${item.key}.name`,
+      `features.groups.${group.key}.items.${item.key}.desc`,
+    ]),
+  ])
 }

@@ -1,47 +1,30 @@
 {
   "name": "wellspent-web",
-  "version": "1.39.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -H 0.0.0.0",
-    "prebuild": "npm run generate",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint src/",
-    "generate": "npm run generate:proto && npm run generate:rest",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "generate:proto": "buf generate buf.build/bewellspent/wellspent",
-    "generate:rest": "openapi-typescript https://raw.githubusercontent.com/BeWellSpent/WellSpent-proto/main/openapi/v1/wellspent.yaml -o src/gen/rest/schema.d.ts"
+    "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^1.10.0",
-    "@connectrpc/connect": "^1.6.1",
-    "@connectrpc/connect-query": "^1.4.2",
-    "@connectrpc/connect-web": "^1.6.1",
     "@emotion/cache": "^11.13.1",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
-    "@tanstack/react-query": "^5.56.2",
     "@vercel/analytics": "^2.0.1",
     "next": "^16.2.9",
     "next-intl": "^4.13.1",
-    "openapi-fetch": "^0.13.5",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-plaid-link": "^4.1.1",
-    "recharts": "^3.9.1"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@bufbuild/buf": "^1.71.0",
-    "@bufbuild/protoc-gen-es": "^1.10.0",
-    "@connectrpc/protoc-gen-connect-es": "^1.6.1",
     "@swc/helpers": "^0.5.23",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.16.5",
     "@types/react": "^18.3.5",
@@ -50,7 +33,6 @@
     "eslint-config-next": "^16.2.9",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
-    "openapi-typescript": "^7.6.1",
     "typescript": "^5.6.2"
   }
 }

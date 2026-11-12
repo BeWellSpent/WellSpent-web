@@ -1,260 +1,107 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useIsMobile } from '@/hooks/useIsMobile'
-import Image from 'next/image'
-import NextLink from 'next/link'
 import Box from '@mui/material/Box'
-import AppBar from '@mui/material/AppBar'
-import Toolbar from '@mui/material/Toolbar'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
-import Drawer from '@mui/material/Drawer'
-import List from '@mui/material/List'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemText from '@mui/material/ListItemText'
-import Collapse from '@mui/material/Collapse'
-import Divider from '@mui/material/Divider'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import MenuIcon from '@mui/icons-material/Menu'
-import CloseIcon from '@mui/icons-material/Close'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
-import ExpandLessIcon from '@mui/icons-material/ExpandLess'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import LanguageIcon from '@mui/icons-material/Language'
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter, usePathname } from 'next/navigation'
-import { useThemeMode } from '@/context/ThemeContext'
+import { Link } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
-import { LOCALE_LABELS, NAV_SECTIONS, scrollToSection } from '../constants'
-import { FEATURE_GROUPS, featureGroupHref } from '../features/featureGroups'
+import { BrandLockup } from '../BrandLockup'
+import { SECTION_IDS } from '../landingStyles'
 
-/** Shared by every top-level nav button so they can't drift in weight or size. */
-const NAV_BUTTON_SX = {
+const NAV_LINKS = [
+  { key: 'howItWorks', id: SECTION_IDS.how },
+  { key: 'features', id: SECTION_IDS.features },
+  { key: 'pricing', id: SECTION_IDS.pricing },
+  { key: 'download', id: SECTION_IDS.download },
+] as const
+
+const LINK_SX = {
   color: 'text.primary',
+  opacity: 0.85,
+  textDecoration: 'none',
+  minHeight: 44,
+  display: 'inline-flex',
+  alignItems: 'center',
+  fontSize: 15,
   fontWeight: 500,
-  textTransform: 'none',
-  fontSize: '0.95rem',
+  '&:hover': { opacity: 1 },
 } as const
 
+/** Sticky top bar: logo, section links (hidden on phones, where the page is a short scroll), language, Get the app. */
 export function LandingNav() {
-  const t = useTranslations('landing')
+  const t = useTranslations('landing.nav')
   const locale = useLocale()
-  const isMobile = useIsMobile()
-  const { effective } = useThemeMode()
-  const router = useRouter()
-  const pathname = usePathname()
-
-  const [mounted, setMounted] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [langAnchor, setLangAnchor] = useState<null | HTMLElement>(null)
-  const [featuresAnchor, setFeaturesAnchor] = useState<null | HTMLElement>(null)
-  const [featuresExpanded, setFeaturesExpanded] = useState(false)
-
-  // Before mount, effective is 'light' (matches SSR). After mount, follows user preference.
-  const iconSrc = mounted && effective === 'dark' ? '/app-icon-dark.png' : '/app-icon-light.png'
-
-  useEffect(() => setMounted(true), [])
-
-  // The section links are anchors on the landing page, but this nav also runs
-  // on the /features routes — where there is nothing to scroll to. From there
-  // they navigate home with a hash instead.
-  const isOnLanding = pathname === `/${locale}` || pathname === `/${locale}/`
-
-  function closeMenus() {
-    setFeaturesAnchor(null)
-    setDrawerOpen(false)
-  }
-
-  function goToSection(id: string) {
-    closeMenus()
-    if (isOnLanding) {
-      scrollToSection(id)
-      return
-    }
-    router.push(`/${locale}#${id}`)
-  }
-
-  function switchLocale(newLocale: string) {
-    setLangAnchor(null)
-    const newPath = pathname.startsWith(`/${locale}`)
-      ? `/${newLocale}${pathname.slice(`/${locale}`.length)}`
-      : `/${newLocale}`
-    router.push(newPath)
-  }
 
   return (
-    <>
-      <AppBar
-        position="sticky"
-        elevation={1}
-        sx={{ bgcolor: 'background.paper', color: 'text.primary' }}
+    <Box
+      component="header"
+      sx={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        bgcolor: 'background.default',
+        borderBottom: 1,
+        borderColor: 'divider',
+        backdropFilter: 'blur(12px)',
+      }}
+    >
+      <Box
+        component="nav"
+        aria-label={t('label')}
+        sx={{ maxWidth: 1160, mx: 'auto', px: '20px', py: 1.25, display: 'flex', alignItems: 'center', gap: 3 }}
       >
-        <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
-          {/* Logo */}
-          <Box
-            component={NextLink}
-            href={`/${locale}`}
-            sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}
-          >
-            {isMobile ? (
-              <Image src={iconSrc} alt="WellSpent" width={36} height={36} style={{ objectFit: 'contain' }} />
-            ) : (
-              <Image src="/web-header.png" alt="WellSpent" width={160} height={36} style={{ objectFit: 'contain', objectPosition: 'left' }} />
-            )}
-          </Box>
-
-          {/* Desktop: centered nav links */}
-          {!isMobile && (
-            <Box sx={{ display: 'flex', gap: 0.5, mx: 'auto' }}>
-              <Button
-                onClick={(e) => setFeaturesAnchor(e.currentTarget)}
-                endIcon={<ArrowDropDownIcon />}
-                sx={NAV_BUTTON_SX}
-              >
-                {t('nav.features')}
-              </Button>
-              {NAV_SECTIONS.map(({ key, id }) => (
-                <Button key={key} onClick={() => goToSection(id)} sx={NAV_BUTTON_SX}>
-                  {t(`nav.${key}`)}
-                </Button>
-              ))}
-            </Box>
-          )}
-
-          {/* Features dropdown */}
-          <Menu
-            anchorEl={featuresAnchor}
-            open={Boolean(featuresAnchor)}
-            onClose={() => setFeaturesAnchor(null)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-          >
-            <MenuItem
-              component={NextLink}
-              href={`/${locale}/features`}
-              onClick={closeMenus}
-              sx={{ fontWeight: 600 }}
-            >
-              {t('nav.allFeatures')}
-            </MenuItem>
-            <Divider />
-            {FEATURE_GROUPS.map((group) => (
-              <MenuItem
-                key={group.key}
-                component={NextLink}
-                href={featureGroupHref(locale, group.key)}
-                onClick={closeMenus}
-                sx={{ maxWidth: 340, whiteSpace: 'normal', alignItems: 'flex-start', py: 1 }}
-              >
-                <ListItemText
-                  primary={t(`featureGroups.${group.key}.title`)}
-                  secondary={t(`featureGroups.${group.key}.summary`)}
-                  primaryTypographyProps={{ fontWeight: 600 }}
-                  secondaryTypographyProps={{ variant: 'caption' }}
-                />
-              </MenuItem>
-            ))}
-          </Menu>
-
-          {/* Language switcher + auth buttons (both breakpoints) */}
-          <Box sx={{ display: 'flex', gap: 1, ml: isMobile ? 'auto' : 0, alignItems: 'center' }}>
-            {/* Language switcher */}
-            <Button
-              onClick={(e) => setLangAnchor(e.currentTarget)}
-              size="small"
-              endIcon={<ArrowDropDownIcon />}
-              startIcon={<LanguageIcon fontSize="small" />}
-              sx={{ textTransform: 'uppercase', fontWeight: 600, color: 'text.secondary', minWidth: 0, px: 1 }}
-            >
-              {locale}
-            </Button>
-            <Menu
-              anchorEl={langAnchor}
-              open={Boolean(langAnchor)}
-              onClose={() => setLangAnchor(null)}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
-              {routing.locales.map((l) => (
-                <MenuItem
-                  key={l}
-                  selected={l === locale}
-                  onClick={() => switchLocale(l)}
-                  sx={{ minWidth: 120 }}
-                >
-                  {LOCALE_LABELS[l] ?? l.toUpperCase()}
-                </MenuItem>
-              ))}
-            </Menu>
-
-            {isMobile && (
-              <IconButton
-                onClick={() => setDrawerOpen(true)}
-                aria-label={t('nav.menu')}
-                size="small"
-                sx={{ ml: 0.5 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      {/* Mobile drawer */}
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{ sx: { width: 280 } }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
-          <Image src={iconSrc} alt="WellSpent" width={32} height={32} style={{ objectFit: 'contain' }} />
-          <IconButton onClick={() => setDrawerOpen(false)} size="small">
-            <CloseIcon />
-          </IconButton>
+        <Box component="a" href="#top" aria-label={t('home')} sx={{ display: 'flex', alignItems: 'center', minHeight: 44 }}>
+          <BrandLockup height={36} />
         </Box>
-        <Divider />
-        <List>
-          <ListItemButton onClick={() => setFeaturesExpanded((open) => !open)}>
-            <ListItemText primary={t('nav.features')} />
-            {featuresExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </ListItemButton>
-          <Collapse in={featuresExpanded} unmountOnExit>
-            <List disablePadding>
-              <ListItemButton
-                component={NextLink}
-                href={`/${locale}/features`}
-                sx={{ pl: 4 }}
-                onClick={closeMenus}
-              >
-                <ListItemText primary={t('nav.allFeatures')} primaryTypographyProps={{ variant: 'body2' }} />
-              </ListItemButton>
-              {FEATURE_GROUPS.map((group) => (
-                <ListItemButton
-                  key={group.key}
-                  component={NextLink}
-                  href={featureGroupHref(locale, group.key)}
-                  sx={{ pl: 4 }}
-                  onClick={closeMenus}
-                >
-                  <ListItemText
-                    primary={t(`featureGroups.${group.key}.title`)}
-                    primaryTypographyProps={{ variant: 'body2' }}
-                  />
-                </ListItemButton>
-              ))}
-            </List>
-          </Collapse>
-          {NAV_SECTIONS.map(({ key, id }) => (
-            <ListItemButton key={key} onClick={() => goToSection(id)}>
-              <ListItemText primary={t(`nav.${key}`)} />
-            </ListItemButton>
+        <Box sx={{ flex: 1, display: { xs: 'none', md: 'flex' }, gap: 2.75 }}>
+          {NAV_LINKS.map((link) => (
+            <Box component="a" key={link.key} href={`#${link.id}`} sx={LINK_SX}>
+              {t(link.key)}
+            </Box>
           ))}
-        </List>
-      </Drawer>
-    </>
+        </Box>
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            role="group"
+            aria-label={t('language')}
+            sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '2px', p: '3px', bgcolor: 'action.hover', borderRadius: '10px' }}
+          >
+            {routing.locales.map((l) => (
+              <Box
+                component={Link}
+                key={l}
+                href="/"
+                locale={l}
+                aria-current={l === locale ? 'true' : undefined}
+                sx={{
+                  height: 32,
+                  minWidth: 40,
+                  px: 1.25,
+                  borderRadius: '7px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  textTransform: 'uppercase',
+                  color: l === locale ? 'text.primary' : 'text.secondary',
+                  bgcolor: l === locale ? 'background.paper' : 'transparent',
+                  boxShadow: l === locale ? '0 1px 3px rgba(16,24,40,.14)' : 'none',
+                }}
+              >
+                {l}
+              </Box>
+            ))}
+          </Box>
+          <Box
+            component="a"
+            href={`#${SECTION_IDS.download}`}
+            sx={{ height: 44, px: 2.25, borderRadius: '12px', bgcolor: 'primary.main', color: 'primary.contrastText', fontSize: 15, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap' }}
+          >
+            {t('getApp')}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   )
 }

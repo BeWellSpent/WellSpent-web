@@ -1,0 +1,16 @@
+{
+  "component": "web",
+  "version": "2.0.0",
+  "items": [
+    {
+      "changeType": "changed",
+      "summaryEn": "A new website in the app's design, with every feature marked Free or Pro.",
+      "summaryEs": "Un sitio nuevo con el diseño de la app, con cada función marcada como Gratis o Pro."
+    },
+    {
+      "changeType": "fixed",
+      "summaryEn": "Email confirmation links work again.",
+      "summaryEs": "Los enlaces de confirmación de correo vuelven a funcionar."
+    }
+  ]
+}

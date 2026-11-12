@@ -1,983 +1,341 @@
 {
-  "auth": {
-    "login": {
-      "title": "Iniciar sesión",
-      "email": "Correo electrónico",
-      "password": "Contraseña",
-      "rememberMe": "Recordarme por 90 días",
-      "submit": "Iniciar sesión",
-      "submitting": "Iniciando sesión…",
-      "googleBtn": "Continuar con Google",
-      "googleUnavailable": "El inicio de sesión con Google aún no está disponible",
-      "noAccount": "¿No tienes cuenta?",
-      "createOne": "Crear una"
-    },
-    "register": {
-      "title": "Crear tu cuenta en WellSpent",
-      "firstName": "Nombre",
-      "lastName": "Apellido",
-      "email": "Correo electrónico",
-      "password": "Contraseña",
-      "passwordHint": "8+ caracteres con mayúsculas, minúsculas, dígito y carácter especial",
-      "country": "País",
-      "preferNotToSay": "Prefiero no decirlo",
-      "state": "Estado",
-      "selectState": "— Seleccionar estado —",
-      "filingStatus": "Estado civil fiscal",
-      "selectFilingStatus": "— Seleccionar estado civil fiscal —",
-      "submit": "Crear cuenta",
-      "submitting": "Creando cuenta…",
-      "googleBtn": "Continuar con Google",
-      "googleUnavailable": "El inicio de sesión con Google aún no está disponible",
-      "hasAccount": "¿Ya tienes cuenta?",
-      "signIn": "Iniciar sesión"
-    },
-    "language": "Idioma",
-    "currency": "Moneda",
-    "verifyEmail": {
-      "verifying": "Verificando tu correo electrónico…",
-      "success": "Tu dirección de correo electrónico ha sido verificada.",
-      "error": "Este enlace de verificación no es válido o ha expirado.",
-      "goToBudgets": "Ir a tus presupuestos",
-      "signIn": "Ir a iniciar sesión"
-    },
-    "verifyGate": {
-      "title": "Verifica tu dirección de correo",
-      "message": "Enviamos un enlace de verificación a {email}. Confirma tu dirección para empezar a usar WellSpent. El enlace vence en 10 minutos.",
-      "resend": "Reenviar correo de verificación",
-      "sending": "Enviando…",
-      "sent": "Correo de verificación enviado. Revisa tu bandeja de entrada.",
-      "resendFailed": "No pudimos reenviar el correo de verificación. Inténtalo de nuevo.",
-      "logout": "Cerrar sesión",
-      "wrongEmail": "¿Dirección incorrecta? Cámbiala",
-      "newEmail": "Nueva dirección de correo",
-      "newEmailHint": "Enviaremos un nuevo enlace de verificación a esta dirección.",
-      "changeSubmit": "Guardar y reenviar",
-      "changing": "Guardando…",
-      "changeFailed": "No pudimos cambiar tu dirección de correo. Inténtalo de nuevo.",
-      "cancel": "Cancelar"
-    },
-    "completeProfile": {
-      "title": "Una cosa más",
-      "body": "Iniciar sesión con Google o Apple no nos dice dónde estás, y WellSpent lo necesita para manejar correctamente tu moneda y tus impuestos.",
-      "country": "País",
-      "state": "Estado",
-      "filingStatus": "Estado civil fiscal",
-      "notSet": "— Sin definir —",
-      "submit": "Continuar"
-    }
-  },
-  "settings": {
-    "title": "Perfil",
-    "firstName": "Nombre",
-    "lastName": "Apellido",
-    "email": "Correo electrónico",
-    "emailReadOnly": "El correo electrónico no se puede cambiar",
-    "country": "País",
-    "notSet": "— No establecido —",
-    "state": "Estado",
-    "taxSettings": "Configuración de impuestos (EE.UU.)",
-    "filingStatus": "Estado civil fiscal",
-    "taxFrequency": "Frecuencia de pago de impuestos",
-    "taxNote": "Esta configuración se usa para estimar tus ahorros de reserva fiscal en cada período presupuestario.",
-    "language": "Idioma",
-    "currency": "Moneda",
-    "save": "Guardar cambios",
-    "saving": "Guardando…",
-    "saved": "Perfil guardado.",
-    "accountManagement": {
-      "title": "Gestión de cuenta",
-      "deleteAccount": "Eliminar cuenta",
-      "deleteDescription": "Tu cuenta se desactivará de inmediato. Tienes 30 días para contactar al soporte si cambias de opinión.",
-      "confirmTitle": "¿Eliminar tu cuenta?",
-      "confirmBody": "Esto desactivará tu cuenta de inmediato. Cerrarás sesión y no podrás volver a iniciarla. Contacta al soporte dentro de 30 días si deseas recuperarla.",
-      "confirmDelete": "Sí, eliminar mi cuenta",
-      "cancel": "Cancelar",
-      "deleting": "Eliminando…"
-    },
-    "plaidTitle": "Cuentas bancarias conectadas",
-    "subscription": {
-      "title": "Suscripci�n",
-      "planLabel": "Plan actual",
-      "free": "Gratuito",
-      "pro": "Pro",
-      "lifetime": "Vitalicio",
-      "freeDescription": "Mejora a Pro para personas, fuentes de ingresos, alertas, sincronizaci�n Plaid y sin anuncios ilimitados.",
-      "upgradeButton": "Mejorar a Pro � Pr�ximamente"
-    }
-  },
-  "budget": {
-    "list": {
-      "aboutSite": "Acerca de WellSpent",
-      "active": "Activo",
-      "allPeriods": "Todos los períodos",
-      "archived": "Archivado",
-      "backToBudget": "Volver al presupuesto",
-      "createBudget": "Crear Presupuesto",
-      "deleteDialog": {
-        "title": "¿Eliminar presupuesto?",
-        "body": "{name} y todas sus personas, fuentes de ingresos y transacciones serán eliminados permanentemente. Esta acción no se puede deshacer.",
-        "cancel": "Cancelar",
-        "delete": "Eliminar",
-        "deleting": "Eliminando…"
-      },
-      "empty": "No tienes presupuestos aún. Crea el primero para comenzar.",
-      "noPeriods": "Aún no hay períodos.",
-      "retry": "Reintentar",
-      "yearPicker": "Año"
-    },
-    "view": {
-      "archivedPeriodNotice": "Estás viendo un período pasado. Agregar, eliminar, marcar como pagado y excluir transacciones están deshabilitados — aún puedes cambiar la categoría de una transacción.",
-      "expenseOverview": "Resumen",
-      "expensePlan": "Plan de Gastos",
-      "failedToLoad": "No se pudo cargar el presupuesto.",
-      "noActivePeriod": "No se encontró un período activo.",
-      "plan": "Plan",
-      "planKindLabel": "Mostrar montos planeados o reales",
-      "reports": "Informes",
-      "review": "Revisión",
-      "toReview": "Por Revisar",
-      "transactions": "Transacciones"
-    },
-    "overview": {
-      "title": "Resumen de Gastos",
-      "category": "Categoría",
-      "actual": "Real",
-      "planned": "Planificado",
-      "total": "Total",
-      "overBudget": "Sobre presupuesto",
-      "unplanned": "Sin planificar",
-      "remainder": "Restante",
-      "remainderActual": "Sobrante actual",
-      "remainderPlan": "Sobrante del plan",
-      "global": "global",
-      "uncategorized": "Sin categoría",
-      "noData": "No hay datos de gastos aún para este período.",
-      "unattributed": "Sin asignar"
-    },
-    "review": {
-      "description": "Estas transacciones importadas pueden coincidir con un gasto fijo. Confirma para marcar el gasto fijo como pagado y eliminar el duplicado, o descarta para conservarla como transacción regular.",
-      "matchedTo": "Coincide con:",
-      "confirm": "Confirmar",
-      "dismiss": "Descartar",
-      "empty": "No hay transacciones por revisar.",
-      "spansOutsideView": "Incluye datos de otra persona — cambia a Vista completa para revisarlo.",
-      "total": "Total"
-    },
-    "sidebar": {
-      "alerts": "Configuración de alertas",
-      "archived": "Archivado",
-      "bankConnections": "Conexiones bancarias",
-      "categories": "Categorías",
-      "collapse": "Contraer barra lateral",
-      "expand": "Expandir barra lateral",
-      "help": "Ayuda",
-      "income": "Ingresos",
-      "invitations": "Invitaciones",
-      "logout": "Cerrar sesión",
-      "manage": "Gestionar",
-      "paymentMethods": "Métodos de Pago",
-      "people": "Personas",
-      "period": "Período",
-      "preferences": "Preferencias",
-      "savings": "Ahorros",
-      "settings": "Configuración",
-      "theme": "Tema",
-      "viewAllPeriods": "Ver todos los períodos",
-      "website": "Sitio web de WellSpent"
-    },
-    "income": {
-      "title": "Ingresos",
-      "perMonth": "/ mes",
-      "empty": "No hay fuentes de ingresos aún.",
-      "freeTierNote": "m�x 2/persona � Plan gratuito"
-    },
-    "savings": {
-      "title": "Ahorros",
-      "perMonth": "/ mes",
-      "empty": "No hay fuentes de ahorro aún.",
-      "taxEstimate": "estimación fiscal",
-      "taxTooltip": "Reserva mensual calculada automáticamente para pagos de impuestos estimados. Se actualiza en cada período.",
-      "federal": "Fed:",
-      "state": "Est:",
-      "freq": {
-        "oneOff": "único",
-        "weekly": "semanal",
-        "biWeekly": "quincenal",
-        "monthly": "mensual",
-        "yearly": "anual"
-      },
-      "addDialog": {
-        "title": "Agregar fuente de ahorro",
-        "name": "Nombre",
-        "namePlaceholder": "ej. Fondo de emergencia",
-        "amount": "Monto",
-        "paymentMethod": "Método de pago *",
-        "paymentDays": "Días de pago",
-        "dayHint": "Selecciona 1 día (mensual), 2 días (quincenal) o 4 días (semanal)",
-        "cancel": "Cancelar",
-        "save": "Guardar",
-        "saving": "Guardando…"
-      },
-      "editDialog": {
-        "title": "Editar fuente de ahorro",
-        "name": "Nombre",
-        "namePlaceholder": "ej. Fondo de emergencia",
-        "amount": "Monto",
-        "paymentMethod": "Método de pago",
-        "noPaymentMethod": "— Ninguno —",
-        "paymentDays": "Días de pago",
-        "dayHint": "Selecciona 1 día (mensual), 2 días (quincenal) o 4 días (semanal)",
-        "cancel": "Cancelar",
-        "save": "Guardar",
-        "saving": "Guardando…"
-      }
-    },
-    "paymentMethods": {
-      "title": "Métodos de Pago",
-      "empty": "No hay métodos de pago aún.",
-      "editTooltip": "Editar",
-      "deactivateTooltip": "Desactivar",
-      "addDialog": {
-        "title": "Agregar Método de Pago",
-        "name": "Nombre",
-        "namePlaceholder": "ej. Visa Chase",
-        "type": "Tipo",
-        "owner": "Titular *",
-        "selectPerson": "Seleccionar persona",
-        "colorOptional": "Color (opcional)",
-        "cancel": "Cancelar",
-        "add": "Agregar",
-        "adding": "Agregando…"
-      },
-      "deactivateDialog": {
-        "title": "Desactivar método de pago",
-        "body": "{name} será desactivado. Las transacciones en este presupuesto serán reasignadas al método seleccionado. Los presupuestos históricos no se ven afectados.",
-        "reassignTo": "Reasignar transacciones a",
-        "cancel": "Cancelar",
-        "deactivate": "Desactivar",
-        "deactivating": "Desactivando…"
-      },
-      "editDialog": {
-        "title": "Editar método de pago",
-        "alias": "Nombre a mostrar (opcional)",
-        "aliasHint": "Se muestra en todos lados en lugar del nombre original",
-        "name": "Nombre original",
-        "namePlaceholder": "ej. Visa Chase",
-        "nameHint": "El nombre subyacente — déjalo igual para conservar el nombre importado",
-        "colorOptional": "Color (opcional)",
-        "cancel": "Cancelar",
-        "save": "Guardar",
-        "saving": "Guardando…"
-      },
-      "types": {
-        "cash": "Efectivo",
-        "credit": "Crédito",
-        "debit": "Débito",
-        "digitalWallet": "Billetera Digital",
-        "bankTransfer": "Transferencia Bancaria",
-        "crypto": "Cripto",
-        "investment": "Inversión",
-        "other": "Otro"
-      }
-    },
-    "transactions": {
-      "title": "Transacciones",
-      "grandTotal": "{amount} en total",
-      "add": "Agregar",
-      "fixed": "Fijos",
-      "variable": "Variables",
-      "paid": "Pagado",
-      "unpaidSection": "Sin pagar ({count})",
-      "paidSection": "Pagado ({count})",
-      "futureSection": "Próximos ({count})",
-      "columns": {
-        "item": "Concepto",
-        "day": "Día",
-        "category": "Categoría",
-        "paymentMethod": "Método de Pago",
-        "owner": "Titular",
-        "amount": "Monto",
-        "planned": "Planificado",
-        "actual": "Real"
-      },
-      "markAsPaid": {
-        "title": "Marcar como pagado",
-        "alreadyPaid": "Ya pagado — clic para desmarcar",
-        "unmark": "Desmarcar como pagado",
-        "description": "Confirma los detalles de pago de \"{name}\".",
-        "amount": "Monto pagado",
-        "date": "Fecha de pago",
-        "confirm": "Confirmar",
-        "cancel": "Cancelar"
-      },
-      "empty": "No hay transacciones {label} aún.",
-      "subtotal": "Subtotal {label}",
-      "notDueTooltip": "No vence este período — próximo vencimiento {date}",
-      "sortBy": "Ordenar por",
-      "searchPlaceholder": "Buscar por nombre, categoría o titular…",
-      "clearSearch": "Borrar búsqueda",
-      "flow": {
-        "spent": "Gasto",
-        "received": "Ingreso"
-      },
-      "markForReview": "Marcar para revisión",
-      "lockedNotice": "Solo se puede cambiar la categoría de esta transacción — es de un período pasado o fue importada de tu banco.",
-      "filter": {
-        "none": "Todas las transacciones",
-        "spentOnly": "Solo gastos",
-        "exceededOnly": "Solo excedido",
-        "excludedOnly": "Solo excluidas"
-      },
-      "exclude": {
-        "exclude": "Excluir del total",
-        "unexclude": "Incluir en el total",
-        "incomeAlwaysExcluded": "Las transacciones de ingresos siempre se excluyen del total"
-      },
-      "rowActions": "Más acciones",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "deletePlaidLocked": "Las transacciones importadas del banco no se pueden eliminar",
-      "linkedToFixed": "fijo",
-      "linkedToFixedTooltip": "Pendiente de revisión — vinculado a \"{name}\"",
-      "paymentMethodRequired": {
-        "title": "Primero agrega un método de pago",
-        "body": "Las transacciones necesitan un método de pago — efectivo, una tarjeta o una cuenta bancaria — para poder ver a dónde fue el dinero. Agrega uno y podrás registrar transacciones de inmediato.",
-        "action": "Agregar un método de pago",
-        "cancel": "Ahora no"
-      },
-      "installments": {
-        "action": "Dividir en cuotas",
-        "title": "Dividir en cuotas",
-        "explainer": "{name} ({amount}) dejará de contar en este período. Un gasto fijo lo reemplaza, dividido en las cuotas indicadas abajo.",
-        "payments": "Cantidad de cuotas",
-        "firstPayment": "Primera cuota",
-        "firstPaymentHelp": "Por defecto el mes próximo — la tarjeta cobra en el resumen siguiente al de la compra.",
-        "endDate": "Última cuota",
-        "preview": "{amount} × {count} cuotas",
-        "residue": "Redondeado al centavo más cercano, el plan suma {total}.",
-        "willExclude": "La compra original sigue visible pero deja de contar en los totales.",
-        "confirm": "Crear plan",
-        "cancel": "Cancelar",
-        "error": "No se pudo crear el plan de cuotas.",
-        "rowBadge": "cuotas",
-        "rowTooltip": "Dividida en cuotas — excluida de los totales porque se cuentan sus cuotas en su lugar.",
-        "excludeLocked": "Excluida porque se dividió en cuotas. Volver a incluirla contaría la compra dos veces.",
-        "unsplitAction": "Deshacer división",
-        "unsplitTitle": "Deshacer la división en cuotas",
-        "unsplitBody": "Se eliminarán el plan y sus cuotas restantes, y {name} volverá a contar en su período.",
-        "unsplitConfirm": "Deshacer división",
-        "unsplitError": "No se pudo deshacer la división."
-      },
-      "carryover": {
-        "rowBadge": "trasladado",
-        "rowTooltip": "Trasladado del saldo final del período anterior. Puedes editarlo o eliminarlo como cualquier otra transacción: eliminarlo es la forma de indicar que ya lo saldaste."
-      },
-      "plannedAmountSync": {
-        "rowTooltip": "Pagada por un importe distinto al planificado. A partir del próximo período, esta factura se planificará con lo que realmente pagaste."
-      },
-      "fixedFromTransaction": {
-        "action": "Crear un gasto fijo",
-        "title": "Crear un gasto fijo",
-        "name": "Nombre",
-        "explainer": "{name} ({amount}) se convertirá en un gasto fijo recurrente según el horario indicado abajo, y esta transacción se emparejará con él y se marcará como pagada.",
-        "startDate": "Primera fecha de vencimiento",
-        "startDateHelp": "Cuándo vence por primera vez este gasto en el nuevo horario.",
-        "willMatch": "La transacción original sigue visible pero deja de contar en los totales — se empareja con el nuevo gasto fijo, igual que una coincidencia sincronizada con el banco.",
-        "confirm": "Crear",
-        "cancel": "Cancelar",
-        "error": "No se pudo crear el gasto fijo."
-      },
-      "matchTransactions": {
-        "action": "Emparejar transacciones"
-      }
-    },
-    "markForReview": {
-      "title": "Marcar para revisión",
-      "amount": "Monto",
-      "date": "Fecha",
-      "category": "Categoría",
-      "paymentMethod": "Método de pago",
-      "owner": "Titular",
-      "filterPlaceholder": "Filtrar transacciones…",
-      "noFixed": "No hay transacciones fijas este período para comparar.",
-      "noResults": "Ninguna transacción coincide con tu búsqueda.",
-      "unpaidSection": "Sin pagar ({count})",
-      "paidSection": "Pagado ({count})",
-      "confirm": "Marcar",
-      "cancel": "Cancelar"
-    },
-    "matchTransactions": {
-      "title": "Emparejar transacciones",
-      "plannedAmount": "Planificado: {amount}",
-      "filterPlaceholder": "Filtrar transacciones…",
-      "noVariable": "No hay transacciones variables este período para emparejar.",
-      "noResults": "Ninguna transacción coincide con tu búsqueda.",
-      "selectedTotal": "Seleccionado: {amount}",
-      "totalMustMatch": "Seleccionado {selected} — debe sumar exactamente {planned} para emparejar",
-      "confirm": "Marcar",
-      "cancel": "Cancelar"
-    },
-    "expenses": {
-      "title": "Plan de Gastos",
-      "category": "Categoría",
-      "plannedAmount": "Monto Planificado",
-      "actual": "Real",
-      "total": "Total",
-      "global": "global",
-      "removeRow": "Quitar fila",
-      "noCategories": "No hay categorías aún — usa el selector para agregar una.",
-      "addCategory": "Agregar categoría…",
-      "planSummary": "Resumen del Plan",
-      "plannedAllocations": "Asignaciones planificadas + Gastos fijos",
-      "remainder": "Saldo restante",
-      "spent": "Gastado",
-      "notDueTooltip": "No vence este período — próximo vencimiento {date}. No cuenta en el plan de este período.",
-      "chart": {
-        "pie": "Pastel",
-        "bar": "Barras",
-        "byPerson": "Por Persona",
-        "byCategory": "Por Categoría",
-        "noData": "No hay montos planificados aún"
-      },
-      "editDialog": {
-        "title": "Editar Monto Planificado",
-        "plannedAmount": "Monto planificado",
-        "cancel": "Cancelar",
-        "save": "Guardar"
-      }
-    },
-    "fixedExpense": {
-      "addTitle": "Agregar Gasto Fijo",
-      "editTitle": "Editar Gasto Fijo",
-      "cancel": "Cancelar",
-      "add": "Agregar",
-      "save": "Guardar",
-      "saving": "Guardando…",
-      "fields": {
-        "name": "Descripción",
-        "amount": "Monto planificado",
-        "startDate": "Fecha de inicio",
-        "startDateHint": "Fecha del primer pago — fechas pasadas retroactúan el plan, fechas futuras lo inician más tarde",
-        "repeatsEvery": "Se repite cada",
-        "repeatsHint": "Con qué frecuencia vence este gasto",
-        "repeatCount": "Número de repetición",
-        "unitWeek": "Semana(s)",
-        "unitMonth": "Mes(es)",
-        "unitYear": "Año(s)",
-        "category": "Categoría",
-        "noCategory": "— Ninguna —",
-        "paymentMethod": "Método de pago"
-      },
-      "days": {
-        "monday": "Lunes",
-        "tuesday": "Martes",
-        "wednesday": "Miércoles",
-        "thursday": "Jueves",
-        "friday": "Viernes",
-        "saturday": "Sábado",
-        "sunday": "Domingo"
-      },
-      "paymentPlan": {
-        "label": "Plan de pagos (opcional)",
-        "numberOfPayments": "Número de pagos",
-        "numberOfPaymentsHint": "Total de pagos del plan — establece la fecha de fin automáticamente",
-        "endDate": "Fecha de fin",
-        "endDateHint": "Fecha del último pago — establece el número de pagos automáticamente",
-        "paymentsMade": "{made} de {total} pagos realizados"
-      }
-    },
-    "fab": {
-      "label": "Agregar",
-      "addTransaction": "Agregar Transacción",
-      "addSavings": "Agregar Ahorro",
-      "addIncome": "Agregar Ingreso"
-    },
-    "setup": {
-      "title": "Configura tu presupuesto",
-      "finishLater": "Presupuesto creado. Puedes terminar de configurarlo desde la vista del presupuesto.",
-      "complete": "Tu presupuesto está listo.",
-      "steps": {
-        "create": "Crear presupuesto",
-        "addPeople": "Agregar personas",
-        "paymentMethods": "Métodos de pago",
-        "addIncome": "Agregar ingresos",
-        "addSavings": "Agregar ahorros"
-      },
-      "actions": {
-        "cancel": "Cancelar",
-        "back": "Atrás",
-        "skip": "Omitir",
-        "continue": "Continuar",
-        "saveAndContinue": "Guardar y continuar",
-        "add": "Agregar",
-        "finishLater": "Terminar después",
-        "finish": "Finalizar"
-      },
-      "create": {
-        "help": "Ponle un nombre a tu presupuesto para empezar.",
-        "name": "Nombre del presupuesto",
-        "submit": "Crear"
-      },
-      "people": {
-        "help": "Agrega a las otras personas que comparten este presupuesto. Tú ya estás incluido.",
-        "existing": "YA EN ESTE PRESUPUESTO",
-        "you": "Tú",
-        "name": "Nombre",
-        "namePlaceholder": "p. ej. Ana",
-        "email": "Correo electrónico (opcional)",
-        "emailHelp": "Agrega un correo para invitar a esta persona al presupuesto.",
-        "invalidEmail": "Eso no parece un correo electrónico.",
-        "role": "Podrá",
-        "roleHelp": {
-          "collaborator": "Agregar y editar transacciones, ingresos y ahorros, pero no gestionar personas.",
-          "viewer": "Ver todo el presupuesto sin cambiar nada."
-        },
-        "inviteSent": "Invitación enviada a {email}.",
-        "remove": "Quitar"
-      },
-      "paymentMethods": {
-        "help": "Agrega tus métodos de pago (p. ej. Visa, Efectivo). Los usarás al registrar transacciones.",
-        "name": "Nombre del método de pago",
-        "namePlaceholder": "p. ej. Visa Santander",
-        "type": "Tipo",
-        "belongsTo": "Pertenece a"
-      },
-      "income": {
-        "name": "Nombre de la fuente",
-        "namePlaceholder": "p. ej. Sueldo",
-        "amount": "Monto mensual",
-        "recurring": "Se repite cada mes",
-        "beforeTax": "Ingreso antes de impuestos (se usa para estimar la reserva de impuestos)",
-        "attributedTo": "Atribuido a"
-      },
-      "savings": {
-        "help": "Aparta dinero cada período: un fondo de emergencia, unas vacaciones, lo que quieras mantener separado del gasto."
-      },
-      "cancelDialog": {
-        "title": "¿Cancelar la configuración?",
-        "bodyWithBudget": "Esto elimina “{name}” y todo lo que le agregaste: personas, métodos de pago, ingresos y ahorros. Cualquier invitación ya enviada dejará de funcionar.",
-        "bodyNoBudget": "Todavía no se creó nada, así que no se perderá nada.",
-        "keep": "Seguir configurando",
-        "confirmDelete": "Eliminar presupuesto",
-        "confirmDiscard": "Descartar"
-      }
-    },
-    "invites": {
-      "title": "Invitaciones",
-      "empty": "No se han enviado invitaciones aún.",
-      "send": {
-        "title": "Enviar Invitación",
-        "email": "Correo electrónico",
-        "role": "Rol",
-        "linkPerson": "Vincular a persona existente (opcional)",
-        "noPerson": "— Crear nueva persona al aceptar —",
-        "submit": "Enviar",
-        "submitting": "Enviando…",
-        "success": "Invitación enviada a {email}"
-      },
-      "list": {
-        "status": {
-          "pending": "Pendiente",
-          "accepted": "Aceptada",
-          "cancelled": "Cancelada",
-          "expired": "Vencida"
-        },
-        "cancel": "Cancelar invitación",
-        "cancelling": "Cancelando…",
-        "resend": "Reenviar invitación",
-        "resending": "Reenviando…"
-      },
-      "roles": {
-        "admin": "Administrador",
-        "collaborator": "Colaborador",
-        "viewer": "Observador",
-        "unspecified": "Invitado"
-      }
-    },
-    "reports": {
-      "title": "Informes",
-      "description": "An�lisis de gastos y tendencias entre per�odos presupuestarios.",
-      "comingSoon": "Pr�ximamente � esta funci�n est� en desarrollo"
-    },
-    "people": {
-      "freeTierLimit": "Plan gratuito: m�ximo 2 personas por presupuesto. Mejora a Pro para miembros ilimitados."
-    },
-    "preferences": {
-      "description": "Estos ajustes son solo tuyos — el resto de las personas en este presupuesto conservan los suyos.",
-      "planChart": "Gráfico del plan de gastos",
-      "overviewChart": "Gráfico del resumen de gastos",
-      "pie": "Circular",
-      "bar": "Barras",
-      "unavailable": "Las preferencias están disponibles cuando estés vinculado a este presupuesto.",
-      "saveFailed": "No se pudieron guardar tus preferencias.",
-      "planChartHint": "Se muestra en la pestaña Plan de gastos, encima de tus montos planificados.",
-      "overviewChartHint": "Se muestra en la pestaña Resumen de gastos, encima de lo que gastaste realmente.",
-      "matchReview": "Coincidir mis transacciones con gastos fijos",
-      "matchReviewHint": "Al agregar o editar una transacción, verifica si coincide con tus gastos fijos, igual que las transacciones sincronizadas del banco.",
-      "matchReviewHintFree": "Disponible en Pro y Lifetime. Tus transacciones no se compararán en el plan gratuito, aunque esto esté activado.",
-      "focusedView": "Vista enfocada — mostrar solo mis datos",
-      "focusedViewHint": "Limita Plan, Resumen, Transacciones, Ingresos y Ahorros a tus propios números más lo que no esté atribuido a nadie. Las revisiones pendientes siempre muestran a todos, marcadas cuando involucran a otra persona."
-    },
-    "carryover": {
-      "title": "Trasladar el saldo",
-      "description": "Cuando termina un período, traslada su saldo al siguiente. El dinero que sobra se suma a Ahorros; si te pasaste, la diferencia se reparte entre los métodos de pago con los que gastaste, para que la deuda muestre de dónde viene.",
-      "adminOnly": "Solo un administrador del presupuesto puede cambiar esto.",
-      "saveFailed": "No se pudo guardar esta configuración."
-    },
-    "plannedAmountSync": {
-      "title": "Mantener los gastos fijos alineados con la realidad",
-      "description": "Cuando un gasto fijo se paga de forma distinta a lo planificado, actualiza su plantilla para los períodos futuros: el importe realmente pagado, el día en que realmente se pagó (no el día de vencimiento original) y, cuando coincidir con una transacción bancaria revela una distinta, su categoría y método de pago. El período que estás pagando conserva sus propios valores; solo cambian los siguientes. Desactívalo para mantener tus plantillas de gastos fijos tal como las definiste.",
-      "adminOnly": "Solo un administrador del presupuesto puede cambiar esto.",
-      "saveFailed": "No se pudo guardar esta configuración."
-    },
-    "systemCategories": {
-      "auto": "Auto",
-      "baby": "Bebé",
-      "debt": "Deuda",
-      "eatingOut": "Comer fuera",
-      "entertainment": "Entretenimiento",
-      "family": "Familia",
-      "gas": "Combustible",
-      "groceries": "Supermercado",
-      "house": "Hogar",
-      "income": "Ingresos",
-      "insurance": "Seguros",
-      "loan": "Préstamo",
-      "misc": "Varios",
-      "payment": "Pago",
-      "pet": "Mascota",
-      "rent": "Alquiler",
-      "savings": "Ahorros",
-      "services": "Servicios",
-      "shopping": "Compras",
-      "subscription": "Suscripción",
-      "transfer": "Transferencia",
-      "transportation": "Transporte",
-      "travel": "Viajes",
-      "utilities": "Servicios públicos",
-      "wellness": "Bienestar"
-    }
-  },
   "landing": {
     "nav": {
-      "features": "Características",
-      "useCases": "Casos de Uso",
-      "pricing": "Precios",
+      "label": "Principal",
+      "home": "Inicio de WellSpent",
+      "howItWorks": "Cómo funciona",
+      "features": "Funciones",
+      "pricing": "Gratis y Pro",
       "download": "Descargar",
-      "signIn": "Iniciar sesión",
-      "getStarted": "Comenzar",
-      "menu": "Abrir menú",
-      "about": "Nosotros",
-      "allFeatures": "Todas las características",
-      "openApp": "Abrir la app"
+      "language": "Idioma",
+      "getApp": "Obtener la app"
+    },
+    "appStore": {
+      "downloadOnThe": "Descárgala en el",
+      "comingSoonTo": "Muy pronto en el",
+      "appStore": "App Store"
+    },
+    "tiers": {
+      "free": "GRATIS",
+      "limited": "GRATIS · LIMITADO",
+      "pro": "PRO"
     },
     "hero": {
-      "slide1Title": "Planifica Antes de Gastar",
-      "slide1Sub": "Sabe exactamente a dónde va tu dinero antes de que comience el mes.",
-      "slide2Title": "Presupuesto Simplificado",
-      "slide2Sub": "Enfoque basado en ingresos que te muestra qué puedes pagar, antes de comprometerte.",
-      "slide3Title": "Comparte y Colabora",
-      "slide3Sub": "Presupuesta junto a tu pareja, familia o hogar — todo en un solo lugar.",
-      "cta": "Empieza Gratis",
-      "learnMore": "Saber más"
-    },
-    "whatIs": {
-      "title": "¿Qué es WellSpent?",
-      "body": "WellSpent es una app de presupuesto basada en ingresos. Declara tus ingresos, planifica tus gastos fijos y ahorros, y luego registra tus gastos variables a medida que avanza el mes. El total en tiempo real siempre muestra cuánto te queda — sin sorpresas al final del mes."
-    },
-    "showcase": {
-      "title": "Míralo antes de registrarte",
-      "subtitle": "Un presupuesto que de verdad se entiende, desde el plan hasta el último café.",
-      "items": {
-        "overview": {
-          "title": "Sabe a dónde fue el dinero",
-          "desc": "Cada categoría con su gasto real junto a lo que planificaste, de mayor a menor. Lo que supera el plan se marca en rojo con el monto excedido — sin rastrear filas para encontrar el problema."
-        },
-        "plan": {
-          "title": "Decide los números antes que el mes",
-          "desc": "Define un monto planificado por categoría y por persona. Ese plan es la referencia con la que se mide todo lo demás, así el exceso se nota el mismo día y no a fin de mes."
-        },
-        "fixed": {
-          "title": "Alquiler, suscripciones y todas las demás facturas",
-          "desc": "Los gastos recurrentes son plantillas: cada período aparece una transacción automáticamente, separada en pagadas y pendientes para que lo que falta esté siempre arriba. Los préstamos y planes en cuotas pueden llevar fecha de fin y detenerse solos."
-        },
-        "variable": {
-          "title": "El gasto diario, en segundos",
-          "desc": "Agrega un gasto con su categoría, método de pago y a quién corresponde. Busca, ordena o filtra solo las categorías que superaron el plan — y excluye algo puntual, como un reembolso, sin borrarlo."
-        }
+      "badge": "Gratis. Sin tarjeta.",
+      "title": "Planifica tu dinero antes de gastarlo.",
+      "body": "WellSpent parte de lo que ganas, no de lo que ya gastaste. Define el plan de este período de pago, compártelo con quienes vives y ve de un vistazo si vas bien.",
+      "seeInside": "Mira qué incluye",
+      "platforms": "Primero iPhone. Después Android. En inglés y español.",
+      "mockup": {
+        "month": "Noviembre",
+        "daysLeft": "Quedan 12 días",
+        "home": "Inicio",
+        "plannedIncome": "Ingreso planificado",
+        "plannedExpenses": "Gastos planificados",
+        "savings": "Ahorro",
+        "notPlanned": "Sin planificar",
+        "onTrack": "Vas bien",
+        "overBy": "Excedido por $86",
+        "overPlan": "Restaurantes excede el plan por $82"
       }
     },
-    "highlights": {
-      "title": "Dos cosas que una planilla no hace",
-      "subtitle": "Las partes de WellSpent que la gente no esperaba.",
-      "items": {
-        "shared": {
-          "tag": "Presupuestos compartidos",
-          "title": "Un presupuesto no es tarea de una sola persona",
-          "desc": "Invita a tu pareja o a quienes viven contigo por correo y asigna un rol a cada uno: administrador, colaborador o solo lectura. Los ingresos, métodos de pago y gastos se atribuyen por persona, así todos trabajan con los mismos números en lugar de comparar notas a fin de mes."
+    "how": {
+      "eyebrow": "Cómo funciona",
+      "title": "Primero el ingreso. Luego el plan. Luego lo que realmente pasó.",
+      "steps": {
+        "income": {
+          "title": "Empieza por tus ingresos",
+          "body": "Agrega lo que gana cada persona y cuándo cobra. Tus períodos siguen tus días de pago."
         },
-        "matching": {
-          "tag": "Coincidencia automática",
-          "title": "Tu resumen bancario, ya conciliado",
-          "desc": "Conecta un banco y las transacciones importadas se comparan con los gastos fijos que ya planificaste: monto, comercio, método de pago y categoría. Una coincidencia confiable espera en la pestaña Por revisar con un solo toque. Confirma un comercio una vez y los cargos idénticos coinciden solos de ahí en adelante."
+        "plan": {
+          "title": "Planifica todo tu dinero",
+          "body": "Asigna su monto a cada categoría, factura y meta de ahorro antes de que empiece el período."
+        },
+        "track": {
+          "title": "Mira cómo va",
+          "body": "Gasta como siempre. Inicio muestra quién va bien, qué se pasó y cuánto queda."
         }
       }
     },
     "features": {
-      "title": "Características",
-      "subtitle": "Agrupadas como en la app, para que sepas exactamente qué obtienes.",
-      "explore": "Explorar"
-    },
-    "featureGroups": {
-      "comingSoon": "Próximamente",
-      "plan": {
-        "title": "Plan",
-        "summary": "Define los números y observa cómo se cumplen.",
-        "items": {
-          "overview": {
-            "title": "Resumen de gastos",
-            "desc": "Gasto real por categoría con gráfico, desglose por persona plegable y una marca clara sobre todo lo que superó el plan."
-          },
-          "plan": {
-            "title": "Plan de gastos",
-            "desc": "Montos planificados por categoría y por persona, ordenados para que tus mayores compromisos estén siempre arriba."
+      "eyebrow": "Funciones",
+      "title": "Todo lo que trae la app, y cuánto cuesta cada cosa.",
+      "legendFree": "para todos",
+      "legendLimited": "con límite en Gratis",
+      "legendPro": "plan de pago",
+      "groups": {
+        "home": {
+          "title": "Inicio",
+          "sub": "A dónde fue realmente el dinero",
+          "items": {
+            "glance": {
+              "name": "El plan de un vistazo",
+              "desc": "Ingreso planificado, gastos con y sin ahorro, y lo que falta planificar, en una sola tarjeta."
+            },
+            "people": {
+              "name": "Una tarjeta por persona",
+              "desc": "Lo que cada persona gastó, ahorró y ganó frente a su propio plan, con un indicador de si va bien o se pasó."
+            },
+            "categories": {
+              "name": "Categorías",
+              "desc": "Gasto por categoría en barra o dona, cada categoría excedida señalada y las transacciones detrás de cada una."
+            },
+            "justMe": {
+              "name": "Solo yo",
+              "desc": "Cambia toda la app a tus propios números, más lo que no esté asignado a nadie."
+            }
           }
-        }
-      },
-      "transactions": {
-        "title": "Transacciones",
-        "summary": "Todo lo que gastas, fijo o variable.",
-        "items": {
-          "fixed": {
-            "title": "Gastos fijos",
-            "desc": "Plantillas de facturas recurrentes que generan una transacción por período, con fecha de fin opcional para que los préstamos y planes en cuotas se detengan solos."
-          },
-          "variable": {
-            "title": "Gasto variable",
-            "desc": "Carga rápida del gasto diario, con selector de gastado/recibido, atribución por persona y la opción de excluir una transacción de los totales sin borrarla."
-          },
-          "matching": {
-            "title": "Coincidencia automática",
-            "desc": "Las transacciones bancarias importadas se comparan con tus gastos fijos y quedan listas para confirmar con un toque. Los comercios que ya confirmaste coinciden solos."
+        },
+        "plan": {
+          "title": "Plan",
+          "sub": "Lo que piensas gastar y deber",
+          "items": {
+            "plans": {
+              "name": "Planes por categoría y persona",
+              "desc": "Define un monto por categoría y por persona; todo lo demás se mide contra eso."
+            },
+            "bills": {
+              "name": "Gastos fijos",
+              "desc": "Alquiler y suscripciones como plantillas que aparecen cada período, con lo pendiente arriba."
+            },
+            "paymentPlans": {
+              "name": "Planes de pago y cuotas",
+              "desc": "Préstamos con fecha de fin, y compras con tarjeta en cuotas que cuentan mes a mes."
+            },
+            "comingUp": {
+              "name": "Próximamente",
+              "desc": "Cómo bajan tus gastos fijos a medida que terminan los planes de pago, período a período."
+            }
           }
-        }
-      },
-      "reports": {
-        "title": "Reportes",
-        "summary": "Vistas históricas entre períodos. Todavía no está construido — preferimos decirlo antes que simularlo."
-      },
-      "budget": {
-        "title": "Tu presupuesto",
-        "summary": "Las piezas con las que se arma un presupuesto.",
-        "items": {
-          "income": {
-            "title": "Fuentes de ingreso",
-            "desc": "Sueldo, por hora, freelance o puntual — declarado por adelantado y por persona, para que cada plan parta de lo que realmente ganas."
-          },
-          "savings": {
-            "title": "Ahorros",
-            "desc": "Metas de ahorro recurrentes por persona. En EE. UU. se mantiene automáticamente una reserva de impuestos según tu situación fiscal, ingresos y frecuencia de pago."
-          },
-          "categories": {
-            "title": "Categorías",
-            "desc": "Categorías sensatas listas para usar, más las tuyas para lo que no encaje. Renombrar una actualiza todas las transacciones que la usaban."
-          },
-          "paymentMethods": {
-            "title": "Métodos de pago",
-            "desc": "Nombra cada tarjeta, cuenta o billetera y asígnala a una persona, para que el gasto compartido nunca sea ambiguo."
-          },
-          "alerts": {
-            "title": "Alertas",
-            "desc": "Entérate en la app o por correo cuando alguien agrega una transacción, cuando el gasto cruza el umbral que elegiste o cuando empieza un período nuevo."
-          },
-          "plaid": {
-            "title": "Sincronización bancaria",
-            "desc": "Conecta un banco de EE. UU. mediante Plaid y deja que las transacciones se importen solas. Disponible en planes pagos; por ahora solo cuentas de EE. UU."
+        },
+        "transactions": {
+          "title": "Transacciones",
+          "sub": "Cada movimiento, con lo que realmente fue",
+          "items": {
+            "entry": {
+              "name": "Carga rápida",
+              "desc": "Primero el monto, luego la categoría, el método de pago y a quién pertenece."
+            },
+            "flows": {
+              "name": "Gasto, reembolso, transferencia, ingreso, pago",
+              "desc": "Cada transacción dice qué fue, así los sueldos y pagos de tarjeta nunca inflan tu gasto."
+            },
+            "payments": {
+              "name": "Pestaña de pagos",
+              "desc": "Los pagos de tarjeta en su propia lista, con ambos lados de un pago en una sola fila."
+            },
+            "anyPeriod": {
+              "name": "Edita cualquier período",
+              "desc": "Corrige un mes pasado tan fácil como el actual."
+            }
+          }
+        },
+        "bank": {
+          "title": "Sincronización y coincidencias",
+          "sub": "Tu banco, ya conciliado",
+          "items": {
+            "sync": {
+              "name": "Sincronización bancaria (EE. UU.)",
+              "desc": "Conecta tu banco con Plaid; las transacciones se importan solas y se categorizan por ti."
+            },
+            "autoMatch": {
+              "name": "Coincidencias automáticas",
+              "desc": "Las transacciones importadas se emparejan con las facturas que planificaste; confirma con un toque, y los comercios conocidos coinciden solos."
+            },
+            "manualMatch": {
+              "name": "Coincidencias manuales",
+              "desc": "Las transacciones que cargas a mano también se comparan con tus facturas."
+            },
+            "review": {
+              "name": "Cola de revisión",
+              "desc": "Lo que podría estar duplicado te espera en lugar de contarse dos veces."
+            }
+          }
+        },
+        "reports": {
+          "title": "Reportes",
+          "sub": "Cómo fueron realmente los últimos meses",
+          "items": {
+            "trends": {
+              "name": "Tendencias por categoría",
+              "desc": "Gasto por categoría a lo largo de los períodos, en dinero o como parte del ingreso, con los mayores cambios."
+            },
+            "scorecard": {
+              "name": "Balance del plan",
+              "desc": "Qué períodos cumplieron el plan, tu racha y el ahorro por período, medidos contra el plan que tenía cada período."
+            },
+            "history": {
+              "name": "Historial completo",
+              "desc": "Todos los períodos anteriores y las vistas de 6 y 12 períodos."
+            }
+          }
+        },
+        "together": {
+          "title": "En conjunto",
+          "sub": "Un presupuesto rara vez es cosa de una sola persona",
+          "items": {
+            "shared": {
+              "name": "Presupuestos compartidos",
+              "desc": "Invita a tu pareja o compañeros de casa por correo, como alguien que edita o que solo mira."
+            },
+            "paydays": {
+              "name": "Períodos que siguen el día de pago",
+              "desc": "Indica cuándo cobra cada persona y los períodos se alinean con los días de pago reales, no con el calendario."
+            },
+            "periodReview": {
+              "name": "Revisión de período nuevo",
+              "desc": "Al terminar un período, mira qué se trasladó antes de que empiece el siguiente."
+            },
+            "alerts": {
+              "name": "Alertas",
+              "desc": "En la app o por correo, cuando el gasto cruza un límite que definiste o empieza un período nuevo."
+            }
           }
         }
       }
     },
-    "useCases": {
-      "title": "Casos de Uso",
-      "subtitle": "Construido para situaciones de presupuesto reales.",
-      "item1Title": "Parejas y Familias",
-      "item1Desc": "Comparte un presupuesto con distintas fuentes de ingreso y gastos por persona. Todos ven el panorama completo.",
-      "item2Title": "Freelancers",
-      "item2Desc": "¿Ingresos variables? Separa automáticamente una reserva fiscal según tu estado civil fiscal y frecuencia de pago.",
-      "item3Title": "Quienes Planifican con Anticipación",
-      "item3Desc": "Ya sea que estés ahorrando para una casa o intentando gastar menos en salir — WellSpent te ayuda a planificar antes de gastar."
-    },
     "pricing": {
-      "title": "Precios",
-      "subtitle": "Empieza gratis. Mejora solo si te queda chico.",
+      "eyebrow": "Gratis y Pro",
+      "title": "Gratis maneja un presupuesto real. Pro le da más espacio.",
+      "subtitle": "Todo lo que configures en Gratis se mantiene si te pasas a Pro.",
       "free": {
         "name": "Gratis",
         "price": "$0",
-        "tagline": "Suficiente para un presupuesto real, no una prueba.",
-        "features": {
-          "people": "Hasta 2 personas por presupuesto",
-          "income": "Hasta 2 fuentes de ingreso por persona",
-          "alerts": "Hasta 2 suscripciones de alertas",
-          "core": "Planificación, transacciones, categorías y ahorros completos"
-        },
-        "cta": "Empezar gratis"
+        "per": "para siempre",
+        "tagline": "Suficiente para manejar un presupuesto familiar real, no una prueba."
       },
       "pro": {
         "name": "Pro",
-        "price": "Próximamente",
-        "tagline": "Para hogares que necesitan más espacio.",
-        "features": {
-          "unlimited": "Personas y fuentes de ingreso ilimitadas",
-          "bankSync": "Sincronización bancaria automática con Plaid",
-          "alerts": "Alertas ilimitadas, incluidas las de nuevas transacciones",
-          "noAds": "Sin anuncios"
-        }
+        "badge": "Muy pronto",
+        "price": "Pronto",
+        "per": "mensual o anual",
+        "tagline": "Todo lo de Gratis, más:"
       },
-      "note": "Pro todavía no se puede comprar — no hay nada que contratar. El plan gratuito sigue siendo gratuito, y todo lo que configures ahora se conserva."
+      "freeItems": {
+        "budget": "Un presupuesto, compartido con hasta 2 personas",
+        "income": "Hasta 2 fuentes de ingreso por persona",
+        "planning": "Planes, gastos fijos, planes de pago y cuotas",
+        "transactions": "Todos los tipos de transacción, cualquier período editable",
+        "reports": "Reportes de este período y los 3 anteriores",
+        "alerts": "Hasta 2 alertas",
+        "taxReserve": "Reserva de impuestos de EE. UU. calculada por ti",
+        "ads": "Muestra anuncios"
+      },
+      "proItems": {
+        "unlimited": "Personas y fuentes de ingreso ilimitadas",
+        "bankSync": "Sincronización bancaria con Plaid (EE. UU.)",
+        "matching": "Coincidencias automáticas y manuales con tus facturas",
+        "history": "Historial completo de reportes, vistas de 6 y 12 períodos",
+        "comingUp": "Próximamente: cómo bajan tus gastos fijos con el tiempo",
+        "alerts": "Alertas ilimitadas, incluidas las de nuevas transacciones",
+        "noAds": "Sin anuncios"
+      },
+      "table": {
+        "caption": "Lado a lado",
+        "feature": "Función"
+      },
+      "rows": {
+        "people": {
+          "name": "Personas en un presupuesto",
+          "free": "Hasta 2",
+          "pro": "Ilimitadas"
+        },
+        "income": {
+          "name": "Fuentes de ingreso por persona",
+          "free": "Hasta 2",
+          "pro": "Ilimitadas"
+        },
+        "planning": {
+          "name": "Planes, gastos fijos, planes de pago, cuotas",
+          "free": "Incluido",
+          "pro": "Incluido"
+        },
+        "transactions": {
+          "name": "Transacciones, tipos, pestaña de pagos",
+          "free": "Incluido",
+          "pro": "Incluido"
+        },
+        "bankSync": {
+          "name": "Sincronización bancaria (EE. UU.)",
+          "free": "—",
+          "pro": "Incluido"
+        },
+        "matching": {
+          "name": "Coincidencias con tus facturas",
+          "free": "—",
+          "pro": "Automáticas y manuales"
+        },
+        "reports": {
+          "name": "Historial de reportes",
+          "free": "Actual + 3 períodos",
+          "pro": "Todo"
+        },
+        "comingUp": {
+          "name": "Proyección Próximamente",
+          "free": "Vista previa",
+          "pro": "Incluido"
+        },
+        "alerts": {
+          "name": "Alertas",
+          "free": "Hasta 2",
+          "pro": "Ilimitadas, más nuevas transacciones"
+        },
+        "ads": {
+          "name": "Anuncios",
+          "free": "Sí",
+          "pro": "Ninguno"
+        }
+      }
+    },
+    "audience": {
+      "title": "Hecho para cómo funcionan los hogares de verdad",
+      "items": {
+        "couples": {
+          "title": "Parejas y familias",
+          "body": "Un presupuesto, cada persona con sus ingresos, tarjetas y plan, y una vista Solo yo cuando quieres ver solo tu parte."
+        },
+        "freelancers": {
+          "title": "Freelancers en EE. UU.",
+          "body": "Al ingreso antes de impuestos se le aparta una reserva estimada automáticamente, según tu estado civil fiscal y cada cuánto pagas."
+        },
+        "paydays": {
+          "title": "Quien cobra en días raros",
+          "body": "¿Cobras el 15 y el último día, o un viernes sí y otro no? Los períodos siguen los días de pago que realmente tienes."
+        }
+      }
     },
     "download": {
-      "title": "Obtén la App",
-      "subtitle": "Accede a WellSpent desde cualquier dispositivo.",
-      "webTitle": "Web",
-      "webDesc": "WellSpent ya no está disponible como aplicación web.",
-      "noLongerAvailable": "Ya No Disponible",
-      "iosTitle": "iOS",
-      "iosDesc": "App para iPhone y iPad — próximamente.",
-      "androidTitle": "Android",
-      "androidDesc": "App para Android — próximamente.",
-      "comingSoon": "Próximamente"
-    },
-    "about": {
-      "title": "Sobre Nosotros",
-      "body": "WellSpent fue creado por un pequeño equipo que se cansó de herramientas de presupuesto que solo muestran lo que ya ocurrió — no lo que está por ocurrir. Creemos que el mejor momento para administrar tu dinero es antes de gastarlo."
+      "title": "Una app móvil, hecha para tu bolsillo.",
+      "body": "WellSpent vive en tu teléfono, donde ocurre el gasto. No hay app web; este sitio es solo la puerta de entrada.",
+      "iphone": "iPhone",
+      "iphoneSoon": "En pruebas ahora, pronto en el App Store",
+      "iphoneLive": "Disponible en el App Store",
+      "android": "Android",
+      "androidStatus": "Lo siguiente en la lista",
+      "soon": "Pronto",
+      "available": "Disponible",
+      "later": "Más adelante"
     },
     "footer": {
-      "tagline": "Planifica antes de gastar.",
-      "rights": "© {year} WellSpent. Todos los derechos reservados."
+      "tagline": "Planifica antes de gastar. © {year} WellSpent"
     }
   },
-  "invite": {
-    "loading": "Cargando invitación…",
-    "title": "{inviterName} te invitó a unirte a {budgetName}",
-    "role": "Tu rol: {role}",
-    "expires": "Vence el {date}",
-    "accept": "Aceptar Invitación",
-    "accepting": "Aceptando…",
-    "success": "¡Invitación aceptada! Redirigiendo a tu presupuesto…",
-    "signIn": "Iniciar sesión para aceptar",
-    "register": "Crear cuenta",
-    "alreadyHaveAccount": "¿Ya tienes cuenta?",
-    "noAccount": "¿Aún no tienes cuenta?",
-    "error": {
-      "cancelled": "Esta invitación ha sido cancelada.",
-      "accepted": "Esta invitación ya fue aceptada.",
-      "expired": "Esta invitación ha vencido.",
-      "notFound": "Invitación no encontrada o inválida."
-    }
-  },
-  "notifications": {
-    "title": "Notificaciones",
-    "empty": "Sin notificaciones",
-    "markAllRead": "Marcar todo como leído",
-    "alerts": {
-      "description": "Elige qué eventos del presupuesto te notifican y cómo.",
-      "channel": "Entrega",
-      "threshold": "Umbral de alerta",
-      "scope": "Alcance de la alerta",
-      "category": "Categoría",
-      "types": {
-        "new_transaction": {
-          "label": "Nueva transacción",
-          "description": "Notificar cuando otro miembro agrega una transacción"
-        },
-        "spending_threshold": {
-          "label": "Umbral de gasto",
-          "description": "Notificar cuando el gasto supera un porcentaje del plan"
-        },
-        "period_created": {
-          "label": "Nuevo período de presupuesto",
-          "description": "Notificar cuando comienza un nuevo período de presupuesto"
-        },
-        "review_pending": {
-          "label": "Revisión pendiente",
-          "description": "Notificar cuando una importación de Plaid está pendiente de revisión"
-        }
-      },
-      "channels": {
-        "in_app": "En la app",
-        "email": "Correo electrónico",
-        "both": "Ambos"
-      },
-      "scopes": {
-        "budget": "Presupuesto total",
-        "category": "Por categoría"
-      },
-      "freeTierNote": "Gratuito: m�x 2 tipos de alerta � new_transaction requiere Pro"
-    }
-  },
-  "plaid": {
-    "empty": "Aún no hay cuentas bancarias conectadas.",
-    "connect": "Conectar cuenta bancaria",
-    "freeTierNote": "Solo disponible en cuentas Pro",
-    "manageAccounts": "Administrar cuentas",
-    "pickBudget": "¿A qué presupuesto deben ir las transacciones importadas?",
-    "noBudgets": "No tienes presupuestos. Crea uno primero.",
-    "cancel": "Cancelar",
-    "disconnect": "Desconectar",
-    "disconnectTitle": "¿Desconectar cuenta bancaria?",
-    "disconnectBody": "Las transacciones ya importadas de {name} permanecerán. No se importarán nuevas transacciones.",
-    "unknownBank": "Banco desconocido",
-    "unknownBudget": "Presupuesto desconocido",
-    "lastSynced": "Última sincronización {date}",
-    "neverSynced": "Nunca sincronizado",
-    "status": {
-      "active": "Activo",
-      "disconnected": "Desconectado",
-      "error": "Error"
+  "standalone": {
+    "verifyEmail": {
+      "verifyingTitle": "Confirmando tu correo",
+      "verifyingBody": "Un momento.",
+      "successTitle": "Correo confirmado",
+      "successBody": "Listo. Vuelve a la app de WellSpent y entrarás directamente.",
+      "errorTitle": "Este enlace no funcionó",
+      "errorBody": "Puede haber vencido; los enlaces duran 10 minutos. Abre la app de WellSpent y toca Reenviar para recibir uno nuevo."
     },
-    "syncWarningTitle": "Algunas cuentas no se están sincronizando",
-    "syncWarningMember": "{member} conectó {count, plural, one {# banco} other {# bancos}} a {budget}, pero su cuenta no tiene un plan pago, así que esas transacciones no se importarán. La sincronización bancaria es por persona, así que necesita mejorar su plan.",
-    "syncWarningSelf": "Conectaste {count, plural, one {# banco} other {# bancos}} a {budget}, pero tu cuenta no tiene un plan pago, así que esas transacciones no se importarán. Mejora a Pro para activar la sincronización bancaria.",
-    "budgetPanelIntro": "Conexiones bancarias que alimentan este presupuesto, de todos sus integrantes. Solo puedes modificar las tuyas.",
-    "emptyForBudget": "Todavía no hay cuentas bancarias conectadas a este presupuesto.",
-    "unknownMember": "Integrante desconocido",
-    "notYours": "Solo quien conectó este banco puede modificarlo",
-    "notSyncing": "Sin sincronizar",
-    "resync": "Volver a sincronizar",
-    "resyncTitle": "¿Volver a sincronizar este banco?",
-    "resyncBody": "WellSpent le pedirá a {name} todo su historial de transacciones otra vez, empezando ahora.",
-    "resyncWarning": "Las transacciones que eliminaste volverán a aparecer. Las ya importadas no se duplicarán.",
-    "resyncOncePerDay": "Disponible una vez al día por banco.",
-    "resyncCooldown": "Ya se sincronizó hoy — disponible de nuevo en {hours, plural, one {# hora} other {# horas}}",
-    "resyncSyncDisabled": "Este banco no se sincronizará hasta que su propietario tenga un plan de pago"
-  },
-  "statusBanner": {
-    "learnMore": "Ver más",
-    "showLess": "Ver menos",
-    "dismiss": "Descartar"
-  },
-  "changelog": {
-    "whatsNew": "Novedades",
-    "gotIt": "Entendido",
-    "empty": "Todavía no hay notas de versión.",
-    "type": {
-      "added": "Nuevo",
-      "fixed": "Corregido",
-      "changed": "Cambiado"
+    "invite": {
+      "title": "Te invitaron a un presupuesto",
+      "body": "Abre este enlace en tu iPhone con la app de WellSpent instalada para unirte. Inicia sesión o crea una cuenta con el correo al que llegó la invitación."
     },
-    "component": {
-      "web": "Esta aplicación",
-      "server": "Detrás de escena"
-    }
-  },
-  "help": {
-    "title": "Ayuda",
-    "changelogSubtitle": "Mira qué cambió en cada versión",
-    "component": {
-      "web": "Web",
-      "ios": "iOS",
-      "server": "Servidor"
+    "callback": {
+      "title": "Vuelve a WellSpent",
+      "body": "Puedes cerrar esta página y volver a la app."
     }
   }
 }
