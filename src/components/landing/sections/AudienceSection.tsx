@@ -9,7 +9,7 @@ const AUDIENCES = ['couples', 'freelancers', 'paydays'] as const
 export function AudienceSection() {
   const t = useTranslations('landing.audience')
   return (
-    <Box component="section" aria-labelledby="audience-title" sx={{ ...CONTAINER_SX, py: 9, display: 'flex', flexDirection: 'column', gap: 3.5 }}>
+    <Box component="section" aria-labelledby="audience-title" sx={{ ...CONTAINER_SX, py: { xs: 7, md: 9 }, display: 'flex', flexDirection: 'column', gap: 3.5 }}>
       <Box component="h2" id="audience-title" sx={H2_SX}>{t('title')}</Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 2 }}>
         {AUDIENCES.map((key) => (

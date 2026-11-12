@@ -47,10 +47,14 @@ export function LandingNav() {
       <Box
         component="nav"
         aria-label={t('label')}
-        sx={{ maxWidth: 1160, mx: 'auto', px: '20px', py: 1.25, display: 'flex', alignItems: 'center', gap: 3 }}
+        sx={{ maxWidth: 1160, mx: 'auto', px: '20px', py: 1.25, display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 3 } }}
       >
         <Box component="a" href="#top" aria-label={t('home')} sx={{ display: 'flex', alignItems: 'center', minHeight: 44 }}>
-          <BrandLockup height={36} />
+          {/* The square mark on phones: the full lockup and the buttons don't fit 320px. */}
+          <Box component="img" src="/mark-color.png" alt="WellSpent" sx={{ display: { xs: 'block', sm: 'none' }, width: 36, height: 36 }} />
+          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+            <BrandLockup height={36} />
+          </Box>
         </Box>
         <Box sx={{ flex: 1, display: { xs: 'none', md: 'flex' }, gap: 2.75 }}>
           {NAV_LINKS.map((link) => (
@@ -73,8 +77,8 @@ export function LandingNav() {
                 locale={l}
                 aria-current={l === locale ? 'true' : undefined}
                 sx={{
-                  height: 32,
-                  minWidth: 40,
+                  height: 38,
+                  minWidth: 44,
                   px: 1.25,
                   borderRadius: '7px',
                   display: 'inline-flex',
@@ -96,7 +100,7 @@ export function LandingNav() {
           <Box
             component="a"
             href={`#${SECTION_IDS.download}`}
-            sx={{ height: 44, px: 2.25, borderRadius: '12px', bgcolor: 'primary.main', color: 'primary.contrastText', fontSize: 15, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap' }}
+            sx={{ height: 44, px: { xs: 1.75, sm: 2.25 }, borderRadius: '12px', bgcolor: 'primary.main', color: 'primary.contrastText', fontSize: 15, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap' }}
           >
             {t('getApp')}
           </Box>

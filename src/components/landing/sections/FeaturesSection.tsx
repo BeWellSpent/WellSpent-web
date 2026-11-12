@@ -14,7 +14,7 @@ export function FeaturesSection() {
       component="section"
       id={SECTION_IDS.features}
       aria-labelledby="features-title"
-      sx={{ ...CONTAINER_SX, ...ANCHOR_SX, py: 9, display: 'flex', flexDirection: 'column', gap: 3.5 }}
+      sx={{ ...CONTAINER_SX, ...ANCHOR_SX, py: { xs: 7, md: 9 }, display: 'flex', flexDirection: 'column', gap: 3.5 }}
     >
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2 }}>
         <Box sx={{ maxWidth: 640, display: 'flex', flexDirection: 'column', gap: 1.25 }}>

@@ -10,7 +10,7 @@ export function HowItWorksSection() {
   const t = useTranslations('landing.how')
   return (
     <Box component="section" id={SECTION_IDS.how} aria-labelledby="how-title" sx={{ ...BAND_SX, ...ANCHOR_SX }}>
-      <Box sx={{ ...CONTAINER_SX, py: 9, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box sx={{ ...CONTAINER_SX, py: { xs: 7, md: 9 }, display: 'flex', flexDirection: 'column', gap: 4 }}>
         <Box sx={{ maxWidth: 640, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
           <Box component="span" sx={EYEBROW_SX}>{t('eyebrow')}</Box>
           <Box component="h2" id="how-title" sx={H2_SX}>{t('title')}</Box>
