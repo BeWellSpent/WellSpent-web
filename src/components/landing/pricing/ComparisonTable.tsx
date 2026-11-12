@@ -5,11 +5,11 @@ import { COMPARISON_ROWS } from './plans'
 const CELL_SX = { textAlign: 'left', px: 2.5, py: 1.6 } as const
 const HEAD_SX = { ...CELL_SX, py: 1.5, fontSize: 13, color: 'text.secondary', fontWeight: 600 } as const
 
-/** Free and Pro feature by feature; scrolls sideways on a phone rather than squashing. */
+/** Free and Pro feature by feature, from tablet width up; phones get `ComparisonList`. */
 export function ComparisonTable() {
   const t = useTranslations('landing.pricing')
   return (
-    <Box sx={{ overflowX: 'auto', border: 1, borderColor: 'divider', borderRadius: '18px' }}>
+    <Box sx={{ display: { xs: 'none', sm: 'block' }, overflowX: 'auto', border: 1, borderColor: 'divider', borderRadius: '18px' }}>
       <Box component="table" sx={{ width: '100%', minWidth: 560, borderCollapse: 'collapse', fontSize: 15 }}>
         <Box component="caption" sx={{ textAlign: 'left', px: 2.5, pt: 2, pb: 1, fontSize: 17, fontWeight: 700 }}>
           {t('table.caption')}

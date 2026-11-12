@@ -1,0 +1,11 @@
+{
+  "component": "web",
+  "version": "2.0.1",
+  "items": [
+    {
+      "changeType": "fixed",
+      "summaryEn": "The website fits every phone screen: no sideways scrolling, and the plan comparison reads as cards on a phone.",
+      "summaryEs": "El sitio se adapta a cualquier pantalla de teléfono: sin desplazamiento lateral, y la comparación de planes se lee en tarjetas en el teléfono."
+    }
+  ]
+}

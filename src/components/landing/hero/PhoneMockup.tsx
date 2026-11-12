@@ -29,7 +29,7 @@ function PersonCard({ initial, name, spent, pct, over, status, avatarBg, avatarF
 export function PhoneMockup() {
   const t = useTranslations('landing.hero.mockup')
   return (
-    <Box aria-hidden sx={{ width: 320, maxWidth: '100%', p: 1.5, borderRadius: '48px', bgcolor: '#101828', boxShadow: '0 30px 60px rgba(16,24,40,.22)' }}>
+    <Box aria-hidden sx={{ width: '100%', maxWidth: 320, p: 1.5, borderRadius: '48px', bgcolor: '#101828', boxShadow: '0 30px 60px rgba(16,24,40,.22)' }}>
       <Box sx={{ borderRadius: '38px', bgcolor: '#F4F5F7', color: '#101828', pt: 3.5, px: 1.75, pb: 2.25, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', px: 0.5 }}>
           <Box sx={{ fontSize: 13, fontWeight: 600 }}>{t('month')}</Box>

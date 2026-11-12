@@ -13,7 +13,7 @@ export function HeroSection() {
     <Box
       component="section"
       aria-labelledby="hero-title"
-      sx={{ ...CONTAINER_SX, pt: { xs: 6, md: 8 }, pb: { xs: 7, md: 9 }, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}
+      sx={{ ...CONTAINER_SX, pt: { xs: 6, md: 8 }, pb: { xs: 7, md: 9 }, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: { xs: 5, md: 6 } }}
     >
       <Box sx={{ flex: '1 1 440px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
         <Box
@@ -45,7 +45,7 @@ export function HeroSection() {
         </Box>
         <Box component="p" sx={{ m: 0, fontSize: 14, color: 'text.secondary' }}>{t('platforms')}</Box>
       </Box>
-      <Box sx={{ flex: '1 1 340px', display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ flex: '1 1 340px', minWidth: 0, display: 'flex', justifyContent: 'center' }}>
         <PhoneMockup />
       </Box>
     </Box>

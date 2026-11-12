@@ -2,6 +2,7 @@
 
 import Box from '@mui/material/Box'
 import { useTranslations } from 'next-intl'
+import { ComparisonList } from '../pricing/ComparisonList'
 import { ComparisonTable } from '../pricing/ComparisonTable'
 import { PlanCard } from '../pricing/PlanCard'
 import { FREE_ITEMS, PRO_ITEMS } from '../pricing/plans'
@@ -11,7 +12,7 @@ export function PricingSection() {
   const t = useTranslations('landing.pricing')
   return (
     <Box component="section" id={SECTION_IDS.pricing} aria-labelledby="pricing-title" sx={{ ...BAND_SX, ...ANCHOR_SX }}>
-      <Box sx={{ ...CONTAINER_SX, py: 9, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box sx={{ ...CONTAINER_SX, py: { xs: 7, md: 9 }, display: 'flex', flexDirection: 'column', gap: 4 }}>
         <Box sx={{ maxWidth: 640, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
           <Box component="span" sx={EYEBROW_SX}>{t('eyebrow')}</Box>
           <Box component="h2" id="pricing-title" sx={H2_SX}>{t('title')}</Box>
@@ -36,6 +37,7 @@ export function PricingSection() {
           />
         </Box>
         <ComparisonTable />
+        <ComparisonList />
       </Box>
     </Box>
   )
